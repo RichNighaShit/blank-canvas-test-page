@@ -173,40 +173,64 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
     try {
       updateStage('gemini-ai', { progress: 50, details: '🤖 Gemini analyzing clothing style and material...' });
       
-      const { data, error } = await supabase.functions.invoke('gemini-clothing-analysis', {
+      // Try Gemini first
+      const { data: geminiData, error: geminiError } = await supabase.functions.invoke('gemini-clothing-analysis', {
         body: { imageUrl }
       });
       
-      if (error) throw error;
-      
-      updateStage('gemini-ai', { progress: 80, details: '🧠 Processing AI insights and recommendations...' });
-      
-      if (data?.isClothing) {
-        setAnalysisResults(data);
+      if (!geminiError && geminiData?.isClothing) {
+        setAnalysisResults(geminiData);
         updateStage('gemini-ai', { 
           status: 'completed', 
           progress: 100, 
-          details: `✨ ${Math.round(data.confidence * 100)}% confidence - ${data.analysis.category} detected with ${data.analysis.colors?.length || 0} colors` 
+          details: `✨ Gemini AI: ${Math.round(geminiData.confidence * 100)}% confidence - ${geminiData.analysis.category} detected` 
         });
         
         return {
-          name: data.analysis.name || 'Clothing Item',
-          category: data.analysis.category || 'tops',
-          style: data.analysis.style || 'casual',
-          occasion: data.analysis.occasions || ['casual'],
-          season: data.analysis.seasons || ['spring', 'summer'],
-          color: data.analysis.colors || ['neutral'],
-          tags: [...(data.analysis.patterns || []), ...(data.analysis.materials || []), 'ai-analyzed', 'gemini-pro']
+          name: geminiData.analysis.name || 'Clothing Item',
+          category: geminiData.analysis.category || 'tops',
+          style: geminiData.analysis.style || 'casual',
+          occasion: geminiData.analysis.occasions || ['casual'],
+          season: geminiData.analysis.seasons || ['spring', 'summer'],
+          color: geminiData.analysis.colors || ['neutral'],
+          tags: [...(geminiData.analysis.patterns || []), ...(geminiData.analysis.materials || []), 'ai-analyzed', 'gemini-pro']
         };
-      } else {
-        throw new Error('Item not recognized as clothing by Gemini AI');
       }
+      
+      // Fallback to analyze-clothing
+      console.log('Gemini failed, falling back to analyze-clothing:', geminiError);
+      updateStage('gemini-ai', { progress: 80, details: '🔄 Using fallback AI analysis...' });
+      
+      const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke('analyze-clothing', {
+        body: { imageUrl }
+      });
+      
+      if (!fallbackError && fallbackData) {
+        updateStage('gemini-ai', { 
+          status: 'completed', 
+          progress: 100, 
+          details: '✅ Fallback AI analysis completed successfully' 
+        });
+        
+        return {
+          name: fallbackData.name || generateFallbackName(currentFile?.name || ''),
+          category: fallbackData.category || 'tops',
+          style: fallbackData.style || 'casual',
+          occasion: fallbackData.occasions || ['casual'],
+          season: fallbackData.seasons || ['spring', 'summer', 'fall', 'winter'],
+          color: fallbackData.colors || ['neutral'],
+          tags: [...(fallbackData.tags || []), 'ai-analyzed', 'fallback-ai']
+        };
+      }
+      
+      throw new Error('Both AI analyses failed');
+      
     } catch (error) {
-      console.warn('Gemini AI analysis encountered issues:', error);
+      console.warn('Both AI analyses failed, using basic analysis:', error);
       updateStage('gemini-ai', { 
         status: 'completed', 
         progress: 100, 
-        details: 'Using smart fallback analysis' 
+        details: 'Using basic image analysis' 
       });
       
       const filename = currentFile?.name || '';
@@ -217,7 +241,7 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
         occasion: ['casual'],
         season: ['spring', 'summer', 'fall', 'winter'],
         color: ['neutral'],
-        tags: ['needs-review', 'fallback-analysis']
+        tags: ['basic-analysis', 'needs-review']
       };
     }
   };
@@ -393,8 +417,8 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
               height={160}
             />
             <div className="space-y-2">
-              <p className="font-medium text-foreground">Ready for Gemini AI Analysis</p>
-              <p className="text-sm text-muted-foreground">Advanced AI will identify style, materials, colors, and provide styling suggestions</p>
+              <p className="font-medium text-foreground">Ready for AI Analysis</p>
+              <p className="text-sm text-muted-foreground">Gemini AI will analyze with fallback support for maximum reliability</p>
             </div>
           </div>
         ) : (
@@ -407,12 +431,12 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
               )}
             </div>
             <h3 className="text-2xl font-bold mb-3 text-foreground">
-              {isProcessing ? "🤖 Gemini AI Analysis in Progress..." : "Upload for AI Fashion Analysis"}
+              {isProcessing ? "🤖 AI Analysis in Progress..." : "Upload for AI Fashion Analysis"}
             </h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               {isProcessing 
-                ? "Google's advanced Gemini AI is analyzing your item's style, materials, colors, and creating styling suggestions" 
-                : "Drag & drop your photo for instant AI-powered fashion analysis with Google Gemini Pro"}
+                ? "Advanced AI is analyzing your item with Gemini AI + fallback support" 
+                : "Drag & drop your photo for instant AI-powered fashion analysis with dual AI systems"}
             </p>
             
             {!isProcessing && (
@@ -423,11 +447,11 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
                 </div>
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4" />
-                  <span>Style Analysis</span>
+                  <span>Fallback AI</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Palette className="w-4 h-4" />
-                  <span>Color Detection</span>
+                  <span>Dual Analysis</span>
                 </div>
               </div>
             )}
