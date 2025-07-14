@@ -99,9 +99,9 @@ Respond with ONLY this JSON structure (no extra text):
 
 CRITICAL: Only use values from the predefined options above. If unsure, choose the closest match.`;
 
-    // Prepare the AI analysis request using the correct OpenRouter format for Gemini
+    // Prepare the AI analysis request using the correct OpenRouter format for Gemini 2.0 Flash Free
     const aiRequest = {
-      model: "google/gemini-2.0-flash-exp:free", // Updated to correct working model with :free suffix
+      model: "google/gemini-2.0-flash-exp:free",
       messages: [
         {
           role: "user",
@@ -120,11 +120,11 @@ CRITICAL: Only use values from the predefined options above. If unsure, choose t
         }
       ],
       max_tokens: 1500,
-      temperature: 0.1, // Lower temperature for more consistent responses
+      temperature: 0.1,
       response_format: { type: "json_object" }
     };
 
-    console.log('Making constrained request to OpenRouter API with Gemini 2.0 Flash Free');
+    console.log('Making constrained request to OpenRouter API with Gemini 2.0 Flash Free model:', aiRequest.model);
 
     // Make request to OpenRouter with Gemini using correct format
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -147,7 +147,7 @@ CRITICAL: Only use values from the predefined options above. If unsure, choose t
     }
 
     const aiResponse = await response.json();
-    console.log('OpenRouter response received');
+    console.log('OpenRouter response received successfully');
     
     const aiContent = aiResponse.choices?.[0]?.message?.content;
 
@@ -155,7 +155,7 @@ CRITICAL: Only use values from the predefined options above. If unsure, choose t
       throw new Error('No content received from AI');
     }
 
-    console.log('AI content:', aiContent);
+    console.log('AI content received:', aiContent);
 
     // Parse and validate AI response
     let analysisResult;
