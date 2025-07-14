@@ -34,14 +34,14 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Gemini clothing analysis function called');
+    console.log('AI clothing analysis function called');
     
     const { imageUrl } = await req.json();
     if (!imageUrl) {
       throw new Error('Image URL is required');
     }
 
-    console.log('Starting Gemini 2.0 Flash analysis for:', imageUrl);
+    console.log('Starting constrained AI analysis for:', imageUrl);
 
     // Get API key from Supabase secrets
     const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
@@ -99,9 +99,9 @@ Respond with ONLY this JSON structure (no extra text):
 
 CRITICAL: Only use values from the predefined options above. If unsure, choose the closest match.`;
 
-    // Prepare the AI analysis request using the CORRECT Gemini 2.0 Flash model
-    const aiRequest = {
-      model: "google/gemini-2.0-flash-exp:free",  // CORRECT model name
+    // Try Claude 3.5 Haiku first (more reliable)
+    const claudeRequest = {
+      model: "anthropic/claude-3-5-haiku-20241022",
       messages: [
         {
           role: "user",
@@ -123,145 +123,172 @@ CRITICAL: Only use values from the predefined options above. If unsure, choose t
       temperature: 0.1
     };
 
-    console.log('Making request to OpenRouter API with CORRECT Gemini 2.0 Flash model:', aiRequest.model);
-    console.log('Request payload:', JSON.stringify(aiRequest, null, 2));
+    console.log('Trying Claude 3.5 Haiku first:', claudeRequest.model);
 
-    // Make request to OpenRouter with the CORRECT Gemini model
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    try {
+      const claudeResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openRouterApiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://yourapp.lovable.dev',
+          'X-Title': 'AI Wardrobe Assistant'
+        },
+        body: JSON.stringify(claudeRequest)
+      });
+
+      console.log('Claude response status:', claudeResponse.status);
+
+      if (claudeResponse.ok) {
+        const claudeData = await claudeResponse.json();
+        console.log('Claude response received successfully');
+        
+        const aiContent = claudeData.choices?.[0]?.message?.content;
+        if (aiContent) {
+          console.log('Claude AI content received:', aiContent);
+          
+          try {
+            const analysisResult = JSON.parse(aiContent);
+            console.log('Successfully parsed Claude response:', analysisResult);
+            
+            // Validate and fix if needed
+            const validation = validateAnalysisResult(analysisResult);
+            if (!validation.isValid) {
+              console.warn('Claude validation issues:', validation.issues);
+              analysisResult = fixInvalidValues(analysisResult);
+            }
+            
+            console.log('Claude 3.5 Haiku analysis complete:', analysisResult);
+            return new Response(JSON.stringify(analysisResult), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+            
+          } catch (parseError) {
+            console.warn('Failed to parse Claude response, falling back to Gemini:', parseError);
+          }
+        }
+      } else {
+        const errorText = await claudeResponse.text();
+        console.warn('Claude API failed:', claudeResponse.status, errorText);
+      }
+    } catch (claudeError) {
+      console.warn('Claude request failed, trying Gemini fallback:', claudeError);
+    }
+
+    // Fallback to Gemini if Claude fails
+    console.log('Falling back to Gemini 2.0 Flash');
+    
+    const geminiRequest = {
+      model: "google/gemini-2.0-flash-exp:free",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: structuredPrompt
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: imageUrl
+              }
+            }
+          ]
+        }
+      ],
+      max_tokens: 1500,
+      temperature: 0.1
+    };
+
+    const geminiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openRouterApiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://yourapp.lovable.dev',
+        'HTTP-Referer': 'https://yourapp.lovable.dev',  
         'X-Title': 'AI Wardrobe Assistant'
       },
-      body: JSON.stringify(aiRequest)
+      body: JSON.stringify(geminiRequest)
     });
 
-    console.log('OpenRouter response status:', response.status);
-    console.log('OpenRouter response headers:', Object.fromEntries(response.headers.entries()));
+    console.log('Gemini response status:', geminiResponse.status);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenRouter API error details:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText,
-        model: aiRequest.model
-      });
-      
-      // Return a structured fallback response instead of throwing
-      return new Response(JSON.stringify({
-        isClothing: true,
-        confidence: 0.3,
-        analysis: {
-          name: "Clothing Item (API Error)",
-          category: "tops",
-          subcategory: "shirt",
-          style: "casual",
-          colors: ["neutral"],
-          patterns: ["solid"],
-          materials: ["blend"],
-          occasions: ["casual"],
-          seasons: ["spring", "summer", "fall", "winter"],
-          fit: "regular",
-          description: "API analysis failed - using fallback detection",
-          brand_visible: false,
-          condition: "good",
-          versatility_score: 5
-        },
-        styling_suggestions: [
-          "Versatile basic piece",
-          "Good for layering"
-        ],
-        care_instructions: [
-          "Follow garment care label",
-          "Machine wash if appropriate"
-        ],
-        reasoning: `OpenRouter API error ${response.status}: ${errorText}. Model: ${aiRequest.model}`
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    if (geminiResponse.ok) {
+      const geminiData = await geminiResponse.json();
+      const aiContent = geminiData.choices?.[0]?.message?.content;
 
-    const aiResponse = await response.json();
-    console.log('OpenRouter response received successfully:', JSON.stringify(aiResponse, null, 2));
-    
-    const aiContent = aiResponse.choices?.[0]?.message?.content;
-
-    if (!aiContent) {
-      console.error('No content received from AI response:', aiResponse);
-      throw new Error('No content received from AI');
-    }
-
-    console.log('AI content received:', aiContent);
-
-    // Parse and validate AI response
-    let analysisResult;
-    try {
-      analysisResult = JSON.parse(aiContent);
-      console.log('Successfully parsed AI response:', analysisResult);
-      
-      // Validate that all values are from our predefined options
-      const validation = validateAnalysisResult(analysisResult);
-      if (!validation.isValid) {
-        console.warn('Validation issues:', validation.issues);
-        // Fix invalid values
-        analysisResult = fixInvalidValues(analysisResult);
+      if (aiContent) {
+        console.log('Gemini AI content received:', aiContent);
+        
+        try {
+          const analysisResult = JSON.parse(aiContent);
+          console.log('Successfully parsed Gemini response:', analysisResult);
+          
+          const validation = validateAnalysisResult(analysisResult);
+          if (!validation.isValid) {
+            console.warn('Gemini validation issues:', validation.issues);
+            analysisResult = fixInvalidValues(analysisResult);
+          }
+          
+          console.log('Gemini 2.0 Flash analysis complete:', analysisResult);
+          return new Response(JSON.stringify(analysisResult), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+          
+        } catch (parseError) {
+          console.error('Failed to parse Gemini response:', parseError);
+        }
       }
-      
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
-      console.error('Raw AI content:', aiContent);
-      
-      // Return structured fallback instead of throwing
-      return new Response(JSON.stringify({
-        isClothing: true,
-        confidence: 0.3,
-        analysis: {
-          name: "Clothing Item (Parse Failed)",
-          category: "tops",
-          subcategory: "shirt",
-          style: "casual",
-          colors: ["neutral"],
-          patterns: ["solid"],
-          materials: ["blend"],
-          occasions: ["casual"],
-          seasons: ["spring", "summer", "fall", "winter"],
-          fit: "regular",
-          description: "AI response parsing failed - using fallback",
-          brand_visible: false,
-          condition: "good",
-          versatility_score: 5
-        },
-        styling_suggestions: [
-          "Basic clothing item",
-          "Needs manual review"
-        ],
-        care_instructions: [
-          "Follow garment care label"
-        ],
-        reasoning: `Failed to parse Gemini response: ${parseError.message}`
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    } else {
+      const errorText = await geminiResponse.text();
+      console.error('Gemini API error:', geminiResponse.status, errorText);
     }
 
-    console.log('Gemini 2.0 Flash analysis complete:', analysisResult);
-
-    return new Response(JSON.stringify(analysisResult), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
-  } catch (error) {
-    console.error('Gemini analysis error:', error);
-    
-    // Return structured fallback response instead of error
+    // If both AI models fail, return structured fallback
+    console.log('Both AI models failed, returning structured fallback');
     return new Response(JSON.stringify({
       isClothing: true,
       confidence: 0.3,
       analysis: {
-        name: "Clothing Item (Error)",
+        name: "Clothing Item (AI Analysis Failed)",
+        category: "tops",
+        subcategory: "shirt",
+        style: "casual",
+        colors: ["neutral"],
+        patterns: ["solid"],
+        materials: ["blend"],
+        occasions: ["casual"],
+        seasons: ["spring", "summer", "fall", "winter"],
+        fit: "regular",
+        description: "Both AI analyses failed - using fallback detection",
+        brand_visible: false,
+        condition: "good",
+        versatility_score: 5
+      },
+      styling_suggestions: [
+        "Basic clothing item",
+        "Manual review recommended",
+        "Try uploading again later"
+      ],
+      care_instructions: [
+        "Follow garment care label",
+        "Machine wash if appropriate"
+      ],
+      reasoning: "Both Claude and Gemini AI analyses failed - fallback response provided"
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('Function error:', error);
+    
+    // Return structured fallback response instead of error
+    return new Response(JSON.stringify({
+      isClothing: true,
+      confidence: 0.2,
+      analysis: {
+        name: "Clothing Item (Function Error)",
         category: "tops",
         subcategory: "shirt", 
         style: "casual",
@@ -271,19 +298,19 @@ CRITICAL: Only use values from the predefined options above. If unsure, choose t
         occasions: ["casual"],
         seasons: ["spring", "summer", "fall", "winter"],
         fit: "regular",
-        description: "Analysis error occurred - using fallback",
+        description: "Function error occurred - using fallback",
         brand_visible: false,
         condition: "good",
         versatility_score: 5
       },
       styling_suggestions: [
         "Basic clothing item",
-        "Manual review recommended"
+        "Function error - retry recommended"
       ],
       care_instructions: [
         "Follow garment care label"
       ],
-      reasoning: `Analysis failed: ${error.message}`
+      reasoning: `Function failed: ${error.message}`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
