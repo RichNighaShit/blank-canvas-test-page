@@ -143,7 +143,12 @@ CRITICAL: Only use values from the predefined options above. If unsure, choose t
         console.log('Direct Gemini AI content received:', aiContent);
         
         try {
-          const analysisResult = JSON.parse(aiContent);
+          // Clean code fences from Gemini response before parsing
+          const cleaned = aiContent
+            .replace(/```json/g, '')
+            .replace(/```/g, '')
+            .trim();
+          let analysisResult = JSON.parse(cleaned);
           console.log('Successfully parsed direct Gemini response:', analysisResult);
           
           // Validate and fix if needed
@@ -244,8 +249,14 @@ async function getBase64FromUrl(url: string): Promise<string> {
   try {
     const response = await fetch(url);
     const arrayBuffer = await response.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-    return base64;
+    // Convert ArrayBuffer to binary string in chunks to avoid stack overflow
+    let binary = '';
+    const bytes = new Uint8Array(arrayBuffer);
+    const chunkSize = 0x8000; // 32k chunks
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize) as any);
+    }
+    return btoa(binary);
   } catch (error) {
     console.error('Failed to convert image to base64:', error);
     throw new Error('Failed to process image for Gemini API');
