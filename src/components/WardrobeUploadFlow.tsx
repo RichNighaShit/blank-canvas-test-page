@@ -177,8 +177,8 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
       
       console.log('Constrained Gemini response:', { data: geminiData, error: geminiError });
       
-      // Check if Gemini succeeded (no error response and valid analysis)
-      if (!geminiError && geminiData && !geminiData.error && geminiData.isClothing && geminiData.confidence > 0.6) {
+      // Check if Gemini succeeded (no error response and valid analysis) - LOWERED confidence threshold
+      if (!geminiError && geminiData && !geminiData.error && geminiData.isClothing && geminiData.confidence > 0.2) {
         setAnalysisResults(geminiData);
         updateStage('gemini-ai', { 
           status: 'completed', 
