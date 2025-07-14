@@ -7,6 +7,26 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+// Predefined options that match our app's schema
+const PREDEFINED_OPTIONS = {
+  categories: ['tops', 'bottoms', 'dresses', 'outerwear', 'shoes', 'accessories'],
+  styles: ['casual', 'formal', 'sporty', 'elegant', 'bohemian', 'minimalist', 'streetwear', 'vintage'],
+  colors: [
+    'black', 'white', 'gray', 'light-gray', 'dark-gray', 'charcoal',
+    'red', 'light-red', 'pink', 'coral',
+    'orange', 'yellow', 'light-yellow', 'cream',
+    'green', 'light-green', 'sage', 'teal',
+    'blue', 'light-blue', 'navy', 'cyan',
+    'purple', 'magenta', 'neutral'
+  ],
+  occasions: ['casual', 'work', 'formal', 'party', 'sport', 'travel', 'date'],
+  seasons: ['spring', 'summer', 'fall', 'winter'],
+  fits: ['slim', 'regular', 'loose', 'oversized', 'fitted'],
+  patterns: ['solid', 'stripes', 'floral', 'geometric', 'abstract', 'dots', 'plaid', 'textured', 'patterned'],
+  materials: ['cotton', 'denim', 'leather', 'polyester', 'wool', 'silk', 'linen', 'cashmere', 'synthetic', 'blend'],
+  conditions: ['new', 'excellent', 'good', 'fair', 'worn']
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -21,7 +41,7 @@ serve(async (req) => {
       throw new Error('Image URL is required');
     }
 
-    console.log('Starting Gemini AI clothing analysis for:', imageUrl);
+    console.log('Starting constrained Gemini AI clothing analysis for:', imageUrl);
 
     // Get API key from Supabase secrets
     const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
@@ -31,34 +51,41 @@ serve(async (req) => {
       throw new Error('OPENROUTER_API_KEY not found in environment variables');
     }
 
-    // Prepare the AI analysis request
-    const aiRequest = {
-      model: "google/gemini-2.5-pro-exp-03-25",
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Analyze this clothing item image and provide detailed information in JSON format:
+    // Create structured prompt with our predefined options
+    const structuredPrompt = `Analyze this clothing item image and provide detailed information in EXACT JSON format. 
+
+IMPORTANT: You MUST choose values ONLY from the predefined options below. Do not create new values.
+
+PREDEFINED OPTIONS:
+- categories: ${PREDEFINED_OPTIONS.categories.join(', ')}
+- styles: ${PREDEFINED_OPTIONS.styles.join(', ')}
+- colors: ${PREDEFINED_OPTIONS.colors.join(', ')}
+- occasions: ${PREDEFINED_OPTIONS.occasions.join(', ')}
+- seasons: ${PREDEFINED_OPTIONS.seasons.join(', ')}
+- fits: ${PREDEFINED_OPTIONS.fits.join(', ')}
+- patterns: ${PREDEFINED_OPTIONS.patterns.join(', ')}
+- materials: ${PREDEFINED_OPTIONS.materials.join(', ')}
+- conditions: ${PREDEFINED_OPTIONS.conditions.join(', ')}
+
+Respond with ONLY this JSON structure (no extra text):
 
 {
   "isClothing": boolean,
   "confidence": number (0-1),
   "analysis": {
     "name": "descriptive name for the item",
-    "category": "tops|bottoms|dresses|outerwear|shoes|accessories",
+    "category": "MUST be one of: ${PREDEFINED_OPTIONS.categories.join(' | ')}",
     "subcategory": "specific type (e.g., t-shirt, jeans, sneakers)",
-    "style": "casual|formal|sporty|elegant|bohemian|minimalist|streetwear|vintage",
-    "colors": ["primary color", "secondary color", "accent color"],
-    "patterns": ["solid|stripes|floral|geometric|abstract|etc"],
-    "materials": ["cotton|denim|leather|polyester|wool|silk|etc"],
-    "occasions": ["casual|work|formal|party|sport|travel|date"],
-    "seasons": ["spring|summer|fall|winter"],
-    "fit": "slim|regular|loose|oversized|fitted",
+    "style": "MUST be one of: ${PREDEFINED_OPTIONS.styles.join(' | ')}",
+    "colors": ["MUST be from: ${PREDEFINED_OPTIONS.colors.join(', ')}"],
+    "patterns": ["MUST be from: ${PREDEFINED_OPTIONS.patterns.join(', ')}"],
+    "materials": ["MUST be from: ${PREDEFINED_OPTIONS.materials.join(', ')}"],
+    "occasions": ["MUST be from: ${PREDEFINED_OPTIONS.occasions.join(', ')}"],
+    "seasons": ["MUST be from: ${PREDEFINED_OPTIONS.seasons.join(', ')}"],
+    "fit": "MUST be one of: ${PREDEFINED_OPTIONS.fits.join(' | ')}",
     "description": "detailed description of the item",
     "brand_visible": boolean,
-    "condition": "new|good|fair|worn",
+    "condition": "MUST be one of: ${PREDEFINED_OPTIONS.conditions.join(' | ')}",
     "versatility_score": number (1-10)
   },
   "styling_suggestions": [
@@ -67,10 +94,21 @@ serve(async (req) => {
     "suggestion 3"
   ],
   "care_instructions": ["wash instructions", "care tips"],
-  "reasoning": "explanation of the analysis"
+  "reasoning": "brief explanation of the analysis"
 }
 
-Be very detailed and accurate. If it's not clothing, set isClothing to false and provide reasoning.`
+CRITICAL: Only use values from the predefined options above. If unsure, choose the closest match.`;
+
+    // Prepare the AI analysis request
+    const aiRequest = {
+      model: "google/gemini-2.0-flash-exp",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: structuredPrompt
             },
             {
               type: "image_url",
@@ -81,11 +119,12 @@ Be very detailed and accurate. If it's not clothing, set isClothing to false and
           ]
         }
       ],
-      max_tokens: 2000,
-      temperature: 0.3
+      max_tokens: 1500,
+      temperature: 0.1, // Lower temperature for more consistent responses
+      response_format: { type: "json_object" }
     };
 
-    console.log('Making request to OpenRouter API');
+    console.log('Making constrained request to OpenRouter API with Gemini');
 
     // Make request to OpenRouter with Gemini
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -118,45 +157,27 @@ Be very detailed and accurate. If it's not clothing, set isClothing to false and
 
     console.log('AI content:', aiContent);
 
-    // Parse AI response
+    // Parse and validate AI response
     let analysisResult;
     try {
-      // Extract JSON from the response (in case there's extra text)
-      const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch ? jsonMatch[0] : aiContent;
-      analysisResult = JSON.parse(jsonStr);
+      analysisResult = JSON.parse(aiContent);
       console.log('Successfully parsed AI response');
+      
+      // Validate that all values are from our predefined options
+      const validation = validateAnalysisResult(analysisResult);
+      if (!validation.isValid) {
+        console.warn('Validation issues:', validation.issues);
+        // Fix invalid values
+        analysisResult = fixInvalidValues(analysisResult);
+      }
+      
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
       console.error('Raw AI content:', aiContent);
-      
-      // Fallback analysis
-      analysisResult = {
-        isClothing: true,
-        confidence: 0.5,
-        analysis: {
-          name: 'Clothing Item',
-          category: 'tops',
-          subcategory: 'shirt',
-          style: 'casual',
-          colors: ['neutral'],
-          patterns: ['solid'],
-          materials: ['cotton'],
-          occasions: ['casual'],
-          seasons: ['spring', 'summer', 'fall', 'winter'],
-          fit: 'regular',
-          description: 'AI analysis failed - manual review needed',
-          brand_visible: false,
-          condition: 'good',
-          versatility_score: 5
-        },
-        styling_suggestions: ['Can be styled casually', 'Versatile piece'],
-        care_instructions: ['Follow garment care label'],
-        reasoning: 'Fallback analysis due to parsing error'
-      };
+      throw new Error('Failed to parse Gemini response - falling back to analyze-clothing');
     }
 
-    console.log('AI Analysis complete:', analysisResult);
+    console.log('Constrained Gemini analysis complete:', analysisResult);
 
     return new Response(JSON.stringify(analysisResult), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -165,34 +186,180 @@ Be very detailed and accurate. If it's not clothing, set isClothing to false and
   } catch (error) {
     console.error('Gemini analysis error:', error);
     
-    // Return fallback response instead of error
-    const fallbackResult = {
-      isClothing: true,
-      confidence: 0.3,
-      analysis: {
-        name: 'Clothing Item (Analysis Failed)',
-        category: 'tops',
-        subcategory: 'shirt',
-        style: 'casual',
-        colors: ['neutral'],
-        patterns: ['solid'],
-        materials: ['unknown'],
-        occasions: ['casual'],
-        seasons: ['spring', 'summer', 'fall', 'winter'],
-        fit: 'regular',
-        description: 'AI analysis temporarily unavailable - please add details manually',
-        brand_visible: false,
-        condition: 'good',
-        versatility_score: 5
-      },
-      styling_suggestions: ['Versatile basic piece', 'Good for layering'],
-      care_instructions: ['Follow garment care label', 'Machine wash if appropriate'],
-      reasoning: `Analysis failed: ${error.message}. Using fallback detection.`
-    };
-
-    return new Response(JSON.stringify(fallbackResult), {
-      status: 200,
+    // Return error response to trigger fallback to analyze-clothing
+    return new Response(JSON.stringify({
+      error: true,
+      message: error.message,
+      fallback: true
+    }), {
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
+
+// Validation function to ensure all values are from predefined options
+function validateAnalysisResult(result: any): { isValid: boolean, issues: string[] } {
+  const issues: string[] = [];
+  
+  if (!result.analysis) {
+    issues.push('Missing analysis object');
+    return { isValid: false, issues };
+  }
+  
+  const analysis = result.analysis;
+  
+  // Validate category
+  if (!PREDEFINED_OPTIONS.categories.includes(analysis.category)) {
+    issues.push(`Invalid category: ${analysis.category}`);
+  }
+  
+  // Validate style
+  if (!PREDEFINED_OPTIONS.styles.includes(analysis.style)) {
+    issues.push(`Invalid style: ${analysis.style}`);
+  }
+  
+  // Validate colors
+  if (analysis.colors && Array.isArray(analysis.colors)) {
+    analysis.colors.forEach((color: string) => {
+      if (!PREDEFINED_OPTIONS.colors.includes(color)) {
+        issues.push(`Invalid color: ${color}`);
+      }
+    });
+  }
+  
+  // Validate occasions
+  if (analysis.occasions && Array.isArray(analysis.occasions)) {
+    analysis.occasions.forEach((occasion: string) => {
+      if (!PREDEFINED_OPTIONS.occasions.includes(occasion)) {
+        issues.push(`Invalid occasion: ${occasion}`);
+      }
+    });
+  }
+  
+  // Validate seasons
+  if (analysis.seasons && Array.isArray(analysis.seasons)) {
+    analysis.seasons.forEach((season: string) => {
+      if (!PREDEFINED_OPTIONS.seasons.includes(season)) {
+        issues.push(`Invalid season: ${season}`);
+      }
+    });
+  }
+  
+  return { isValid: issues.length === 0, issues };
+}
+
+// Function to fix invalid values by mapping to closest valid options
+function fixInvalidValues(result: any): any {
+  if (!result.analysis) return result;
+  
+  const analysis = result.analysis;
+  
+  // Fix category
+  if (!PREDEFINED_OPTIONS.categories.includes(analysis.category)) {
+    analysis.category = mapToClosestCategory(analysis.category) || 'tops';
+  }
+  
+  // Fix style
+  if (!PREDEFINED_OPTIONS.styles.includes(analysis.style)) {
+    analysis.style = mapToClosestStyle(analysis.style) || 'casual';
+  }
+  
+  // Fix colors
+  if (analysis.colors && Array.isArray(analysis.colors)) {
+    analysis.colors = analysis.colors
+      .map((color: string) => mapToClosestColor(color))
+      .filter(Boolean)
+      .slice(0, 3);
+    if (analysis.colors.length === 0) analysis.colors = ['neutral'];
+  }
+  
+  // Fix occasions
+  if (analysis.occasions && Array.isArray(analysis.occasions)) {
+    analysis.occasions = analysis.occasions
+      .map((occasion: string) => mapToClosestOccasion(occasion))
+      .filter(Boolean)
+      .slice(0, 3);
+    if (analysis.occasions.length === 0) analysis.occasions = ['casual'];
+  }
+  
+  // Fix seasons
+  if (analysis.seasons && Array.isArray(analysis.seasons)) {
+    analysis.seasons = analysis.seasons
+      .map((season: string) => mapToClosestSeason(season))
+      .filter(Boolean);
+    if (analysis.seasons.length === 0) analysis.seasons = ['spring', 'summer'];
+  }
+  
+  return result;
+}
+
+// Mapping functions for closest matches
+function mapToClosestCategory(category: string): string | null {
+  const lower = category?.toLowerCase() || '';
+  if (lower.includes('shirt') || lower.includes('top') || lower.includes('blouse')) return 'tops';
+  if (lower.includes('pant') || lower.includes('jean') || lower.includes('bottom')) return 'bottoms';
+  if (lower.includes('dress') || lower.includes('gown')) return 'dresses';
+  if (lower.includes('jacket') || lower.includes('coat') || lower.includes('blazer')) return 'outerwear';
+  if (lower.includes('shoe') || lower.includes('boot') || lower.includes('sneaker')) return 'shoes';
+  if (lower.includes('bag') || lower.includes('accessory') || lower.includes('hat')) return 'accessories';
+  return 'tops';
+}
+
+function mapToClosestStyle(style: string): string | null {
+  const lower = style?.toLowerCase() || '';
+  if (lower.includes('formal') || lower.includes('business')) return 'formal';
+  if (lower.includes('sport') || lower.includes('athletic')) return 'sporty';
+  if (lower.includes('elegant') || lower.includes('fancy')) return 'elegant';
+  if (lower.includes('boho') || lower.includes('hippie')) return 'bohemian';
+  if (lower.includes('minimal') || lower.includes('simple')) return 'minimalist';
+  if (lower.includes('street') || lower.includes('urban')) return 'streetwear';
+  if (lower.includes('vintage') || lower.includes('retro')) return 'vintage';
+  return 'casual';
+}
+
+function mapToClosestColor(color: string): string | null {
+  const lower = color?.toLowerCase() || '';
+  // Direct matches first
+  if (PREDEFINED_OPTIONS.colors.includes(lower)) return lower;
+  
+  // Fuzzy matches
+  if (lower.includes('black') || lower.includes('dark')) return 'black';
+  if (lower.includes('white') || lower.includes('cream')) return 'white';
+  if (lower.includes('red')) return 'red';
+  if (lower.includes('blue')) return 'blue';
+  if (lower.includes('green')) return 'green';
+  if (lower.includes('yellow')) return 'yellow';
+  if (lower.includes('orange')) return 'orange';
+  if (lower.includes('purple')) return 'purple';
+  if (lower.includes('pink')) return 'pink';
+  if (lower.includes('gray') || lower.includes('grey')) return 'gray';
+  
+  return 'neutral';
+}
+
+function mapToClosestOccasion(occasion: string): string | null {
+  const lower = occasion?.toLowerCase() || '';
+  if (PREDEFINED_OPTIONS.occasions.includes(lower)) return lower;
+  
+  if (lower.includes('work') || lower.includes('business') || lower.includes('office')) return 'work';
+  if (lower.includes('formal') || lower.includes('wedding') || lower.includes('ceremony')) return 'formal';
+  if (lower.includes('party') || lower.includes('celebration') || lower.includes('event')) return 'party';
+  if (lower.includes('sport') || lower.includes('gym') || lower.includes('exercise')) return 'sport';
+  if (lower.includes('travel') || lower.includes('vacation')) return 'travel';
+  if (lower.includes('date') || lower.includes('romantic')) return 'date';
+  
+  return 'casual';
+}
+
+function mapToClosestSeason(season: string): string | null {
+  const lower = season?.toLowerCase() || '';
+  if (PREDEFINED_OPTIONS.seasons.includes(lower)) return lower;
+  
+  if (lower.includes('spring')) return 'spring';
+  if (lower.includes('summer')) return 'summer';
+  if (lower.includes('fall') || lower.includes('autumn')) return 'fall';
+  if (lower.includes('winter')) return 'winter';
+  
+  return null;
+}

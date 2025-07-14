@@ -49,7 +49,7 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
     { id: 'validate', name: 'Image Validation', status: 'pending', progress: 0, details: 'Checking image quality and format' },
     { id: 'optimize', name: 'Smart Optimization', status: 'pending', progress: 0, details: 'Enhancing image for AI analysis' },
     { id: 'upload', name: 'Secure Upload', status: 'pending', progress: 0, details: 'Storing in cloud storage' },
-    { id: 'gemini-ai', name: '🤖 Gemini AI Analysis', status: 'pending', progress: 0, details: 'Advanced clothing recognition with Google Gemini' },
+    { id: 'gemini-ai', name: '🤖 Constrained Gemini AI Analysis', status: 'pending', progress: 0, details: 'Advanced clothing recognition with structured responses' },
     { id: 'save', name: 'Smart Cataloging', status: 'pending', progress: 0, details: 'Adding to your wardrobe with AI insights' },
   ];
 
@@ -82,11 +82,6 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
         if (file.size > 15 * 1024 * 1024) {
           reject(new Error('File too large (maximum 15MB)'));
           return;
-        }
-        
-        const aspectRatio = img.width / img.height;
-        if (aspectRatio > 5 || aspectRatio < 0.2) {
-          console.warn('Unusual aspect ratio detected - may affect analysis quality');
         }
         
         updateStage('validate', { status: 'completed', progress: 100, details: 'Image validation successful' });
@@ -167,27 +162,28 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
     return data.publicUrl;
   };
 
-  const analyzeWithGeminiAI = async (imageUrl: string): Promise<Partial<WardrobeItem>> => {
-    updateStage('gemini-ai', { status: 'processing', progress: 20, details: 'Initializing Gemini AI models...' });
+  const analyzeWithConstrainedAI = async (imageUrl: string): Promise<Partial<WardrobeItem>> => {
+    updateStage('gemini-ai', { status: 'processing', progress: 20, details: 'Initializing constrained Gemini AI...' });
     
     try {
-      updateStage('gemini-ai', { progress: 50, details: '🤖 Gemini analyzing clothing style and material...' });
+      updateStage('gemini-ai', { progress: 50, details: '🤖 Gemini analyzing with predefined categories...' });
       
-      console.log('Attempting Gemini AI analysis for:', imageUrl);
+      console.log('Attempting constrained Gemini AI analysis for:', imageUrl);
       
-      // Try Gemini first
+      // Try Gemini with constrained responses first
       const { data: geminiData, error: geminiError } = await supabase.functions.invoke('gemini-clothing-analysis', {
         body: { imageUrl }
       });
       
-      console.log('Gemini response:', { data: geminiData, error: geminiError });
+      console.log('Constrained Gemini response:', { data: geminiData, error: geminiError });
       
-      if (!geminiError && geminiData?.isClothing && geminiData.confidence > 0.5) {
+      // Check if Gemini succeeded (no error response and valid analysis)
+      if (!geminiError && geminiData && !geminiData.error && geminiData.isClothing && geminiData.confidence > 0.6) {
         setAnalysisResults(geminiData);
         updateStage('gemini-ai', { 
           status: 'completed', 
           progress: 100, 
-          details: `✨ Gemini AI: ${Math.round(geminiData.confidence * 100)}% confidence - ${geminiData.analysis.category} detected` 
+          details: `✨ Constrained Gemini AI: ${Math.round(geminiData.confidence * 100)}% confidence - ${geminiData.analysis.category} detected` 
         });
         
         return {
@@ -200,16 +196,15 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
           tags: [
             ...(geminiData.analysis.patterns || []),
             ...(geminiData.analysis.materials || []),
-            'ai-analyzed',
-            'gemini-pro',
+            'constrained-gemini',
             `confidence-${Math.round(geminiData.confidence * 100)}`
           ]
         };
       }
       
-      // Fallback to analyze-clothing with enhanced parameters
-      console.log('Gemini failed or low confidence, using fallback AI analysis');
-      updateStage('gemini-ai', { progress: 80, details: '🔄 Using enhanced fallback AI analysis...' });
+      // Fallback to analyze-clothing if Gemini fails or has low confidence
+      console.log('Constrained Gemini failed or low confidence, using analyze-clothing fallback');
+      updateStage('gemini-ai', { progress: 80, details: '🔄 Using analyze-clothing fallback system...' });
       
       const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke('analyze-clothing', {
         body: { 
@@ -221,25 +216,24 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
       
       console.log('Fallback AI response:', { data: fallbackData, error: fallbackError });
       
-      if (!fallbackError && fallbackData) {
+      if (!fallbackError && fallbackData && fallbackData.isClothing) {
         updateStage('gemini-ai', { 
           status: 'completed', 
           progress: 100, 
-          details: '✅ Enhanced AI analysis completed successfully' 
+          details: '✅ Fallback AI analysis completed successfully' 
         });
         
         return {
-          name: fallbackData.name || generateSmartName(currentFile?.name || '', fallbackData),
-          category: fallbackData.category || detectCategoryFromFilename(currentFile?.name || ''),
-          style: fallbackData.style || 'casual',
-          occasion: fallbackData.occasions || ['casual'],
-          season: fallbackData.seasons || ['spring', 'summer', 'fall', 'winter'],
-          color: fallbackData.colors || await extractAdvancedColors(imageUrl),
+          name: fallbackData.analysis?.name || generateSmartName(currentFile?.name || '', fallbackData),
+          category: fallbackData.analysis?.category || 'tops',
+          style: fallbackData.analysis?.style || 'casual',
+          occasion: fallbackData.analysis?.occasions || ['casual'],
+          season: fallbackData.analysis?.seasons || ['spring', 'summer', 'fall', 'winter'],
+          color: fallbackData.analysis?.colors || ['neutral'],
           tags: [
-            ...(fallbackData.tags || []),
-            'ai-analyzed',
-            'enhanced-fallback',
-            fallbackData.material || 'fabric'
+            'fallback-ai',
+            'analyze-clothing',
+            fallbackData.analysis?.category || 'clothing'
           ]
         };
       }
@@ -247,55 +241,37 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
       throw new Error('Both AI analyses failed');
       
     } catch (error) {
-      console.warn('Both AI analyses failed, using advanced analysis:', error);
+      console.warn('Both AI analyses failed, using basic analysis:', error);
       
-      // Advanced fallback analysis
-      const advancedAnalysis = await performAdvancedFallbackAnalysis(imageUrl);
+      // Basic fallback analysis
+      const basicAnalysis = await performBasicAnalysis(imageUrl);
       
       updateStage('gemini-ai', { 
         status: 'completed', 
         progress: 100, 
-        details: 'Using advanced image analysis with smart detection' 
+        details: 'Using basic analysis - manual review recommended' 
       });
       
-      return advancedAnalysis;
+      return basicAnalysis;
     }
   };
 
-  const performAdvancedFallbackAnalysis = async (imageUrl: string): Promise<Partial<WardrobeItem>> => {
+  const performBasicAnalysis = async (imageUrl: string): Promise<Partial<WardrobeItem>> => {
     const filename = currentFile?.name || '';
     const smartName = generateSmartName(filename);
     const detectedCategory = detectCategoryFromFilename(filename);
-    const colors = await extractAdvancedColors(imageUrl);
-    
-    // Smart style detection based on filename and colors
-    let style = 'casual';
-    if (filename.toLowerCase().includes('formal') || filename.toLowerCase().includes('dress')) {
-      style = 'formal';
-    } else if (filename.toLowerCase().includes('sport') || filename.toLowerCase().includes('gym')) {
-      style = 'sporty';
-    } else if (colors.includes('black') || colors.includes('white')) {
-      style = 'minimalist';
-    }
-    
-    // Smart occasion detection
-    const occasions = style === 'formal' ? ['work', 'formal'] : 
-                    style === 'sporty' ? ['sport', 'casual'] : 
-                    ['casual'];
     
     return {
       name: smartName,
       category: detectedCategory,
-      style,
-      occasion: occasions,
+      style: 'casual',
+      occasion: ['casual'],
       season: ['spring', 'summer', 'fall', 'winter'],
-      color: colors,
+      color: ['neutral'],
       tags: [
-        'smart-analysis',
-        'color-detected',
-        detectedCategory,
-        style,
-        colors[0] || 'neutral'
+        'basic-analysis',
+        'needs-review',
+        detectedCategory
       ]
     };
   };
@@ -303,8 +279,8 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
   const generateSmartName = (filename: string, aiData?: any): string => {
     const baseName = filename.split('.')[0].replace(/[-_]/g, ' ');
     
-    if (aiData?.name && aiData.name !== 'Clothing Item') {
-      return aiData.name;
+    if (aiData?.analysis?.name && aiData.analysis.name !== 'Clothing Item') {
+      return aiData.analysis.name;
     }
     
     // Smart name generation based on filename
@@ -324,106 +300,6 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
     }
     
     return baseName.charAt(0).toUpperCase() + baseName.slice(1) || 'Clothing Item';
-  };
-
-  const extractAdvancedColors = async (imageUrl: string): Promise<string[]> => {
-    try {
-      // Create a temporary image to analyze colors
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      return new Promise((resolve) => {
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          
-          if (ctx) {
-            ctx.drawImage(img, 0, 0);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const colors = analyzeImageColorsAdvanced(imageData);
-            resolve(colors);
-          } else {
-            resolve(['neutral']);
-          }
-        };
-        img.onerror = () => resolve(['neutral']);
-        img.src = imageUrl;
-      });
-    } catch (error) {
-      console.error('Advanced color extraction failed:', error);
-      return ['neutral'];
-    }
-  };
-
-  const analyzeImageColorsAdvanced = (imageData: ImageData): string[] => {
-    const data = imageData.data;
-    const colorMap = new Map<string, number>();
-    
-    // Sample more pixels for better accuracy
-    for (let i = 0; i < data.length; i += 16) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const alpha = data[i + 3];
-      
-      // Skip transparent pixels
-      if (alpha < 128) continue;
-      
-      const hsl = rgbToHsl(r, g, b);
-      const colorName = getAdvancedColorName(hsl);
-      
-      colorMap.set(colorName, (colorMap.get(colorName) || 0) + 1);
-    }
-    
-    return Array.from(colorMap.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([color]) => color);
-  };
-
-  const rgbToHsl = (r: number, g: number, b: number): [number, number, number] => {
-    r /= 255;
-    g /= 255;
-    b /= 255;
-    
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
-    
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-      }
-      h /= 6;
-    }
-    
-    return [h * 360, s * 100, l * 100];
-  };
-
-  const getAdvancedColorName = ([h, s, l]: [number, number, number]): string => {
-    if (l < 15) return 'black';
-    if (l > 90) return 'white';
-    if (s < 15) return l > 60 ? 'light-gray' : 'dark-gray';
-    
-    // More nuanced color detection
-    if (h < 10 || h > 350) return l > 70 ? 'light-red' : 'red';
-    if (h < 25) return 'orange';
-    if (h < 60) return l > 70 ? 'light-yellow' : 'yellow';
-    if (h < 80) return 'yellow-green';
-    if (h < 150) return l > 60 ? 'light-green' : 'green';
-    if (h < 180) return 'teal';
-    if (h < 210) return 'light-blue';
-    if (h < 250) return 'blue';
-    if (h < 280) return 'purple';
-    if (h < 320) return 'magenta';
-    return 'pink';
   };
 
   const detectCategoryFromFilename = (filename: string): string => {
@@ -488,7 +364,7 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
       
       const imageUrl = await uploadToStorage(optimizedFile);
       
-      const aiAnalysis = await analyzeWithGeminiAI(imageUrl);
+      const aiAnalysis = await analyzeWithConstrainedAI(imageUrl);
       
       const savedItem = await saveToDatabase({
         ...aiAnalysis,
@@ -506,7 +382,7 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
         : '';
       
       toast({
-        title: "🤖 AI Analysis Complete!",
+        title: "🤖 Constrained AI Analysis Complete!",
         description: `${savedItem.name} analyzed and added to wardrobe${confidence}${aiInsights}`,
       });
       
@@ -592,8 +468,8 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
               height={160}
             />
             <div className="space-y-2">
-              <p className="font-medium text-foreground">Ready for Enhanced AI Analysis</p>
-              <p className="text-sm text-muted-foreground">Advanced AI with smart fallback system for maximum accuracy</p>
+              <p className="font-medium text-foreground">Ready for Constrained AI Analysis</p>
+              <p className="text-sm text-muted-foreground">Structured AI with predefined categories for consistent results</p>
             </div>
           </div>
         ) : (
@@ -606,19 +482,19 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
               )}
             </div>
             <h3 className="text-2xl font-bold mb-3 text-foreground">
-              {isProcessing ? "🤖 Enhanced AI Analysis in Progress..." : "Upload for Advanced AI Fashion Analysis"}
+              {isProcessing ? "🤖 Constrained AI Analysis in Progress..." : "Upload for Structured AI Fashion Analysis"}
             </h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               {isProcessing 
-                ? "Multi-layer AI system analyzing your item with smart color detection and style recognition" 
-                : "Drag & drop your photo for intelligent AI analysis with advanced color detection and smart categorization"}
+                ? "AI analyzing with predefined categories for consistent, accurate results" 
+                : "Drag & drop your photo for intelligent AI analysis with structured, consistent categorization"}
             </p>
             
             {!isProcessing && (
               <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground mb-4">
                 <div className="flex items-center gap-1">
                   <Brain className="w-4 h-4" />
-                  <span>Gemini AI</span>
+                  <span>Constrained Gemini</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4" />
@@ -626,7 +502,7 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
                 </div>
                 <div className="flex items-center gap-1">
                   <Palette className="w-4 h-4" />
-                  <span>Advanced Color Detection</span>
+                  <span>Predefined Categories</span>
                 </div>
               </div>
             )}
@@ -639,7 +515,7 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
           className="shadow-md hover:shadow-lg transition-shadow"
           size="lg"
         >
-          {isProcessing ? "🤖 Enhanced AI Processing..." : previewUrl ? "Change Photo" : "Choose Photo for Advanced AI Analysis"}
+          {isProcessing ? "🤖 Constrained AI Processing..." : previewUrl ? "Change Photo" : "Choose Photo for Structured AI Analysis"}
         </Button>
         
         <input
@@ -658,7 +534,7 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
               <div className="w-8 h-8 bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 rounded-full flex items-center justify-center">
                 <Brain className="w-4 h-4 text-white" />
               </div>
-              Enhanced AI Fashion Analysis Pipeline
+              Constrained AI Fashion Analysis Pipeline
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -719,7 +595,7 @@ export const WardrobeUploadFlow = ({ onItemAdded }: WardrobeUploadFlowProps) => 
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700">
               <Brain className="w-5 h-5" />
-              🤖 AI Analysis Results
+              🤖 Constrained AI Analysis Results
             </CardTitle>
           </CardHeader>
           <CardContent>
