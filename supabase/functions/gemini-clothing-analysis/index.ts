@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -34,20 +33,20 @@ serve(async (req) => {
   }
 
   try {
-    console.log('AI clothing analysis function called');
+    console.log('Direct Gemini API clothing analysis function called');
     
     const { imageUrl } = await req.json();
     if (!imageUrl) {
       throw new Error('Image URL is required');
     }
 
-    console.log('Starting constrained AI analysis for:', imageUrl);
+    console.log('Starting direct Gemini 2.0 Flash analysis for:', imageUrl);
 
-    // Get API key from Supabase secrets
-    const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
-    console.log('API key exists:', !!openRouterApiKey);
+    // Get API key from Supabase secrets (using your OPENROUTER_API_KEY as Gemini key)
+    const geminiApiKey = Deno.env.get('OPENROUTER_API_KEY');
+    console.log('Gemini API key exists:', !!geminiApiKey);
     
-    if (!openRouterApiKey) {
+    if (!geminiApiKey) {
       throw new Error('OPENROUTER_API_KEY not found in environment variables');
     }
 
@@ -99,159 +98,82 @@ Respond with ONLY this JSON structure (no extra text):
 
 CRITICAL: Only use values from the predefined options above. If unsure, choose the closest match.`;
 
-    // Try Claude 3.5 Haiku first (more reliable)
-    const claudeRequest = {
-      model: "anthropic/claude-3-5-haiku-20241022",
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: structuredPrompt
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: imageUrl
-              }
-            }
-          ]
-        }
-      ],
-      max_tokens: 1500,
-      temperature: 0.1
-    };
-
-    console.log('Trying Claude 3.5 Haiku first:', claudeRequest.model);
-
-    try {
-      const claudeResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openRouterApiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://yourapp.lovable.dev',
-          'X-Title': 'AI Wardrobe Assistant'
-        },
-        body: JSON.stringify(claudeRequest)
-      });
-
-      console.log('Claude response status:', claudeResponse.status);
-
-      if (claudeResponse.ok) {
-        const claudeData = await claudeResponse.json();
-        console.log('Claude response received successfully');
-        
-        const aiContent = claudeData.choices?.[0]?.message?.content;
-        if (aiContent) {
-          console.log('Claude AI content received:', aiContent);
-          
-          try {
-            const analysisResult = JSON.parse(aiContent);
-            console.log('Successfully parsed Claude response:', analysisResult);
-            
-            // Validate and fix if needed
-            const validation = validateAnalysisResult(analysisResult);
-            if (!validation.isValid) {
-              console.warn('Claude validation issues:', validation.issues);
-              analysisResult = fixInvalidValues(analysisResult);
-            }
-            
-            console.log('Claude 3.5 Haiku analysis complete:', analysisResult);
-            return new Response(JSON.stringify(analysisResult), {
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
-            
-          } catch (parseError) {
-            console.warn('Failed to parse Claude response, falling back to Gemini:', parseError);
-          }
-        }
-      } else {
-        const errorText = await claudeResponse.text();
-        console.warn('Claude API failed:', claudeResponse.status, errorText);
-      }
-    } catch (claudeError) {
-      console.warn('Claude request failed, trying Gemini fallback:', claudeError);
-    }
-
-    // Fallback to Gemini if Claude fails
-    console.log('Falling back to Gemini 2.0 Flash');
-    
+    // Use direct Google Gemini API
     const geminiRequest = {
-      model: "google/gemini-2.0-flash-exp:free",
-      messages: [
+      contents: [
         {
-          role: "user",
-          content: [
+          parts: [
             {
-              type: "text",
               text: structuredPrompt
             },
             {
-              type: "image_url",
-              image_url: {
-                url: imageUrl
+              inline_data: {
+                mime_type: "image/jpeg",
+                data: await getBase64FromUrl(imageUrl)
               }
             }
           ]
         }
       ],
-      max_tokens: 1500,
-      temperature: 0.1
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 1500
+      }
     };
 
-    const geminiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    console.log('Calling direct Gemini 2.0 Flash API');
+
+    const geminiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openRouterApiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://yourapp.lovable.dev',  
-        'X-Title': 'AI Wardrobe Assistant'
+        'X-goog-api-key': geminiApiKey
       },
       body: JSON.stringify(geminiRequest)
     });
 
-    console.log('Gemini response status:', geminiResponse.status);
+    console.log('Direct Gemini response status:', geminiResponse.status);
 
     if (geminiResponse.ok) {
       const geminiData = await geminiResponse.json();
-      const aiContent = geminiData.choices?.[0]?.message?.content;
-
+      console.log('Direct Gemini response received successfully');
+      
+      const aiContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
       if (aiContent) {
-        console.log('Gemini AI content received:', aiContent);
+        console.log('Direct Gemini AI content received:', aiContent);
         
         try {
           const analysisResult = JSON.parse(aiContent);
-          console.log('Successfully parsed Gemini response:', analysisResult);
+          console.log('Successfully parsed direct Gemini response:', analysisResult);
           
+          // Validate and fix if needed
           const validation = validateAnalysisResult(analysisResult);
           if (!validation.isValid) {
-            console.warn('Gemini validation issues:', validation.issues);
+            console.warn('Direct Gemini validation issues:', validation.issues);
             analysisResult = fixInvalidValues(analysisResult);
           }
           
-          console.log('Gemini 2.0 Flash analysis complete:', analysisResult);
+          console.log('Direct Gemini 2.0 Flash analysis complete:', analysisResult);
           return new Response(JSON.stringify(analysisResult), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
           
         } catch (parseError) {
-          console.error('Failed to parse Gemini response:', parseError);
+          console.warn('Failed to parse direct Gemini response:', parseError);
         }
       }
     } else {
       const errorText = await geminiResponse.text();
-      console.error('Gemini API error:', geminiResponse.status, errorText);
+      console.error('Direct Gemini API error:', geminiResponse.status, errorText);
     }
 
-    // If both AI models fail, return structured fallback
-    console.log('Both AI models failed, returning structured fallback');
+    // If direct Gemini fails, return structured fallback
+    console.log('Direct Gemini failed, returning structured fallback');
     return new Response(JSON.stringify({
       isClothing: true,
       confidence: 0.3,
       analysis: {
-        name: "Clothing Item (AI Analysis Failed)",
+        name: "Clothing Item (Direct Gemini Analysis Failed)",
         category: "tops",
         subcategory: "shirt",
         style: "casual",
@@ -261,7 +183,7 @@ CRITICAL: Only use values from the predefined options above. If unsure, choose t
         occasions: ["casual"],
         seasons: ["spring", "summer", "fall", "winter"],
         fit: "regular",
-        description: "Both AI analyses failed - using fallback detection",
+        description: "Direct Gemini 2.0 Flash analysis failed - using fallback detection",
         brand_visible: false,
         condition: "good",
         versatility_score: 5
@@ -275,7 +197,7 @@ CRITICAL: Only use values from the predefined options above. If unsure, choose t
         "Follow garment care label",
         "Machine wash if appropriate"
       ],
-      reasoning: "Both Claude and Gemini AI analyses failed - fallback response provided"
+      reasoning: "Direct Gemini 2.0 Flash API analysis failed - fallback response provided"
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -316,6 +238,19 @@ CRITICAL: Only use values from the predefined options above. If unsure, choose t
     });
   }
 });
+
+// Helper function to convert image URL to base64
+async function getBase64FromUrl(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    const arrayBuffer = await response.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    return base64;
+  } catch (error) {
+    console.error('Failed to convert image to base64:', error);
+    throw new Error('Failed to process image for Gemini API');
+  }
+}
 
 // Validation function to ensure all values are from predefined options
 function validateAnalysisResult(result: any): { isValid: boolean, issues: string[] } {
