@@ -10,7 +10,7 @@ import neutralBody from '@/assets/neutral-body.png';
 import { useProfile } from '@/hooks/useProfile';
 
 interface PhotoUploadProps {
-  onAnalysisComplete: (result: { imageUrl: string; colors: string[] }) => void;
+  onAnalysisComplete: (result: { imageUrl: string; colors: string[]; aiAnalysis?: any }) => void;
 }
 
 export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
@@ -29,12 +29,33 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   const [autoFitNotice, setAutoFitNotice] = useState(false);
   const { refetch: refetchProfile } = useProfile();
 
+  // Enhanced AI analysis using Gemini 2.5 Pro
+  const analyzeWithGeminiAI = async (imageUrl: string): Promise<any> => {
+    try {
+      console.log('Starting Gemini AI analysis for:', imageUrl);
+      
+      const { data, error } = await supabase.functions.invoke('gemini-clothing-analysis', {
+        body: { imageUrl }
+      });
+      
+      if (error) {
+        console.error('Gemini analysis error:', error);
+        throw error;
+      }
+      
+      console.log('Gemini AI analysis result:', data);
+      return data;
+    } catch (error) {
+      console.error('Failed to analyze with Gemini AI:', error);
+      throw error;
+    }
+  };
+
   const analyzeImageColors = async (imageFile: File): Promise<string[]> => {
     try {
-      // Simple color analysis without ML dependencies
       return extractBasicColors(imageFile);
     } catch (error) {
-      console.error('Failed to analyze image:', error);
+      console.error('Failed to analyze image colors:', error);
       return ['neutral'];
     }
   };
@@ -155,7 +176,6 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     return true;
   };
 
-  // Helper to get cropped image from canvas
   const getCroppedImg = async (imageSrc: string, cropPixels: any) => {
     const image = new window.Image();
     image.src = imageSrc;
@@ -185,7 +205,6 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     });
   };
 
-  // Simple auto-fit preview without face detection
   const createAutoFitPreview = async (userImgUrl: string) => {
     try {
       const userImg = new Image();
@@ -242,12 +261,13 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     setShowCropper(true);
   }, [user, toast]);
 
-  // Called after cropping is confirmed
   const handleCropAndSave = useCallback(async () => {
     if (!previewUrl || !croppedAreaPixels || !user) return;
     setIsAnalyzing(true);
+    
     try {
       const croppedFile = await getCroppedImg(previewUrl, croppedAreaPixels);
+      
       // Torso validation step
       const hasTorso = await validateTorsoInImage(croppedFile);
       if (!hasTorso) {
@@ -255,17 +275,36 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
         setIsAnalyzing(false);
         return;
       }
-      // Analyze colors
-      const colors = await analyzeImageColors(croppedFile);
-      // Upload to storage
+      
+      // Upload to storage first
       const imageUrl = await uploadToStorage(croppedFile);
-      toast({
-        title: "Photo analyzed!",
-        description: "We've extracted your color palette for personalized recommendations. Your try-on previews will now use your latest photo.",
-      });
-      onAnalysisComplete({ imageUrl, colors });
-      setPreviewUrl(imageUrl); // Update preview to use permanent URL
+      
+      // Analyze with Gemini AI
+      let aiAnalysis = null;
+      let colors = ['neutral'];
+      
+      try {
+        aiAnalysis = await analyzeWithGeminiAI(imageUrl);
+        colors = aiAnalysis?.analysis?.colors || colors;
+        
+        toast({
+          title: "🤖 AI Analysis Complete!",
+          description: `Gemini AI identified: ${aiAnalysis?.analysis?.name || 'clothing item'} with ${Math.round((aiAnalysis?.confidence || 0) * 100)}% confidence`,
+        });
+      } catch (aiError) {
+        console.warn('AI analysis failed, using fallback color analysis:', aiError);
+        colors = await analyzeImageColors(croppedFile);
+        
+        toast({
+          title: "Photo analyzed!",
+          description: "Using enhanced color detection. AI analysis temporarily unavailable.",
+        });
+      }
+      
+      onAnalysisComplete({ imageUrl, colors, aiAnalysis });
+      setPreviewUrl(imageUrl);
       setShowCropper(false);
+      
     } catch (error) {
       console.error('Upload/analysis error:', error);
       toast({
@@ -300,7 +339,6 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Cropper Modal */}
       {showCropper && previewUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
           <div className="bg-white p-4 rounded shadow-lg max-w-lg w-full flex flex-col items-center">
@@ -319,7 +357,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
             </div>
             <div className="flex gap-4 mt-4">
               <Button onClick={handleCropAndSave} disabled={isAnalyzing}>
-                {isAnalyzing ? 'Processing...' : 'Crop & Save'}
+                {isAnalyzing ? 'AI Analyzing...' : 'Crop & Analyze with AI'}
               </Button>
               <Button variant="outline" onClick={() => { setShowCropper(false); setPreviewUrl(null); }} disabled={isAnalyzing}>
                 Cancel
@@ -328,7 +366,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
           </div>
         </div>
       )}
-      {/* Auto-Fit Mode UI */}
+
       {showAutoFit && previewUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
           <div className="bg-white p-4 rounded shadow-lg max-w-lg w-full flex flex-col items-center">
@@ -360,7 +398,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
                   const { data: { publicUrl } } = supabase.storage.from('user-photos').getPublicUrl(fileName);
                   toast({ title: 'Auto-Fit Preview saved!', description: 'AI-assisted try-on preview is now available. Your try-on previews will now use your latest photo.' });
                   onAnalysisComplete({ imageUrl: publicUrl, colors: [] });
-                  setPreviewUrl(publicUrl); // Update preview to use permanent URL
+                  setPreviewUrl(publicUrl);
                   setShowAutoFit(false);
                   setAutoFitNotice(false);
                 } else {
@@ -381,6 +419,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
           </div>
         </div>
       )}
+
       <div
         className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
           dragActive 
@@ -415,10 +454,10 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
               )}
             </div>
             <h3 className="text-xl font-semibold mb-2">
-              {isAnalyzing ? "Analyzing your photo..." : "Upload your photo"}
+              {isAnalyzing ? "🤖 Gemini AI analyzing your photo..." : "Upload your photo"}
             </h3>
             <p className="text-muted-foreground mb-4">
-              {isAnalyzing ? "AI is analyzing your color palette" : "Drag & drop your photo or click to browse"}
+              {isAnalyzing ? "Advanced AI is analyzing your clothing's style, color, and material" : "Drag & drop your photo or click to browse"}
             </p>
           </>
         )}
@@ -429,7 +468,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
           className="shadow-button"
           onClick={() => document.getElementById('photo-input')?.click()}
         >
-          {isAnalyzing ? "Processing..." : previewUrl ? "Change Photo" : "Choose Photo"}
+          {isAnalyzing ? "AI Processing..." : previewUrl ? "Change Photo" : "Choose Photo"}
         </Button>
         
         <input
@@ -443,8 +482,8 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
       
       {isAnalyzing && (
         <div className="text-center text-sm text-muted-foreground">
-          <p>✨ Analyzing your facial features and color palette...</p>
-          <p>This may take a moment for the best results</p>
+          <p>🤖 Gemini AI analyzing your clothing item...</p>
+          <p>Advanced computer vision detecting style, material, and styling suggestions</p>
         </div>
       )}
     </div>
