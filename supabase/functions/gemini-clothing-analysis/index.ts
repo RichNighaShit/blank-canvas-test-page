@@ -4,14 +4,18 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('Gemini clothing analysis function called');
+    
     const { imageUrl } = await req.json();
     if (!imageUrl) {
       throw new Error('Image URL is required');
@@ -21,6 +25,8 @@ serve(async (req) => {
 
     // Get API key from Supabase secrets
     const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
+    console.log('API key exists:', !!openRouterApiKey);
+    
     if (!openRouterApiKey) {
       throw new Error('OPENROUTER_API_KEY not found in environment variables');
     }
@@ -57,7 +63,7 @@ serve(async (req) => {
   },
   "styling_suggestions": [
     "suggestion 1",
-    "suggestion 2",
+    "suggestion 2", 
     "suggestion 3"
   ],
   "care_instructions": ["wash instructions", "care tips"],
@@ -79,30 +85,38 @@ Be very detailed and accurate. If it's not clothing, set isClothing to false and
       temperature: 0.3
     };
 
+    console.log('Making request to OpenRouter API');
+
     // Make request to OpenRouter with Gemini
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openRouterApiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://yourapp.com',
+        'HTTP-Referer': 'https://yourapp.lovable.dev',
         'X-Title': 'AI Wardrobe Assistant'
       },
       body: JSON.stringify(aiRequest)
     });
 
+    console.log('OpenRouter response status:', response.status);
+
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('OpenRouter API error:', errorData);
-      throw new Error(`OpenRouter API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('OpenRouter API error:', errorText);
+      throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
     }
 
     const aiResponse = await response.json();
+    console.log('OpenRouter response received');
+    
     const aiContent = aiResponse.choices?.[0]?.message?.content;
 
     if (!aiContent) {
       throw new Error('No content received from AI');
     }
+
+    console.log('AI content:', aiContent);
 
     // Parse AI response
     let analysisResult;
@@ -111,8 +125,11 @@ Be very detailed and accurate. If it's not clothing, set isClothing to false and
       const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
       const jsonStr = jsonMatch ? jsonMatch[0] : aiContent;
       analysisResult = JSON.parse(jsonStr);
+      console.log('Successfully parsed AI response');
     } catch (parseError) {
-      console.error('Failed to parse AI response:', aiContent);
+      console.error('Failed to parse AI response:', parseError);
+      console.error('Raw AI content:', aiContent);
+      
       // Fallback analysis
       analysisResult = {
         isClothing: true,
