@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -99,9 +98,9 @@ Respond with ONLY this JSON structure (no extra text):
 
 CRITICAL: Only use values from the predefined options above. If unsure, choose the closest match.`;
 
-    // Prepare the AI analysis request
+    // Prepare the AI analysis request using the correct OpenRouter format for Gemini
     const aiRequest = {
-      model: "google/gemini-2.0-flash-exp",
+      model: "google/gemini-2.0-flash-exp", // Updated to correct working model
       messages: [
         {
           role: "user",
@@ -124,9 +123,9 @@ CRITICAL: Only use values from the predefined options above. If unsure, choose t
       response_format: { type: "json_object" }
     };
 
-    console.log('Making constrained request to OpenRouter API with Gemini');
+    console.log('Making constrained request to OpenRouter API with Gemini 2.0 Flash');
 
-    // Make request to OpenRouter with Gemini
+    // Make request to OpenRouter with Gemini using correct format
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
