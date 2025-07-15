@@ -312,69 +312,83 @@ export class SimpleStyleAI {
     const reasoning: string[] = [];
     
     // Base confidence for having items
-    confidence += 0.3;
+    confidence += 0.2;
     
     // Diversity bonus - reward outfits with less-used items
-    const diversityBonus = this.calculateDiversityScore(outfit) * 0.2;
+    const diversityBonus = this.calculateDiversityScore(outfit) * 0.15;
     confidence += diversityBonus;
     
-    if (diversityBonus > 0.15) {
+    if (diversityBonus > 0.1) {
       reasoning.push('Features fresh combinations from your wardrobe');
     }
     
-    // Style matching
-    const styleMatches = outfit.filter(item => 
-      item.style === profile.preferred_style || 
-      item.style === 'versatile'
-    ).length;
-    const styleScore = styleMatches / outfit.length;
+    // Advanced style matching with cross-style compatibility
+    const styleScore = this.calculateAdvancedStyleScore(outfit, profile);
     confidence += styleScore * 0.25;
     
-    if (styleScore > 0.7) {
-      reasoning.push(`Matches your ${profile.preferred_style} style preference`);
+    if (styleScore > 0.8) {
+      reasoning.push(`Expertly matches your ${profile.preferred_style} aesthetic`);
+    } else if (styleScore > 0.6) {
+      reasoning.push(`Complements your ${profile.preferred_style} style preference`);
     }
     
-    // Color preferences
-    if (profile.favorite_colors && profile.favorite_colors.length > 0) {
-      const outfitColors = outfit.flatMap(item => item.color);
-      const favoriteColorMatches = outfitColors.filter(color => 
-        profile.favorite_colors!.some(favColor => 
-          color.toLowerCase().includes(favColor.toLowerCase())
-        )
-      ).length;
-      
-      if (favoriteColorMatches > 0) {
-        confidence += 0.15;
-        reasoning.push('Incorporates your favorite colors');
-      }
+    // Enhanced color harmony analysis
+    const colorHarmonyScore = this.calculateColorHarmonyScore(outfit, profile);
+    confidence += colorHarmonyScore * 0.2;
+    
+    if (colorHarmonyScore > 0.8) {
+      reasoning.push('Exceptional color harmony creates visual flow');
+    } else if (colorHarmonyScore > 0.6) {
+      reasoning.push('Well-balanced color palette');
     }
     
-    // Occasion appropriateness
-    const occasionMatches = outfit.filter(item => 
-      item.occasion.includes(context.occasion) || 
-      item.occasion.includes('versatile') ||
-      item.occasion.includes('casual')
-    ).length;
+    // Occasion appropriateness with formality levels
+    const occasionScore = this.calculateOccasionScore(outfit, context.occasion);
+    confidence += occasionScore * 0.25;
     
-    if (occasionMatches === outfit.length) {
-      confidence += 0.2;
-      reasoning.push(`Perfect for ${context.occasion} occasions`);
+    if (occasionScore > 0.9) {
+      reasoning.push(`Perfectly tailored for ${context.occasion} occasions`);
+    } else if (occasionScore > 0.7) {
+      reasoning.push(`Appropriate for ${context.occasion} settings`);
     }
     
-    // Weather appropriateness
+    // Weather intelligence
     if (context.weather) {
-      const weatherScore = this.calculateWeatherScore(outfit, context.weather);
-      confidence += weatherScore * 0.15;
+      const weatherScore = this.calculateAdvancedWeatherScore(outfit, context.weather);
+      confidence += weatherScore * 0.2;
       
-      if (weatherScore > 0.7) {
-        reasoning.push(this.getWeatherReasoning(outfit, context.weather));
+      if (weatherScore > 0.8) {
+        reasoning.push(this.getAdvancedWeatherReasoning(outfit, context.weather));
+      } else if (weatherScore < 0.3) {
+        confidence -= 0.1; // Penalty for poor weather matching
+        reasoning.push(`Consider weather conditions (${Math.round(context.weather.temperature)}°C)`);
       }
     }
     
-    // Color harmony
-    if (this.hasGoodColorHarmony(outfit)) {
-      confidence += 0.1;
-      reasoning.push('Harmonious color palette');
+    // Outfit completeness and balance
+    const completenessScore = this.calculateCompletenessScore(outfit);
+    confidence += completenessScore * 0.15;
+    
+    if (completenessScore > 0.8) {
+      reasoning.push('Complete, well-balanced outfit');
+    }
+    
+    // Trend relevance and fashion rules
+    const fashionScore = this.calculateFashionScore(outfit, context);
+    confidence += fashionScore * 0.1;
+    
+    if (fashionScore > 0.7) {
+      reasoning.push('Follows contemporary fashion principles');
+    }
+    
+    // Goal alignment (if user has specific goals)
+    if (profile.goals && profile.goals.length > 0) {
+      const goalScore = this.calculateGoalAlignment(outfit, profile.goals);
+      confidence += goalScore * 0.1;
+      
+      if (goalScore > 0.6) {
+        reasoning.push('Aligns with your style goals');
+      }
     }
     
     // Ensure confidence is between 0 and 1
@@ -389,7 +403,7 @@ export class SimpleStyleAI {
       occasion: context.occasion,
       style,
       confidence,
-      description: this.generateDescription(outfit, context),
+      description: this.generateAdvancedDescription(outfit, context, confidence),
       reasoning
     };
   }
@@ -574,6 +588,375 @@ export class SimpleStyleAI {
     }
     
     return description;
+  }
+
+  private calculateAdvancedStyleScore(outfit: WardrobeItem[], profile: StyleProfile): number {
+    let score = 0;
+    const totalItems = outfit.length;
+    
+    // Direct style matches
+    const exactMatches = outfit.filter(item => item.style === profile.preferred_style).length;
+    score += (exactMatches / totalItems) * 0.6;
+    
+    // Versatile items work with any style
+    const versatileItems = outfit.filter(item => item.style === 'versatile').length;
+    score += (versatileItems / totalItems) * 0.4;
+    
+    // Cross-style compatibility matrix
+    const styleCompatibility: { [key: string]: string[] } = {
+      'casual': ['casual', 'smart-casual', 'streetwear', 'bohemian'],
+      'formal': ['formal', 'business', 'elegant', 'classic'],
+      'business': ['business', 'formal', 'smart-casual', 'classic'],
+      'bohemian': ['bohemian', 'casual', 'artistic', 'vintage'],
+      'streetwear': ['streetwear', 'casual', 'urban', 'sporty'],
+      'vintage': ['vintage', 'classic', 'bohemian', 'elegant'],
+      'sporty': ['sporty', 'casual', 'streetwear', 'athletic'],
+      'elegant': ['elegant', 'formal', 'classic', 'sophisticated']
+    };
+    
+    const compatibleStyles = styleCompatibility[profile.preferred_style] || [profile.preferred_style];
+    const compatibleItems = outfit.filter(item => 
+      compatibleStyles.includes(item.style) || item.style === 'versatile'
+    ).length;
+    
+    score = Math.max(score, compatibleItems / totalItems);
+    
+    return Math.min(1, score);
+  }
+
+  private calculateColorHarmonyScore(outfit: WardrobeItem[], profile: StyleProfile): number {
+    const allColors = outfit.flatMap(item => item.color.map(c => c.toLowerCase()));
+    let score = 0.5; // Base score
+    
+    // Color theory principles
+    const colorCategories = {
+      neutrals: ['black', 'white', 'grey', 'gray', 'beige', 'navy', 'brown', 'cream', 'nude', 'khaki'],
+      warm: ['red', 'orange', 'yellow', 'pink', 'coral', 'burgundy', 'rust', 'gold'],
+      cool: ['blue', 'green', 'purple', 'teal', 'mint', 'lavender', 'turquoise'],
+      earth: ['brown', 'tan', 'olive', 'terracotta', 'sand', 'camel']
+    };
+    
+    const neutralCount = allColors.filter(c => colorCategories.neutrals.some(n => c.includes(n))).length;
+    const warmCount = allColors.filter(c => colorCategories.warm.some(w => c.includes(w))).length;
+    const coolCount = allColors.filter(c => colorCategories.cool.some(co => c.includes(co))).length;
+    const earthCount = allColors.filter(c => colorCategories.earth.some(e => c.includes(e))).length;
+    
+    // Monochromatic bonus (similar colors)
+    if (warmCount >= allColors.length * 0.7 || coolCount >= allColors.length * 0.7) {
+      score += 0.2;
+    }
+    
+    // Neutral base bonus
+    if (neutralCount >= allColors.length * 0.5) {
+      score += 0.3;
+    }
+    
+    // Earth tone harmony
+    if (earthCount >= allColors.length * 0.6) {
+      score += 0.2;
+    }
+    
+    // Avoid color chaos (too many different color families)
+    const colorFamilies = [warmCount > 0 ? 1 : 0, coolCount > 0 ? 1 : 0, neutralCount > 0 ? 1 : 0, earthCount > 0 ? 1 : 0].reduce((a, b) => a + b, 0);
+    if (colorFamilies > 3) {
+      score -= 0.2;
+    }
+    
+    // Favorite color bonus
+    if (profile.favorite_colors && profile.favorite_colors.length > 0) {
+      const favoriteMatches = allColors.filter(color => 
+        profile.favorite_colors!.some(fav => color.includes(fav.toLowerCase()))
+      ).length;
+      if (favoriteMatches > 0) {
+        score += 0.15;
+      }
+    }
+    
+    return Math.min(1, Math.max(0, score));
+  }
+
+  private calculateOccasionScore(outfit: WardrobeItem[], occasion: string): number {
+    let score = 0;
+    const totalItems = outfit.length;
+    
+    // Occasion formality levels
+    const formalityLevels: { [key: string]: number } = {
+      'formal': 5,
+      'business': 4,
+      'smart-casual': 3,
+      'casual': 2,
+      'sport': 1,
+      'loungewear': 0
+    };
+    
+    const targetFormality = formalityLevels[occasion] || 2;
+    
+    outfit.forEach(item => {
+      // Direct occasion match
+      if (item.occasion.includes(occasion)) {
+        score += 1;
+        return;
+      }
+      
+      // Versatile items work for most occasions
+      if (item.occasion.includes('versatile')) {
+        score += 0.8;
+        return;
+      }
+      
+      // Check formality compatibility
+      const itemFormalities = item.occasion.map(occ => formalityLevels[occ] || 2);
+      const closestFormality = itemFormalities.reduce((prev, curr) => 
+        Math.abs(curr - targetFormality) < Math.abs(prev - targetFormality) ? curr : prev
+      );
+      
+      const formalityDiff = Math.abs(closestFormality - targetFormality);
+      if (formalityDiff <= 1) {
+        score += 0.7;
+      } else if (formalityDiff <= 2) {
+        score += 0.4;
+      }
+    });
+    
+    return Math.min(1, score / totalItems);
+  }
+
+  private calculateAdvancedWeatherScore(outfit: WardrobeItem[], weather: WeatherData): number {
+    let score = 0;
+    let totalItems = outfit.length;
+    
+    outfit.forEach(item => {
+      let itemScore = 0;
+      
+      // Temperature appropriateness
+      if (weather.temperature < 5) {
+        // Very cold
+        if (item.category === 'outerwear' && item.tags?.some(tag => ['heavy', 'winter', 'insulated', 'warm'].includes(tag))) itemScore += 1;
+        if (item.tags?.some(tag => ['wool', 'fleece', 'thermal', 'long-sleeve'].includes(tag))) itemScore += 0.5;
+        if (item.category === 'shoes' && item.tags?.includes('boots')) itemScore += 0.5;
+        if (item.tags?.some(tag => ['summer', 'thin', 'light'].includes(tag))) itemScore -= 0.5;
+      } else if (weather.temperature < 15) {
+        // Cold
+        if (item.category === 'outerwear' || item.tags?.includes('warm')) itemScore += 0.8;
+        if (item.tags?.includes('long-sleeve')) itemScore += 0.4;
+        if (item.tags?.some(tag => ['summer', 'shorts', 'sleeveless'].includes(tag))) itemScore -= 0.3;
+      } else if (weather.temperature < 25) {
+        // Mild
+        if (item.tags?.some(tag => ['light', 'medium'].includes(tag))) itemScore += 0.5;
+        if (item.category === 'outerwear' && weather.temperature > 20) itemScore -= 0.2;
+      } else if (weather.temperature < 30) {
+        // Warm
+        if (item.tags?.some(tag => ['light', 'breathable', 'cotton', 'linen'].includes(tag))) itemScore += 0.8;
+        if (item.tags?.some(tag => ['short-sleeve', 'sleeveless'].includes(tag))) itemScore += 0.4;
+        if (item.category === 'outerwear') itemScore -= 0.8;
+        if (item.tags?.some(tag => ['heavy', 'wool', 'warm'].includes(tag))) itemScore -= 0.4;
+      } else {
+        // Hot
+        if (item.tags?.some(tag => ['very-light', 'breathable', 'linen', 'mesh'].includes(tag))) itemScore += 1;
+        if (item.tags?.some(tag => ['sleeveless', 'shorts', 'open-toe'].includes(tag))) itemScore += 0.6;
+        if (item.category === 'outerwear') itemScore -= 1;
+        if (item.tags?.some(tag => ['heavy', 'wool', 'long-sleeve', 'warm'].includes(tag))) itemScore -= 0.6;
+      }
+      
+      // Weather condition appropriateness
+      if (weather.condition === 'rain') {
+        if (item.tags?.some(tag => ['waterproof', 'water-resistant'].includes(tag))) itemScore += 0.8;
+        if (item.category === 'shoes' && !item.tags?.includes('open-toe')) itemScore += 0.4;
+        if (item.tags?.includes('delicate')) itemScore -= 0.4;
+      }
+      
+      if (weather.condition === 'snow') {
+        if (item.tags?.some(tag => ['insulated', 'warm', 'waterproof'].includes(tag))) itemScore += 0.8;
+        if (item.category === 'shoes' && item.tags?.includes('boots')) itemScore += 0.6;
+        if (item.tags?.includes('open-toe')) itemScore -= 0.8;
+      }
+      
+      if (weather.condition === 'windy') {
+        if (item.category === 'outerwear' || item.tags?.includes('wind-resistant')) itemScore += 0.4;
+        if (item.tags?.some(tag => ['loose', 'flowing'].includes(tag))) itemScore -= 0.2;
+      }
+      
+      score += Math.max(0, itemScore);
+    });
+    
+    return Math.min(1, Math.max(0, score / totalItems));
+  }
+
+  private calculateCompletenessScore(outfit: WardrobeItem[]): number {
+    const categories = outfit.map(item => item.category.toLowerCase());
+    let score = 0.5; // Base score
+    
+    // Essential items check
+    const hasTop = categories.some(c => ['tops', 'shirts', 'blouses', 'sweaters'].includes(c)) || 
+                   categories.includes('dresses');
+    const hasBottom = categories.some(c => ['bottoms', 'pants', 'skirts', 'shorts'].includes(c)) || 
+                      categories.includes('dresses');
+    const hasShoes = categories.includes('shoes');
+    
+    if (hasTop) score += 0.2;
+    if (hasBottom) score += 0.2;
+    if (hasShoes) score += 0.1;
+    
+    // Dress as complete outfit
+    if (categories.includes('dresses')) {
+      score += 0.3;
+    }
+    
+    // Layering appropriateness
+    if (categories.includes('outerwear') && outfit.length >= 3) {
+      score += 0.1;
+    }
+    
+    // Avoid over-accessorizing
+    const accessoryCount = categories.filter(c => 
+      ['accessories', 'jewelry', 'bags', 'hats', 'scarves', 'belts'].includes(c)
+    ).length;
+    
+    if (accessoryCount <= 2) {
+      score += 0.1;
+    } else if (accessoryCount > 3) {
+      score -= 0.1;
+    }
+    
+    return Math.min(1, score);
+  }
+
+  private calculateFashionScore(outfit: WardrobeItem[], context: { occasion: string; timeOfDay?: string }): number {
+    let score = 0.5;
+    
+    // Fashion rules and trends
+    const categories = outfit.map(item => item.category.toLowerCase());
+    const styles = outfit.map(item => item.style.toLowerCase());
+    
+    // Pattern mixing (avoid too many patterns)
+    const patternCount = outfit.filter(item => 
+      item.tags?.some(tag => ['striped', 'polka-dot', 'floral', 'geometric', 'plaid'].includes(tag))
+    ).length;
+    
+    if (patternCount <= 1) {
+      score += 0.2;
+    } else if (patternCount === 2) {
+      score += 0.1; // Can work if done well
+    } else {
+      score -= 0.1;
+    }
+    
+    // Texture variety
+    const textures = outfit.flatMap(item => item.tags || []).filter(tag => 
+      ['silk', 'denim', 'leather', 'knit', 'cotton', 'linen', 'wool'].includes(tag)
+    );
+    const uniqueTextures = [...new Set(textures)];
+    if (uniqueTextures.length >= 2 && uniqueTextures.length <= 3) {
+      score += 0.1;
+    }
+    
+    // Fit and silhouette balance
+    const fitted = outfit.filter(item => item.tags?.includes('fitted')).length;
+    const loose = outfit.filter(item => item.tags?.includes('loose')).length;
+    
+    if (fitted > 0 && loose > 0 && outfit.length > 2) {
+      score += 0.1; // Good fit balance
+    }
+    
+    // Time appropriateness
+    if (context.timeOfDay === 'evening' || context.timeOfDay === 'night') {
+      if (styles.some(s => ['elegant', 'formal', 'sophisticated'].includes(s))) {
+        score += 0.1;
+      }
+    }
+    
+    return Math.min(1, score);
+  }
+
+  private calculateGoalAlignment(outfit: WardrobeItem[], goals: string[]): number {
+    let score = 0;
+    
+    goals.forEach(goal => {
+      const goalLower = goal.toLowerCase();
+      
+      if (goalLower.includes('confident') || goalLower.includes('professional')) {
+        if (outfit.some(item => ['business', 'formal', 'structured'].includes(item.style))) {
+          score += 0.3;
+        }
+      }
+      
+      if (goalLower.includes('comfortable') || goalLower.includes('casual')) {
+        if (outfit.some(item => item.tags?.includes('comfortable') || item.style === 'casual')) {
+          score += 0.3;
+        }
+      }
+      
+      if (goalLower.includes('trendy') || goalLower.includes('fashion')) {
+        if (outfit.some(item => ['trendy', 'modern', 'contemporary'].includes(item.style))) {
+          score += 0.3;
+        }
+      }
+      
+      if (goalLower.includes('versatile')) {
+        if (outfit.every(item => item.style === 'versatile' || item.occasion.includes('versatile'))) {
+          score += 0.4;
+        }
+      }
+    });
+    
+    return Math.min(1, score / goals.length);
+  }
+
+  private generateAdvancedDescription(outfit: WardrobeItem[], context: { occasion: string; timeOfDay?: string; weather?: WeatherData }, confidence: number): string {
+    const categories = outfit.map(item => item.category.toLowerCase());
+    const styles = [...new Set(outfit.map(item => item.style))];
+    const colors = [...new Set(outfit.flatMap(item => item.color))];
+    
+    let description = '';
+    
+    // Style-based descriptions
+    if (styles.includes('formal') || styles.includes('business')) {
+      description = 'Sophisticated and polished ensemble';
+    } else if (styles.includes('casual')) {
+      description = 'Effortlessly stylish casual look';
+    } else if (styles.includes('bohemian')) {
+      description = 'Free-spirited bohemian combination';
+    } else if (styles.includes('streetwear')) {
+      description = 'Urban-inspired streetwear outfit';
+    } else if (styles.includes('elegant')) {
+      description = 'Elegantly curated ensemble';
+    } else {
+      description = 'Thoughtfully styled outfit';
+    }
+    
+    // Add color description
+    if (colors.length <= 2) {
+      description += ` in ${colors.join(' and ')}`;
+    } else if (colors.includes('black') || colors.includes('white') || colors.includes('navy')) {
+      description += ' with classic color palette';
+    } else {
+      description += ' with harmonious colors';
+    }
+    
+    // Add confidence-based qualifier
+    if (confidence > 0.8) {
+      description = 'Perfectly ' + description.toLowerCase();
+    } else if (confidence > 0.6) {
+      description = 'Beautifully ' + description.toLowerCase();
+    }
+    
+    return description;
+  }
+
+  private getAdvancedWeatherReasoning(outfit: WardrobeItem[], weather: WeatherData): string {
+    const temp = Math.round(weather.temperature);
+    
+    if (weather.temperature < 10) {
+      return `Expertly layered for cold weather (${temp}°C) with proper insulation`;
+    } else if (weather.temperature > 25) {
+      return `Optimally chosen for warm conditions (${temp}°C) with breathable pieces`;
+    } else if (weather.condition === 'rain') {
+      return `Weather-smart choices for rainy conditions with protective elements`;
+    } else if (weather.condition === 'snow') {
+      return `Winter-ready ensemble with appropriate coverage for snowy weather`;
+    }
+    
+    return `Perfectly suited for today's weather (${temp}°C, ${weather.condition})`;
   }
 }
 
