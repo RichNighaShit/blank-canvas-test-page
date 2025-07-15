@@ -1,12 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import Header from "@/components/Header";
 import { SmartShoppingSuggestions } from "@/components/SmartShoppingSuggestions";
-import { StyleRecommendations as StyleRecs } from "@/components/StyleRecommendations";
-import { OutfitPlanner } from "@/components/OutfitPlanner";
+import StyleRecommendations from "@/components/StyleRecommendations";
+import OutfitPlanner from "@/components/OutfitPlanner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ShoppingCart, Sparkles, AlertCircle, Calendar, Crown, Camera, Zap, Star } from "lucide-react";
@@ -14,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const StyleRecommendations = () => {
+const StyleRecommendationsPage = () => {
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const navigate = useNavigate();
@@ -179,7 +178,7 @@ const StyleRecommendations = () => {
                         Featured
                       </Badge>
                     </div>
-                    <StyleRecs />
+                    <StyleRecommendations />
                   </div>
                 </div>
               </TabsContent>
@@ -227,4 +226,4 @@ const StyleRecommendations = () => {
   );
 };
 
-export default StyleRecommendations;
+export default StyleRecommendationsPage;

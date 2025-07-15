@@ -152,12 +152,13 @@ const StyleRecommendations = () => {
     if (!user) return;
 
     try {
+      const recommendation = recommendations[recommendationIndex];
       const { error } = await supabase
         .from('outfit_feedback')
         .insert({
           user_id: user.id,
-          outfit_combination: `recommendation-${recommendationIndex}`,
-          feedback_type: helpful ? 'helpful' : 'not_helpful',
+          outfit_item_ids: recommendation.items.map(item => item.id),
+          feedback: helpful ? 'helpful' : 'not_helpful',
           created_at: new Date().toISOString()
         });
 

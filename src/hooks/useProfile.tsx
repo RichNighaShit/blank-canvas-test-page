@@ -14,6 +14,11 @@ interface Profile {
   goals?: string[];
   gender_identity?: string;
   face_photo_url?: string;
+  // Add the missing properties that components expect
+  style_preferences?: string[];
+  preferred_colors?: string[];
+  lifestyle?: string;
+  budget_range?: string;
 }
 
 export const useProfile = () => {
@@ -57,14 +62,30 @@ export const useProfile = () => {
             console.error('Error creating profile:', createError);
           } else {
             console.log('Created new profile:', newProfile);
-            setProfile(newProfile);
+            // Add default values for the expected properties
+            const enhancedProfile = {
+              ...newProfile,
+              style_preferences: [],
+              preferred_colors: [],
+              lifestyle: '',
+              budget_range: ''
+            };
+            setProfile(enhancedProfile);
           }
         } else {
           console.error('Error fetching profile:', error);
         }
       } else {
         console.log('Profile fetched successfully:', data);
-        setProfile(data);
+        // Ensure all expected properties exist
+        const enhancedProfile = {
+          ...data,
+          style_preferences: data.style_preferences || [],
+          preferred_colors: data.preferred_colors || data.favorite_colors || [],
+          lifestyle: data.lifestyle || '',
+          budget_range: data.budget_range || ''
+        };
+        setProfile(enhancedProfile);
       }
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);

@@ -140,16 +140,19 @@ const OutfitPlanner = () => {
     }
   };
 
-  const saveOutfitFeedback = async (outfitId: string, liked: boolean) => {
+  const saveOutfitFeedback = async (outfitIndex: number, liked: boolean) => {
     if (!user) return;
 
     try {
+      const outfit = outfitCombinations[outfitIndex];
       const { error } = await supabase
         .from('outfit_feedback')
         .insert({
           user_id: user.id,
-          outfit_combination: outfitId,
-          feedback_type: liked ? 'like' : 'dislike',
+          outfit_item_ids: outfit.items.map(item => item.id),
+          feedback: liked ? 'like' : 'dislike',
+          occasion: selectedOccasion,
+          weather: weather ? `${weather.temperature}°C, ${weather.condition}` : null,
           created_at: new Date().toISOString()
         });
 
@@ -314,7 +317,7 @@ const OutfitPlanner = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => saveOutfitFeedback(`outfit-${index}`, true)}
+                      onClick={() => saveOutfitFeedback(index, true)}
                       className="flex-1"
                     >
                       <Heart className="h-4 w-4 mr-1" />
@@ -323,7 +326,7 @@ const OutfitPlanner = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => saveOutfitFeedback(`outfit-${index}`, false)}
+                      onClick={() => saveOutfitFeedback(index, false)}
                       className="flex-1"
                     >
                       Not for me
