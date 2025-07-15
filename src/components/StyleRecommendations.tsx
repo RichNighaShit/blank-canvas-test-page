@@ -1,361 +1,516 @@
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
-import { useWeather } from "@/hooks/useWeather";
-import { supabase } from "@/integrations/supabase/client";
-import { advancedStyleAI } from "@/lib/advancedStyleAI";
-import { 
-  Sparkles, 
-  RefreshCw, 
-  TrendingUp, 
-  Palette,
-  Star,
-  ThumbsUp
-} from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Sparkles, Heart, Eye, ShoppingBag, Loader2, RefreshCw, Settings, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { supabase } from '@/integrations/supabase/client';
+import { simpleStyleAI, OutfitRecommendation, WardrobeItem, StyleProfile } from '@/lib/simpleStyleAI';
+import AdvancedVirtualTryOn from './AdvancedVirtualTryOn';
+import { useWeather } from '@/hooks/useWeather';
+import { usePerformance } from '@/hooks/usePerformance';
+import { PerformanceCache, CACHE_NAMESPACES } from '@/lib/performanceCache';
+import { OptimizedImage } from './OptimizedImage';
 
-interface ClothingItem {
-  id: string;
-  name: string;
-  photo_url: string;
-  category: string;
-  tags: string[];
-  color: string[];
-  style: string;
-  occasion: string[];
-  season: string[];
-  user_id: string;
-  created_at?: string;
-  updated_at?: string;
-  // Optional advanced properties
-  silhouette?: string;
-  fit?: string;
-  fabric?: string;
-  formality_level?: number;
-}
-
-interface StyleRecommendation {
-  items: ClothingItem[];
-  score: number;
-  reasoning: string;
-  colorHarmony: number;
-  styleCoherence: number;
-  weatherAppropriate: number;
-  trendRelevance?: number;
-}
-
-const StyleRecommendations = () => {
-  const [items, setItems] = useState<ClothingItem[]>([]);
-  const [recommendations, setRecommendations] = useState<StyleRecommendation[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  
-  const { toast } = useToast();
+export const StyleRecommendations = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
-  const { weather } = useWeather();
+  const { weather, loading: weatherLoading, fetchWeather, getWeatherAdvice, getWeatherStatus } = useWeather();
+  const [recommendations, setRecommendations] = useState<OutfitRecommendation[]>([]);
+  const [wardrobeItems, setWardrobeItems] = useState<WardrobeItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedOutfit, setSelectedOutfit] = useState<OutfitRecommendation | null>(null);
+  const [showTryOn, setShowTryOn] = useState(false);
+  
+  // User preferences state
+  const [selectedOccasion, setSelectedOccasion] = useState<string>('casual');
+  const [includeAccessories, setIncludeAccessories] = useState<boolean>(false);
+  const [showPreferences, setShowPreferences] = useState<boolean>(true);
+
+  // Get unique occasions from wardrobe items
+  const [availableOccasions, setAvailableOccasions] = useState<string[]>([]);
+
+  // Performance optimization
+  const { executeWithCache, debounce } = usePerformance({
+    cacheNamespace: CACHE_NAMESPACES.RECOMMENDATIONS,
+    enableCaching: true,
+    enableMonitoring: true
+  });
 
   useEffect(() => {
-    if (user) {
-      fetchWardrobeItems();
+    if (user && profile) {
+      loadWardrobeItems();
+      // Fetch weather for user's location if available
+      if (profile.location) {
+        fetchWeather(profile.location);
+      } else {
+        fetchWeather(); // Use default location
+      }
+    } else if (user && !profile) {
+      setError('Profile not found. Please complete your profile setup.');
+      setLoading(false);
+    } else {
+      setError('Please sign in to get style recommendations.');
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, profile]);
 
-  useEffect(() => {
-    if (items.length > 0) {
-      generateRecommendations();
-    }
-  }, [items, weather]);
-
-  const fetchWardrobeItems = async () => {
+  const loadWardrobeItems = async () => {
     if (!user) return;
 
-    setLoading(true);
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      setError(null);
+      console.log('Loading wardrobe items for user:', user.id);
+
+      // Use cached wardrobe items if available
+      const cacheKey = `wardrobe_items_${user.id}`;
+      const cachedItems = PerformanceCache.get<WardrobeItem[]>(cacheKey, CACHE_NAMESPACES.WARDROBE_ITEMS);
+      
+      if (cachedItems) {
+        setWardrobeItems(cachedItems);
+        extractOccasions(cachedItems);
+        setLoading(false);
+        return;
+      }
+
+      const { data: items, error: fetchError } = await supabase
         .from('wardrobe_items')
         .select('*')
         .eq('user_id', user.id);
 
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load wardrobe items",
-          variant: "destructive"
-        });
-      } else {
-        setItems(data || []);
+      if (fetchError) {
+        console.error('Error fetching wardrobe items:', fetchError);
+        throw new Error('Failed to load your wardrobe items');
       }
+
+      console.log('Fetched wardrobe items:', items);
+
+      let mappedItems: WardrobeItem[] = (items || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        photo_url: item.photo_url || '',
+        category: item.category,
+        color: item.color || [],
+        style: item.style || 'casual',
+        occasion: item.occasion || ['casual'],
+        season: item.season || ['all'],
+        tags: item.tags || []
+      }));
+
+      setWardrobeItems(mappedItems);
+      extractOccasions(mappedItems);
+
+      // Cache wardrobe items for 10 minutes
+      PerformanceCache.set(cacheKey, mappedItems, {
+        ttl: 10 * 60 * 1000,
+        namespace: CACHE_NAMESPACES.WARDROBE_ITEMS
+      });
+
     } catch (error) {
-      console.error('Error fetching wardrobe items:', error);
+      console.error('Error loading wardrobe items:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load wardrobe items');
+      setWardrobeItems([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const generateRecommendations = async () => {
-    if (items.length < 2) return;
+  const extractOccasions = (items: WardrobeItem[]) => {
+    const occasions = new Set<string>();
+    items.forEach(item => {
+      item.occasion.forEach(occ => occasions.add(occ));
+    });
+    setAvailableOccasions(Array.from(occasions).sort());
 
-    setGenerating(true);
-    try {
-      // Add small delay to show loading state
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      // Generate recommendations for different occasions
-      const occasions = ['casual', 'work', 'date', 'formal'];
-      const allRecommendations: StyleRecommendation[] = [];
-
-      for (const occasion of occasions) {
-        const combinations = advancedStyleAI.generateOutfitCombinations(items, {
-          occasion,
-          weather: weather || undefined,
-          profile: profile ? {
-            style_preferences: profile.style_preferences || [],
-            preferred_colors: profile.preferred_colors || [],
-            lifestyle: profile.lifestyle || '',
-            budget_range: profile.budget_range || ''
-          } : undefined
-        });
-
-        // Take top 2 combinations per occasion
-        const topCombinations = combinations.slice(0, 2).map(combo => ({
-          ...combo,
-          trendRelevance: Math.random() * 20 + 80 // Mock trend relevance 80-100%
-        }));
-
-        allRecommendations.push(...topCombinations);
-      }
-
-      // Sort by score and take top recommendations
-      const sortedRecommendations = allRecommendations
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 8);
-
-      setRecommendations(sortedRecommendations);
-    } catch (error) {
-      console.error('Error generating recommendations:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate style recommendations",
-        variant: "destructive"
-      });
-    } finally {
-      setGenerating(false);
+    // Set default occasion if available
+    if (occasions.size > 0 && !occasions.has(selectedOccasion)) {
+      setSelectedOccasion(Array.from(occasions)[0]);
     }
   };
 
-  const saveRecommendationFeedback = async (recommendationIndex: number, helpful: boolean) => {
+  const loadRecommendations = async () => {
+    if (!user || !profile || wardrobeItems.length === 0) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('Generating recommendations for occasion:', selectedOccasion, 'with accessories:', includeAccessories);
+
+      // Filter items based on user preferences
+      let filteredItems = wardrobeItems.filter(item => 
+        item.occasion.includes(selectedOccasion) || 
+        item.occasion.includes('casual') // Always include casual items as they're versatile
+      );
+
+      // Handle accessories based on user preference
+      if (!includeAccessories) {
+        filteredItems = filteredItems.filter(item => 
+          !['accessories', 'jewelry', 'bags', 'hats', 'belts', 'scarves'].includes(item.category.toLowerCase())
+        );
+      }
+
+      console.log('Filtered items for recommendations:', filteredItems);
+
+      if (filteredItems.length === 0) {
+        console.log('No items found for selected preferences');
+        setRecommendations([]);
+        setLoading(false);
+        return;
+      }
+
+      // Create style profile
+      const styleProfile: StyleProfile = {
+        id: profile.id,
+        preferred_style: profile.preferred_style || 'casual',
+        favorite_colors: profile.favorite_colors || [],
+        goals: profile.goals || []
+      };
+
+      console.log('Generating recommendations with profile:', styleProfile, 'occasion:', selectedOccasion);
+
+      // Use cached execution for recommendations
+      const recs = await executeWithCache(
+        `recommendations_${selectedOccasion}_${includeAccessories}_${user.id}`,
+        async () => simpleStyleAI.generateRecommendations(
+          filteredItems,
+          styleProfile,
+          {
+            occasion: selectedOccasion,
+            timeOfDay: 'day',
+            weather: weather || undefined
+          },
+          includeAccessories
+        ),
+        5 * 60 * 1000 // 5 minutes cache
+      );
+
+      console.log('Generated recommendations:', recs);
+      setRecommendations(recs);
+    } catch (error) {
+      console.error('Error loading recommendations:', error);
+      setError(error instanceof Error ? error.message : 'Failed to generate recommendations');
+      setRecommendations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Debounced recommendation loading
+  const debouncedLoadRecommendations = debounce(loadRecommendations, 500);
+
+  useEffect(() => {
+    if (wardrobeItems.length > 0) {
+      debouncedLoadRecommendations();
+    }
+  }, [wardrobeItems, selectedOccasion, includeAccessories, weather]);
+
+  const handleTryOn = (outfit: OutfitRecommendation) => {
+    setSelectedOutfit(outfit);
+    setShowTryOn(true);
+  };
+
+  const handleLike = async (outfitId: string) => {
     if (!user) return;
 
     try {
-      const recommendation = recommendations[recommendationIndex];
+      const outfit = recommendations.find(r => r.id === outfitId);
+      if (!outfit) return;
+
       const { error } = await supabase
         .from('outfit_feedback')
         .insert({
           user_id: user.id,
-          outfit_item_ids: recommendation.items.map(item => item.id),
-          feedback: helpful ? 'helpful' : 'not_helpful',
-          created_at: new Date().toISOString()
+          feedback: 'like',
+          outfit_item_ids: outfit.items.map(i => i.id)
         });
 
       if (error) {
         console.error('Error saving feedback:', error);
       } else {
-        toast({
-          title: helpful ? "Thanks for the feedback!" : "Feedback saved",
-          description: "We'll use this to improve your recommendations",
-        });
+        console.log('Outfit feedback saved successfully');
       }
     } catch (error) {
-      console.error('Error saving recommendation feedback:', error);
+      console.error('Error saving feedback:', error);
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Style Recommendations</h2>
-          <p className="text-muted-foreground">
-            Personalized outfit suggestions powered by advanced AI
-          </p>
+  if (loading && wardrobeItems.length === 0) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <div className="flex items-center space-x-4">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+          <div>
+            <h3 className="text-lg font-semibold">Loading your style assistant...</h3>
+            <p className="text-muted-foreground">Analyzing your wardrobe and preferences</p>
+          </div>
         </div>
-        <Button onClick={generateRecommendations} disabled={generating || items.length < 2}>
-          {generating ? (
-            <RefreshCw className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
-        </Button>
       </div>
+    );
+  }
 
-      {/* Weather Context */}
-      {weather && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Palette className="h-4 w-4 text-blue-500" />
-                <span className="text-sm font-medium">Today's Weather:</span>
-                <span className="text-sm text-muted-foreground">
-                  {Math.round(weather.temperature)}°C, {weather.condition}
-                </span>
+  if (error) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Card className="max-w-md">
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="h-8 w-8 text-red-600" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Unable to Load Recommendations</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={loadWardrobeItems} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Preferences Panel */}
+      {showPreferences && (
+        <Card className="card-premium">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Settings className="h-5 w-5 text-purple-600" />
+                <CardTitle className="text-lg">Style Preferences</CardTitle>
               </div>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <span className="text-sm font-medium">Recommendations updated for current conditions</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPreferences(false)}
+              >
+                Hide
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="occasion">Occasion</Label>
+                <Select value={selectedOccasion} onValueChange={setSelectedOccasion}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select occasion" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableOccasions.map(occasion => (
+                      <SelectItem key={occasion} value={occasion}>
+                        {occasion.charAt(0).toUpperCase() + occasion.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="accessories"
+                  checked={includeAccessories}
+                  onCheckedChange={setIncludeAccessories}
+                />
+                <Label htmlFor="accessories">Include Accessories</Label>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Style Recommendations Grid */}
-      {recommendations.length > 0 && (
+      {/* Weather Integration */}
+      <Card className="card-premium">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Weather-Aware Styling</p>
+                {weather ? (
+                  <p className="text-xs text-muted-foreground">
+                    {weather.description} • {Math.round(weather.temperature)}°C
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    {getWeatherStatus()}
+                  </p>
+                )}
+              </div>
+            </div>
+            {weather ? (
+              <Badge variant="secondary">
+                {getWeatherAdvice(weather)}
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs">
+                Weather unavailable
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recommendations Grid */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-heading">AI Style Recommendations</h2>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreferences(!showPreferences)}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Preferences
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadRecommendations}
+              disabled={loading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
+        </div>
+
+        {loading && (
+          <div className="flex items-center justify-center p-8">
+            <div className="flex items-center space-x-4">
+              <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
+              <span>Generating your perfect outfits...</span>
+            </div>
+          </div>
+        )}
+
+        {!loading && recommendations.length === 0 && (
+          <Card className="text-center p-8">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No Recommendations Available</h3>
+            <p className="text-muted-foreground mb-4">
+              Try adjusting your preferences or add more items to your wardrobe.
+            </p>
+            <Button onClick={() => setShowPreferences(true)}>
+              Adjust Preferences
+            </Button>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recommendations.map((recommendation, index) => (
-            <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
+          {recommendations.map((outfit, index) => (
+            <Card key={outfit.id} className="group hover:shadow-lg transition-all duration-300">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">
-                    Style #{index + 1}
-                  </CardTitle>
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-yellow-500" />
-                    <span className="text-sm font-medium">
-                      {Math.round(recommendation.score)}
-                    </span>
-                  </div>
+                  <CardTitle className="text-lg">{outfit.description}</CardTitle>
+                  <Badge variant="secondary" className="text-xs">
+                    {Math.round(outfit.confidence * 100)}% match
+                  </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {recommendation.reasoning}
+                  Perfect for {outfit.occasion} occasions
                 </p>
               </CardHeader>
               
               <CardContent className="space-y-4">
-                {/* Outfit Items */}
+                {/* Outfit Items Grid */}
                 <div className="grid grid-cols-2 gap-2">
-                  {recommendation.items.slice(0, 4).map((item, itemIndex) => (
-                    <div key={itemIndex} className="relative group">
-                      <img
+                  {outfit.items.map((item, itemIndex) => (
+                    <div key={item.id} className="relative group/item">
+                      <OptimizedImage
                         src={item.photo_url}
                         alt={item.name}
-                        className="w-full h-24 object-cover rounded-md group-hover:scale-105 transition-transform"
+                        className="aspect-square rounded-lg object-cover"
+                        lazy={true}
+                        width={150}
+                        height={150}
                       />
+                      <div className="absolute inset-0 bg-black/0 group-hover/item:bg-black/20 transition-colors rounded-lg" />
                       <div className="absolute bottom-1 left-1 right-1">
-                        <Badge variant="secondary" className="text-xs truncate">
-                          {item.name}
+                        <Badge variant="secondary" className="text-xs">
+                          {item.category}
                         </Badge>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Recommendation Metrics */}
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-xs">
-                    <span>Color Harmony</span>
-                    <span className="font-medium">{Math.round(recommendation.colorHarmony)}%</span>
+                {/* Outfit Actions */}
+                <div className="flex items-center justify-between pt-2">
+                  <div className="flex space-x-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleLike(outfit.id)}
+                    >
+                      <Heart className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleTryOn(outfit)}
+                      title="Try this outfit on your photo"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span>Style Coherence</span>
-                    <span className="font-medium">{Math.round(recommendation.styleCoherence)}%</span>
+                  
+                  <div className="flex items-center space-x-1">
+                    {outfit.reasoning.slice(0, 2).map((reason, reasonIndex) => (
+                      <Badge key={reasonIndex} variant="outline" className="text-xs">
+                        {reason}
+                      </Badge>
+                    ))}
                   </div>
-                  {recommendation.trendRelevance && (
-                    <div className="flex justify-between items-center text-xs">
-                      <span>Trend Relevance</span>
-                      <span className="font-medium">{Math.round(recommendation.trendRelevance)}%</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => saveRecommendationFeedback(index, true)}
-                    className="flex-1"
-                  >
-                    <ThumbsUp className="h-3 w-3 mr-1" />
-                    Helpful
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => saveRecommendationFeedback(index, false)}
-                    className="flex-1"
-                  >
-                    Not helpful
-                  </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
-      )}
+      </div>
 
-      {/* Loading State */}
-      {generating && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, index) => (
-            <Card key={index} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-muted rounded w-3/4"></div>
-                <div className="h-3 bg-muted rounded w-full"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-24 bg-muted rounded"></div>
-                  ))}
-                </div>
-                <div className="space-y-2">
-                  <div className="h-2 bg-muted rounded"></div>
-                  <div className="h-2 bg-muted rounded"></div>
-                  <div className="h-2 bg-muted rounded"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      {/* Virtual Try-On Modal */}
+      {showTryOn && selectedOutfit && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Virtual Try-On</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowTryOn(false)}
+              >
+                ×
+              </Button>
+            </div>
+            <div className="mb-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Upload your full body photo to see how this outfit looks on you. The clothing items are already selected from your recommendations.
+                </AlertDescription>
+              </Alert>
+            </div>
+            <AdvancedVirtualTryOn
+              clothingImg={selectedOutfit.items[0]?.photo_url || ''}
+              clothingType="auto"
+            />
+          </div>
         </div>
-      )}
-
-      {/* Empty State */}
-      {recommendations.length === 0 && !loading && !generating && items.length >= 2 && (
-        <Card className="text-center p-12">
-          <CardContent>
-            <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Getting Your Style Ready</h3>
-            <p className="text-muted-foreground mb-4">
-              We're analyzing your wardrobe to create personalized recommendations.
-            </p>
-            <Button onClick={generateRecommendations}>
-              <Sparkles className="h-4 w-4 mr-2" />
-              Generate Recommendations
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Insufficient Items State */}
-      {items.length < 2 && !loading && (
-        <Card className="text-center p-12">
-          <CardContent>
-            <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Build Your Wardrobe</h3>
-            <p className="text-muted-foreground">
-              Add more items to your wardrobe to get personalized style recommendations.
-            </p>
-          </CardContent>
-        </Card>
       )}
     </div>
   );
 };
-
-export default StyleRecommendations;

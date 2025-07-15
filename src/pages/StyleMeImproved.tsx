@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { StyleQuiz } from '@/components/StyleQuiz';
 import { SmartWardrobeBootstrap } from '@/components/SmartWardrobeBootstrap';
 import { OccasionQuickStart } from '@/components/OccasionQuickStart';
-import StyleRecommendations from '@/components/StyleRecommendations';
+import { StyleRecommendations } from '@/components/StyleRecommendations';
 import { Sparkles, User, ShoppingBag, Calendar, ArrowRight } from 'lucide-react';
 
 export const StyleMeImproved: React.FC = () => {

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ModernHeader from "@/components/ModernHeader";
 import { WardrobeAnalytics as Analytics } from "@/components/WardrobeAnalytics";
-import OutfitPlanner from "@/components/OutfitPlanner";
+import { OutfitPlanner } from "@/components/OutfitPlanner";
 import { WardrobeInsights } from "@/components/WardrobeInsights";
 
 const WardrobeAnalyticsPage = () => {

@@ -14,11 +14,6 @@ interface Profile {
   goals?: string[];
   gender_identity?: string;
   face_photo_url?: string;
-  // Add the missing properties that components expect
-  style_preferences?: string[];
-  preferred_colors?: string[];
-  lifestyle?: string;
-  budget_range?: string;
 }
 
 export const useProfile = () => {
@@ -62,30 +57,14 @@ export const useProfile = () => {
             console.error('Error creating profile:', createError);
           } else {
             console.log('Created new profile:', newProfile);
-            // Add default values for the expected properties
-            const enhancedProfile = {
-              ...newProfile,
-              style_preferences: [],
-              preferred_colors: newProfile.favorite_colors || [],
-              lifestyle: '',
-              budget_range: ''
-            };
-            setProfile(enhancedProfile);
+            setProfile(newProfile);
           }
         } else {
           console.error('Error fetching profile:', error);
         }
       } else {
         console.log('Profile fetched successfully:', data);
-        // Ensure all expected properties exist with proper fallbacks
-        const enhancedProfile = {
-          ...data,
-          style_preferences: data.preferred_style ? [data.preferred_style] : [],
-          preferred_colors: data.favorite_colors || [],
-          lifestyle: data.culture || '',
-          budget_range: ''
-        };
-        setProfile(enhancedProfile);
+        setProfile(data);
       }
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);
