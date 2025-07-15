@@ -1,4 +1,4 @@
-import { Color } from 'color2k';
+import { parseToHsla, hsla, readableColor } from 'color2k';
 
 interface ClothingItem {
   id: string;
@@ -39,17 +39,18 @@ class AdvancedStyleAI {
 
   private getColorHarmonyScore(color1: string, color2: string): number {
     try {
-      const col1 = new Color(color1);
-      const col2 = new Color(color2);
+      // Simple color harmony calculation using color2k
+      const [h1, s1, l1] = parseToHsla(color1);
+      const [h2, s2, l2] = parseToHsla(color2);
 
-      const hueDifference = Math.abs(col1.get('h') - col2.get('h'));
-      const saturationDifference = Math.abs(col1.get('s') - col2.get('s'));
-      const lightnessDifference = Math.abs(col1.get('l') - col2.get('l'));
+      const hueDifference = Math.abs(h1 - h2);
+      const saturationDifference = Math.abs(s1 - s2);
+      const lightnessDifference = Math.abs(l1 - l2);
 
       let harmonyScore = 0;
 
       // Complementary colors
-      if (hueDifference > 150 && hueDifference < 190) {
+      if (hueDifference > 150 && hueDifference < 210) {
         harmonyScore += 0.8;
       }
 
@@ -66,7 +67,7 @@ class AdvancedStyleAI {
       return harmonyScore;
     } catch (error) {
       console.error(`Error calculating color harmony for ${color1} and ${color2}:`, error);
-      return 0;
+      return 0.5; // Default neutral score
     }
   }
 

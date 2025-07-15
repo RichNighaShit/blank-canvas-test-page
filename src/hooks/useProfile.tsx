@@ -66,7 +66,7 @@ export const useProfile = () => {
             const enhancedProfile = {
               ...newProfile,
               style_preferences: [],
-              preferred_colors: [],
+              preferred_colors: newProfile.favorite_colors || [],
               lifestyle: '',
               budget_range: ''
             };
@@ -77,13 +77,13 @@ export const useProfile = () => {
         }
       } else {
         console.log('Profile fetched successfully:', data);
-        // Ensure all expected properties exist
+        // Ensure all expected properties exist with proper fallbacks
         const enhancedProfile = {
           ...data,
-          style_preferences: data.style_preferences || [],
-          preferred_colors: data.preferred_colors || data.favorite_colors || [],
-          lifestyle: data.lifestyle || '',
-          budget_range: data.budget_range || ''
+          style_preferences: data.preferred_style ? [data.preferred_style] : [],
+          preferred_colors: data.favorite_colors || [],
+          lifestyle: data.culture || '',
+          budget_range: ''
         };
         setProfile(enhancedProfile);
       }
