@@ -9,7 +9,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useWeather } from "@/hooks/useWeather";
 import { supabase } from "@/integrations/supabase/client";
-import { simpleStyleAI, OutfitRecommendation, WardrobeItem, StyleProfile } from "@/lib/simpleStyleAI";
+import { advancedStyleEngine } from "@/lib/advancedStyleEngine";
+import { WardrobeItem, OutfitRecommendation, StyleProfile, OutfitContext } from "@/types/wardrobe";
 import { usePerformance } from "@/hooks/usePerformance";
 import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
 
@@ -22,6 +23,9 @@ interface PlannedOutfit {
   notes?: string;
   confidence?: number;
   reasoning?: string[];
+  colorHarmony?: number;
+  styleCoherence?: number;
+  weatherAppropriate?: number;
 }
 
 export const OutfitPlanner = () => {
@@ -64,7 +68,23 @@ export const OutfitPlanner = () => {
         .eq('user_id', user.id);
 
       if (error) throw error;
-      setWardrobeItems(data || []);
+      
+      const mappedItems: WardrobeItem[] = (data || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        photo_url: item.photo_url || '',
+        category: item.category,
+        color: item.color || [],
+        style: item.style || 'casual',
+        occasion: item.occasion || ['casual'],
+        season: item.season || ['all'],
+        tags: item.tags || [],
+        user_id: item.user_id,
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      }));
+      
+      setWardrobeItems(mappedItems);
     } catch (error) {
       console.error('Error fetching wardrobe items:', error);
     }
@@ -84,6 +104,28 @@ export const OutfitPlanner = () => {
   const savePlannedOutfits = (outfits: PlannedOutfit[]) => {
     localStorage.setItem('plannedOutfits', JSON.stringify(outfits));
     setPlannedOutfits(outfits);
+  };
+
+  const getCurrentSeason = (): 'spring' | 'summer' | 'fall' | 'winter' => {
+    const month = new Date().getMonth();
+    if (month >= 2 && month <= 4) return 'spring';
+    if (month >= 5 && month <= 7) return 'summer';
+    if (month >= 8 && month <= 10) return 'fall';
+    return 'winter';
+  };
+
+  const mapOccasionToFormality = (occasion: string): 'casual' | 'business' | 'formal' | 'athletic' => {
+    const formalityMap: Record<string, 'casual' | 'business' | 'formal' | 'athletic'> = {
+      'casual': 'casual',
+      'work': 'business',
+      'business': 'business',
+      'formal': 'formal',
+      'party': 'formal',
+      'sport': 'athletic',
+      'gym': 'athletic',
+      'workout': 'athletic'
+    };
+    return formalityMap[occasion] || 'casual';
   };
 
   const generateOutfitForDate = async () => {
@@ -108,41 +150,38 @@ export const OutfitPlanner = () => {
     setIsGenerating(true);
 
     try {
-      // Filter items suitable for the occasion
-      const suitableItems = wardrobeItems.filter(item => 
-        item.occasion.includes(selectedOccasion) || 
-        item.occasion.includes('casual')
-      );
-
-      if (suitableItems.length < 2) {
-        toast({
-          title: "No suitable items",
-          description: `No items found for ${selectedOccasion} occasions. Try adding more items to your wardrobe.`,
-          variant: "destructive"
-        });
-        return;
-      }
-
       // Create style profile
       const styleProfile: StyleProfile = {
         id: profile.id,
         preferred_style: profile.preferred_style || 'casual',
         favorite_colors: profile.favorite_colors || [],
-        goals: profile.goals || []
+        goals: profile.goals || [],
+        body_type: profile.body_type,
+        lifestyle: profile.lifestyle,
+        budget_range: profile.budget_range
+      };
+
+      // Create outfit context
+      const context: OutfitContext = {
+        occasion: selectedOccasion,
+        timeOfDay: 'day',
+        weather: weather || undefined,
+        season: getCurrentSeason(),
+        formality: mapOccasionToFormality(selectedOccasion)
       };
 
       // Use cached execution for AI recommendations
       const recommendations = await executeWithCache(
         `outfit_planner_${selectedOccasion}_${selectedDate.getTime()}_${user.id}`,
-        async () => simpleStyleAI.generateRecommendations(
-          suitableItems,
+        async () => advancedStyleEngine.generateRecommendations(
+          wardrobeItems,
           styleProfile,
+          context,
           {
-            occasion: selectedOccasion,
-            timeOfDay: 'day',
-            weather: weather || undefined
-          },
-          true // Include accessories for planning
+            maxRecommendations: 1,
+            includeAccessories: true,
+            diversityFactor: 0.8
+          }
         ),
         5 * 60 * 1000 // 5 minutes cache
       );
@@ -162,7 +201,7 @@ export const OutfitPlanner = () => {
       setCurrentOutfitDetails(bestOutfit);
       
       toast({
-        title: "Outfit Generated!",
+        title: "Advanced Outfit Generated!",
         description: `${bestOutfit.description} (${Math.round(bestOutfit.confidence * 100)}% match)`,
       });
     } catch (error) {
@@ -194,7 +233,10 @@ export const OutfitPlanner = () => {
       items: currentOutfit,
       weather: weather?.condition || 'mild',
       confidence: currentOutfitDetails?.confidence,
-      reasoning: currentOutfitDetails?.reasoning
+      reasoning: currentOutfitDetails?.reasoning,
+      colorHarmony: currentOutfitDetails?.colorHarmony,
+      styleCoherence: currentOutfitDetails?.styleCoherence,
+      weatherAppropriate: currentOutfitDetails?.weatherAppropriate
     };
 
     const updatedOutfits = [...plannedOutfits.filter(o => 
@@ -207,7 +249,7 @@ export const OutfitPlanner = () => {
 
     toast({
       title: "Outfit Saved!",
-      description: `Outfit planned for ${selectedDate.toLocaleDateString()}.`,
+      description: `Advanced AI outfit planned for ${selectedDate.toLocaleDateString()}.`,
     });
   };
 
@@ -215,13 +257,6 @@ export const OutfitPlanner = () => {
     return plannedOutfits.find(outfit => 
       outfit.date.toDateString() === date.toDateString()
     );
-  };
-
-  const getSeason = (month: number): string => {
-    if (month >= 2 && month <= 4) return 'spring';
-    if (month >= 5 && month <= 7) return 'summer';
-    if (month >= 8 && month <= 10) return 'fall';
-    return 'winter';
   };
 
   const generateWeeklyOutfits = async () => {
@@ -245,7 +280,10 @@ export const OutfitPlanner = () => {
         id: profile.id,
         preferred_style: profile.preferred_style || 'casual',
         favorite_colors: profile.favorite_colors || [],
-        goals: profile.goals || []
+        goals: profile.goals || [],
+        body_type: profile.body_type,
+        lifestyle: profile.lifestyle,
+        budget_range: profile.budget_range
       };
 
       for (let i = 0; i < 7; i++) {
@@ -266,45 +304,50 @@ export const OutfitPlanner = () => {
           occasion = 'casual'; // Sunday
         }
 
-        // Filter items for this occasion
-        const suitableItems = wardrobeItems.filter(item => 
-          item.occasion.includes(occasion) || item.occasion.includes('casual')
-        );
+        try {
+          // Create context for this day
+          const context: OutfitContext = {
+            occasion,
+            timeOfDay: 'day',
+            weather: weather || undefined,
+            season: getCurrentSeason(),
+            formality: mapOccasionToFormality(occasion)
+          };
 
-        if (suitableItems.length >= 2) {
-          try {
-            // Use cached execution for each day's outfit
-            const recommendations = await executeWithCache(
-              `weekly_outfit_${occasion}_${currentDate.getTime()}_${user.id}`,
-              async () => simpleStyleAI.generateRecommendations(
-                suitableItems,
-                styleProfile,
-                {
-                  occasion,
-                  timeOfDay: 'day',
-                  weather: weather || undefined
-                },
-                true // Include accessories
-              ),
-              10 * 60 * 1000 // 10 minutes cache for weekly planning
-            );
+          // Use cached execution for each day's outfit
+          const recommendations = await executeWithCache(
+            `weekly_outfit_${occasion}_${currentDate.getTime()}_${user.id}`,
+            async () => advancedStyleEngine.generateRecommendations(
+              wardrobeItems,
+              styleProfile,
+              context,
+              {
+                maxRecommendations: 1,
+                includeAccessories: true,
+                diversityFactor: 0.9 // Higher diversity for weekly planning
+              }
+            ),
+            10 * 60 * 1000 // 10 minutes cache for weekly planning
+          );
 
-            if (recommendations.length > 0) {
-              const bestOutfit = recommendations[0];
-              weeklyOutfits.push({
-                id: `${currentDate.getTime()}`,
-                date: currentDate,
-                occasion,
-                items: bestOutfit.items,
-                weather: weather?.condition || 'mild',
-                confidence: bestOutfit.confidence,
-                reasoning: bestOutfit.reasoning
-              });
-            }
-          } catch (error) {
-            console.error(`Error generating outfit for ${currentDate.toDateString()}:`, error);
-            // Continue with other days even if one fails
+          if (recommendations.length > 0) {
+            const bestOutfit = recommendations[0];
+            weeklyOutfits.push({
+              id: `${currentDate.getTime()}`,
+              date: currentDate,
+              occasion,
+              items: bestOutfit.items,
+              weather: weather?.condition || 'mild',
+              confidence: bestOutfit.confidence,
+              reasoning: bestOutfit.reasoning,
+              colorHarmony: bestOutfit.colorHarmony,
+              styleCoherence: bestOutfit.styleCoherence,
+              weatherAppropriate: bestOutfit.weatherAppropriate
+            });
           }
+        } catch (error) {
+          console.error(`Error generating outfit for ${currentDate.toDateString()}:`, error);
+          // Continue with other days even if one fails
         }
       }
 
@@ -313,7 +356,7 @@ export const OutfitPlanner = () => {
 
       toast({
         title: "Weekly Outfits Generated!",
-        description: `Created ${weeklyOutfits.length} AI-powered outfits for the week.`,
+        description: `Created ${weeklyOutfits.length} advanced AI-powered outfits for the week.`,
       });
     } catch (error) {
       console.error('Error generating weekly outfits:', error);
@@ -335,9 +378,9 @@ export const OutfitPlanner = () => {
         {/* Calendar and Controls */}
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle>Plan Your Outfits</CardTitle>
+            <CardTitle>Advanced Outfit Planner</CardTitle>
             <CardDescription>
-              Select a date and generate personalized outfit recommendations
+              AI-powered outfit planning with advanced fashion intelligence
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -377,7 +420,7 @@ export const OutfitPlanner = () => {
                   disabled={isGenerating}
                   className="w-full"
                 >
-                  {isGenerating ? "Generating..." : "Generate AI Outfit"}
+                  {isGenerating ? "Generating..." : "Generate Advanced AI Outfit"}
                 </Button>
                 
                 <Button 
@@ -386,7 +429,7 @@ export const OutfitPlanner = () => {
                   variant="outline"
                   className="w-full"
                 >
-                  Plan Whole Week
+                  Plan Whole Week (AI-Powered)
                 </Button>
               </div>
             </div>
@@ -402,9 +445,16 @@ export const OutfitPlanner = () => {
             <CardDescription>
               {selectedDate.toLocaleDateString()} - {selectedOccasion}
               {currentOutfitDetails && (
-                <span className="ml-2 text-xs text-muted-foreground">
-                  ({Math.round(currentOutfitDetails.confidence * 100)}% match)
-                </span>
+                <div className="mt-2 space-y-1">
+                  <div className="text-xs text-muted-foreground">
+                    AI Confidence: {Math.round(currentOutfitDetails.confidence * 100)}%
+                  </div>
+                  <div className="flex gap-2 text-xs">
+                    <span>Style: {Math.round(currentOutfitDetails.styleCoherence * 100)}%</span>
+                    <span>Colors: {Math.round(currentOutfitDetails.colorHarmony * 100)}%</span>
+                    <span>Weather: {Math.round(currentOutfitDetails.weatherAppropriate * 100)}%</span>
+                  </div>
+                </div>
               )}
             </CardDescription>
           </CardHeader>
@@ -435,8 +485,16 @@ export const OutfitPlanner = () => {
                   ))}
                 </div>
                 {existingOutfit.confidence && (
-                  <div className="text-xs text-muted-foreground">
-                    AI Confidence: {Math.round(existingOutfit.confidence * 100)}%
+                  <div className="space-y-1">
+                    <div className="text-xs text-muted-foreground">
+                      AI Confidence: {Math.round(existingOutfit.confidence * 100)}%
+                    </div>
+                    {existingOutfit.colorHarmony && (
+                      <div className="grid grid-cols-2 gap-1 text-xs">
+                        <span>Style: {Math.round(existingOutfit.styleCoherence! * 100)}%</span>
+                        <span>Colors: {Math.round(existingOutfit.colorHarmony * 100)}%</span>
+                      </div>
+                    )}
                   </div>
                 )}
                 <Button 
@@ -478,7 +536,7 @@ export const OutfitPlanner = () => {
                 </div>
                 {currentOutfitDetails?.reasoning && currentOutfitDetails.reasoning.length > 0 && (
                   <div className="text-xs text-muted-foreground space-y-1">
-                    <div className="font-medium">Why this outfit:</div>
+                    <div className="font-medium">AI Analysis:</div>
                     {currentOutfitDetails.reasoning.slice(0, 2).map((reason, index) => (
                       <div key={index}>• {reason}</div>
                     ))}
@@ -507,7 +565,7 @@ export const OutfitPlanner = () => {
                   </svg>
                 </div>
                 <p className="text-muted-foreground">
-                  Generate an AI-powered outfit for this date
+                  Generate an advanced AI-powered outfit for this date
                 </p>
               </div>
             )}
@@ -517,9 +575,9 @@ export const OutfitPlanner = () => {
         {/* Upcoming Outfits */}
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle>Upcoming Outfits</CardTitle>
+            <CardTitle>Upcoming AI Outfits</CardTitle>
             <CardDescription>
-              Your AI-planned outfits for the next few days
+              Your advanced AI-planned outfits for the next few days
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -542,7 +600,7 @@ export const OutfitPlanner = () => {
                       <p className="text-xs text-muted-foreground capitalize">
                         {outfit.occasion} • {outfit.items.length} items
                         {outfit.confidence && (
-                          <span className="ml-1">• {Math.round(outfit.confidence * 100)}% match</span>
+                          <span className="ml-1">• {Math.round(outfit.confidence * 100)}% AI match</span>
                         )}
                       </p>
                     </div>
@@ -562,7 +620,7 @@ export const OutfitPlanner = () => {
               
               {plannedOutfits.filter(outfit => outfit.date >= new Date()).length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No upcoming outfits planned
+                  No upcoming AI outfits planned
                 </p>
               )}
             </div>

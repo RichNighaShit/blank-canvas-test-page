@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +10,8 @@ import { Sparkles, Heart, Eye, ShoppingBag, Loader2, RefreshCw, Settings, AlertC
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
-import { simpleStyleAI, OutfitRecommendation, WardrobeItem, StyleProfile } from '@/lib/simpleStyleAI';
+import { advancedStyleEngine } from '@/lib/advancedStyleEngine';
+import { WardrobeItem, OutfitRecommendation, StyleProfile, OutfitContext, UserFeedback } from '@/types/wardrobe';
 import AdvancedVirtualTryOn from './AdvancedVirtualTryOn';
 import { useWeather } from '@/hooks/useWeather';
 import { usePerformance } from '@/hooks/usePerformance';
@@ -31,7 +31,7 @@ export const StyleRecommendations = () => {
   
   // User preferences state
   const [selectedOccasion, setSelectedOccasion] = useState<string>('casual');
-  const [includeAccessories, setIncludeAccessories] = useState<boolean>(false);
+  const [includeAccessories, setIncludeAccessories] = useState<boolean>(true);
   const [showPreferences, setShowPreferences] = useState<boolean>(true);
 
   // Get unique occasions from wardrobe items
@@ -102,7 +102,10 @@ export const StyleRecommendations = () => {
         style: item.style || 'casual',
         occasion: item.occasion || ['casual'],
         season: item.season || ['all'],
-        tags: item.tags || []
+        tags: item.tags || [],
+        user_id: item.user_id,
+        created_at: item.created_at,
+        updated_at: item.updated_at
       }));
 
       setWardrobeItems(mappedItems);
@@ -142,57 +145,47 @@ export const StyleRecommendations = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Generating recommendations for occasion:', selectedOccasion, 'with accessories:', includeAccessories);
-
-      // Filter items based on user preferences
-      let filteredItems = wardrobeItems.filter(item => 
-        item.occasion.includes(selectedOccasion) || 
-        item.occasion.includes('casual') // Always include casual items as they're versatile
-      );
-
-      // Handle accessories based on user preference
-      if (!includeAccessories) {
-        filteredItems = filteredItems.filter(item => 
-          !['accessories', 'jewelry', 'bags', 'hats', 'belts', 'scarves'].includes(item.category.toLowerCase())
-        );
-      }
-
-      console.log('Filtered items for recommendations:', filteredItems);
-
-      if (filteredItems.length === 0) {
-        console.log('No items found for selected preferences');
-        setRecommendations([]);
-        setLoading(false);
-        return;
-      }
+      console.log('Generating advanced recommendations for occasion:', selectedOccasion, 'with accessories:', includeAccessories);
 
       // Create style profile
       const styleProfile: StyleProfile = {
         id: profile.id,
         preferred_style: profile.preferred_style || 'casual',
         favorite_colors: profile.favorite_colors || [],
-        goals: profile.goals || []
+        goals: profile.goals || [],
+        body_type: profile.body_type,
+        lifestyle: profile.lifestyle,
+        budget_range: profile.budget_range
       };
 
-      console.log('Generating recommendations with profile:', styleProfile, 'occasion:', selectedOccasion);
+      // Create outfit context
+      const context: OutfitContext = {
+        occasion: selectedOccasion,
+        timeOfDay: 'day',
+        weather: weather || undefined,
+        season: this.getCurrentSeason(),
+        formality: this.mapOccasionToFormality(selectedOccasion)
+      };
 
-      // Use cached execution for recommendations
+      console.log('Generating recommendations with advanced engine:', { styleProfile, context });
+
+      // Use the advanced style engine
       const recs = await executeWithCache(
-        `recommendations_${selectedOccasion}_${includeAccessories}_${user.id}`,
-        async () => simpleStyleAI.generateRecommendations(
-          filteredItems,
+        `advanced_recommendations_${selectedOccasion}_${includeAccessories}_${user.id}`,
+        async () => advancedStyleEngine.generateRecommendations(
+          wardrobeItems,
           styleProfile,
+          context,
           {
-            occasion: selectedOccasion,
-            timeOfDay: 'day',
-            weather: weather || undefined
-          },
-          includeAccessories
+            maxRecommendations: 6,
+            includeAccessories,
+            diversityFactor: 0.7
+          }
         ),
         5 * 60 * 1000 // 5 minutes cache
       );
 
-      console.log('Generated recommendations:', recs);
+      console.log('Generated advanced recommendations:', recs);
       setRecommendations(recs);
     } catch (error) {
       console.error('Error loading recommendations:', error);
@@ -201,6 +194,29 @@ export const StyleRecommendations = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper methods
+  const getCurrentSeason = (): 'spring' | 'summer' | 'fall' | 'winter' => {
+    const month = new Date().getMonth();
+    if (month >= 2 && month <= 4) return 'spring';
+    if (month >= 5 && month <= 7) return 'summer';
+    if (month >= 8 && month <= 10) return 'fall';
+    return 'winter';
+  };
+
+  const mapOccasionToFormality = (occasion: string): 'casual' | 'business' | 'formal' | 'athletic' => {
+    const formalityMap: Record<string, 'casual' | 'business' | 'formal' | 'athletic'> = {
+      'casual': 'casual',
+      'work': 'business',
+      'business': 'business',
+      'formal': 'formal',
+      'party': 'formal',
+      'sport': 'athletic',
+      'gym': 'athletic',
+      'workout': 'athletic'
+    };
+    return formalityMap[occasion] || 'casual';
   };
 
   // Debounced recommendation loading
@@ -217,25 +233,36 @@ export const StyleRecommendations = () => {
     setShowTryOn(true);
   };
 
-  const handleLike = async (outfitId: string) => {
+  const handleLike = async (outfit: OutfitRecommendation, rating: number = 5) => {
     if (!user) return;
 
     try {
-      const outfit = recommendations.find(r => r.id === outfitId);
-      if (!outfit) return;
-
+      // Save to database
       const { error } = await supabase
         .from('outfit_feedback')
         .insert({
           user_id: user.id,
-          feedback: 'like',
-          outfit_item_ids: outfit.items.map(i => i.id)
+          feedback: rating >= 4 ? 'like' : 'dislike',
+          feedback_score: rating,
+          outfit_item_ids: outfit.items.map(i => i.id),
+          occasion: outfit.occasion,
+          weather: weather?.condition
         });
 
       if (error) {
         console.error('Error saving feedback:', error);
       } else {
         console.log('Outfit feedback saved successfully');
+        
+        // Add to learning system
+        const feedback: UserFeedback = {
+          outfitId: outfit.id,
+          rating,
+          feedback: rating >= 4 ? 'like' : (rating >= 3 ? 'neutral' : 'dislike'),
+          timestamp: new Date()
+        };
+        
+        advancedStyleEngine.addUserFeedback(user.id, feedback);
       }
     } catch (error) {
       console.error('Error saving feedback:', error);
@@ -248,8 +275,8 @@ export const StyleRecommendations = () => {
         <div className="flex items-center space-x-4">
           <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
           <div>
-            <h3 className="text-lg font-semibold">Loading your style assistant...</h3>
-            <p className="text-muted-foreground">Analyzing your wardrobe and preferences</p>
+            <h3 className="text-lg font-semibold">Loading your advanced style assistant...</h3>
+            <p className="text-muted-foreground">Analyzing your wardrobe with AI-powered fashion intelligence</p>
           </div>
         </div>
       </div>
@@ -285,7 +312,7 @@ export const StyleRecommendations = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Settings className="h-5 w-5 text-purple-600" />
-                <CardTitle className="text-lg">Style Preferences</CardTitle>
+                <CardTitle className="text-lg">Advanced Style Preferences</CardTitle>
               </div>
               <Button
                 variant="ghost"
@@ -320,7 +347,7 @@ export const StyleRecommendations = () => {
                   checked={includeAccessories}
                   onCheckedChange={setIncludeAccessories}
                 />
-                <Label htmlFor="accessories">Include Accessories</Label>
+                <Label htmlFor="accessories">Include Accessories & Layers</Label>
               </div>
             </div>
           </CardContent>
@@ -336,7 +363,7 @@ export const StyleRecommendations = () => {
                 <Sparkles className="h-4 w-4 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm font-medium">Weather-Aware Styling</p>
+                <p className="text-sm font-medium">Weather-Intelligent Styling</p>
                 {weather ? (
                   <p className="text-xs text-muted-foreground">
                     {weather.description} • {Math.round(weather.temperature)}°C
@@ -364,7 +391,10 @@ export const StyleRecommendations = () => {
       {/* Recommendations Grid */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-heading">AI Style Recommendations</h2>
+          <div>
+            <h2 className="text-2xl font-heading">Advanced AI Style Recommendations</h2>
+            <p className="text-sm text-muted-foreground">Powered by fashion intelligence & color theory</p>
+          </div>
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
@@ -390,7 +420,7 @@ export const StyleRecommendations = () => {
           <div className="flex items-center justify-center p-8">
             <div className="flex items-center space-x-4">
               <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
-              <span>Generating your perfect outfits...</span>
+              <span>Generating your perfect outfits with advanced AI...</span>
             </div>
           </div>
         )}
@@ -420,9 +450,13 @@ export const StyleRecommendations = () => {
                     {Math.round(outfit.confidence * 100)}% match
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Perfect for {outfit.occasion} occasions
-                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Style: {Math.round(outfit.styleCoherence * 100)}%</span>
+                  <span>•</span>
+                  <span>Colors: {Math.round(outfit.colorHarmony * 100)}%</span>
+                  <span>•</span>
+                  <span>Weather: {Math.round(outfit.weatherAppropriate * 100)}%</span>
+                </div>
               </CardHeader>
               
               <CardContent className="space-y-4">
@@ -448,13 +482,33 @@ export const StyleRecommendations = () => {
                   ))}
                 </div>
 
+                {/* Advanced Metrics */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex justify-between">
+                    <span>Personal Fit:</span>
+                    <span className="font-medium">{Math.round(outfit.personalFit * 100)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Versatility:</span>
+                    <span className="font-medium">{Math.round(outfit.versatility * 100)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Trend Score:</span>
+                    <span className="font-medium">{Math.round(outfit.trendRelevance * 100)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Occasion:</span>
+                    <span className="font-medium capitalize">{outfit.occasion}</span>
+                  </div>
+                </div>
+
                 {/* Outfit Actions */}
                 <div className="flex items-center justify-between pt-2">
                   <div className="flex space-x-2">
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleLike(outfit.id)}
+                      onClick={() => handleLike(outfit, 5)}
                     >
                       <Heart className="h-4 w-4" />
                     </Button>
@@ -471,7 +525,7 @@ export const StyleRecommendations = () => {
                   <div className="flex items-center space-x-1">
                     {outfit.reasoning.slice(0, 2).map((reason, reasonIndex) => (
                       <Badge key={reasonIndex} variant="outline" className="text-xs">
-                        {reason}
+                        {reason.length > 20 ? reason.substring(0, 20) + '...' : reason}
                       </Badge>
                     ))}
                   </div>
@@ -487,7 +541,7 @@ export const StyleRecommendations = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Virtual Try-On</h3>
+              <h3 className="text-lg font-semibold">Virtual Try-On - Advanced AI</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -500,7 +554,8 @@ export const StyleRecommendations = () => {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Upload your full body photo to see how this outfit looks on you. The clothing items are already selected from your recommendations.
+                  Upload your full body photo to see how this {selectedOutfit.confidence > 0.8 ? 'highly recommended' : 'suggested'} outfit looks on you. 
+                  Confidence: {Math.round(selectedOutfit.confidence * 100)}%
                 </AlertDescription>
               </Alert>
             </div>
