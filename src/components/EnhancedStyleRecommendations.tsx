@@ -149,12 +149,12 @@ export const EnhancedStyleRecommendations = () => {
         preferred_style: profile.preferred_style || "casual",
         favorite_colors: profile.favorite_colors,
         goals: profile.goals,
-        // Enhanced fields with defaults
-        lifestyle: profile.lifestyle || "balanced",
-        body_type: profile.body_type,
-        budget_range: profile.budget_range || "medium",
-        age_range: profile.age_range,
-        profession: profile.profession,
+        // Enhanced fields with sensible defaults since they don't exist in DB
+        lifestyle: "balanced",
+        body_type: undefined,
+        budget_range: "medium",
+        age_range: undefined,
+        profession: undefined,
       };
 
       const context: StyleContext = {
@@ -487,7 +487,6 @@ export const EnhancedStyleRecommendations = () => {
                             src={item.photo_url}
                             alt={item.name}
                             className="w-full h-full object-cover"
-                            sizes="(max-width: 768px) 50vw, 25vw"
                           />
                           {idx === 3 && recommendation.items.length > 4 && (
                             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -712,7 +711,6 @@ export const EnhancedStyleRecommendations = () => {
       {/* Virtual Try-On Modal */}
       {showTryOn && selectedOutfit && (
         <AdvancedVirtualTryOn
-          outfit={selectedOutfit}
           onClose={() => {
             setShowTryOn(false);
             setSelectedOutfit(null);

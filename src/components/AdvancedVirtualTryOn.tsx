@@ -9,9 +9,10 @@ interface AdvancedVirtualTryOnProps {
   clothingImg?: string;
   clothingType?: 'top' | 'bottom' | 'dress' | 'outerwear' | 'auto';
   onImageUpload?: (type: 'user' | 'clothing', imageUrl: string) => void;
+  onClose?: () => void;
 }
 
-const AdvancedVirtualTryOn: React.FC<AdvancedVirtualTryOnProps> = () => {
+const AdvancedVirtualTryOn: React.FC<AdvancedVirtualTryOnProps> = ({ onClose }) => {
   const handleTryOnClick = () => {
     window.open('https://huggingface.co/spaces/Kwai-Kolors/Kolors-Virtual-Try-On', '_blank');
   };

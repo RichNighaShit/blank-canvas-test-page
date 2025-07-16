@@ -18,6 +18,8 @@ export interface LogContext {
   component?: string;
   action?: string;
   metadata?: Record<string, any>;
+  // Allow additional properties for flexibility
+  [key: string]: any;
 }
 
 export interface LogEntry {
