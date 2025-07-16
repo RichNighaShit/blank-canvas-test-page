@@ -169,7 +169,8 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
+  // Initialize with a safe default state
+  const [state, setState] = React.useState<State>(() => memoryState)
 
   React.useEffect(() => {
     listeners.push(setState)
@@ -179,7 +180,7 @@ function useToast() {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+  }, [])
 
   return {
     ...state,
