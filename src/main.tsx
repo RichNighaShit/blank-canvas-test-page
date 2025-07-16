@@ -1,32 +1,60 @@
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
+import { BrowserRouter } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/hooks/useTheme";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { logger } from "@/lib/logger";
+import { initializePWAOptimizations } from "@/lib/pwaOptimizations";
 
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
-import { BrowserRouter } from 'react-router-dom'
-import { Toaster } from '@/components/ui/toaster'
-import { ThemeProvider } from '@/hooks/useTheme'
+// Initialize logger
+logger.info("Application starting", {
+  component: "App",
+  action: "initialization",
+  metadata: {
+    environment: import.meta.env.MODE,
+    timestamp: new Date().toISOString(),
+  },
+});
 
 // Register service worker for offline support
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js")
       .then((registration) => {
-        console.log('SW registered: ', registration);
+        logger.info("Service Worker registered successfully", {
+          component: "ServiceWorker",
+          action: "registration",
+          metadata: { scope: registration.scope },
+        });
       })
       .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
+        logger.error("Service Worker registration failed", {
+          error: registrationError,
+          context: {
+            component: "ServiceWorker",
+            action: "registration",
+          },
+        });
       });
   });
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="default">
-      <BrowserRouter>
-        <App />
-        <Toaster />
-      </BrowserRouter>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider defaultTheme="default">
+        <BrowserRouter>
+          <App />
+          <Toaster />
+        </BrowserRouter>
+      </ThemeProvider>
+    </ErrorBoundary>
   </React.StrictMode>,
-)
+);
+
+// Initialize PWA optimizations
+initializePWAOptimizations();
