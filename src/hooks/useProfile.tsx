@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -20,11 +20,11 @@ interface Profile {
 const profileCache: { [userId: string]: Profile } = {};
 
 export const useProfile = () => {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = React.useState<Profile | null>(null);
+  const [loading, setLoading] = React.useState(true);
   const { user } = useAuth();
 
-  const fetchProfile = async () => {
+  const fetchProfile = React.useCallback(async () => {
     if (!user) {
       setProfile(null);
       setLoading(false);
@@ -83,11 +83,11 @@ export const useProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchProfile();
   }, [user]);
+
+  React.useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   return { profile, loading, refetch: fetchProfile };
 };
