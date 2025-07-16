@@ -1,9 +1,10 @@
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { BrowserRouter } from "react-router-dom";
-import { SafeToaster } from "@/components/SafeToaster";
+import { ToastProvider } from "@/components/SimpleToaster";
 import { ThemeProvider } from "@/hooks/useTheme";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { logger } from "@/lib/logger";
@@ -47,10 +48,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ErrorBoundary>
       <ThemeProvider defaultTheme="default">
-        <BrowserRouter>
-          <App />
-          <SafeToaster />
-        </BrowserRouter>
+        <ToastProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </ToastProvider>
       </ThemeProvider>
     </ErrorBoundary>
   </React.StrictMode>,
