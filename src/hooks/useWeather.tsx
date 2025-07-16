@@ -131,7 +131,14 @@ export const useWeather = (location?: string) => {
       }
 
       // Fallback to profile location or default
-      const locationToUse = userLocation || location || 'London';
+      const locationToUse = userLocation || location; // Removed 'London' default
+
+      if (!locationToUse) {
+        setError('No location provided for weather information.');
+        setWeather(null);
+        setLoading(false);
+        return;
+      }
       
       // Geocode city name to lat/lon using Open-Meteo's geocoding API
       const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationToUse)}&count=1&language=en&format=json`);
