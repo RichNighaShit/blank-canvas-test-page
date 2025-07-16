@@ -1,10 +1,9 @@
-
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { BrowserRouter } from 'react-router-dom'
-import { Toaster } from '@/components/ui/toaster'
+import { SafeToaster } from '@/components/SafeToaster'
 import { ThemeProvider } from '@/hooks/useTheme'
 
 // Register service worker for offline support
@@ -78,7 +77,7 @@ const renderApp = () => {
           <ThemeProvider defaultTheme="default">
             <BrowserRouter>
               <App />
-              <Toaster />
+              <SafeToaster />
             </BrowserRouter>
           </ThemeProvider>
         </ErrorBoundary>
