@@ -42,17 +42,14 @@ export function ThemeProvider({
   const [theme, setThemeState] = useState<Theme>(defaultTheme);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Safe theme setter with validation
+  // Safe theme setter with validation and localStorage sync
   const setTheme = useCallback(
     (newTheme: Theme) => {
       if (!isValidTheme(newTheme)) {
         console.warn(`Invalid theme: ${newTheme}. Using default theme.`);
         return;
       }
-
       setThemeState(newTheme);
-
-      // Safely save to localStorage
       if (typeof window !== "undefined" && window.localStorage) {
         try {
           localStorage.setItem(storageKey, newTheme);
@@ -61,44 +58,40 @@ export function ThemeProvider({
         }
       }
     },
-    [storageKey],
+    [storageKey]
   );
 
   // Load theme from localStorage after mount (hydration)
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     let mounted = true;
-
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored && isValidTheme(stored) && mounted) {
-        setThemeState(stored);
+    const loadTheme = () => {
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored && mounted) {
+          // Use setTheme for validation and localStorage sync
+          setTheme(stored as Theme);
+        }
+      } catch (error) {
+        console.warn("Failed to load theme from localStorage:", error);
+      } finally {
+        if (mounted) {
+          setIsHydrated(true);
+        }
       }
-    } catch (error) {
-      console.warn("Failed to load theme from localStorage:", error);
-    } finally {
-      if (mounted) {
-        setIsHydrated(true);
-      }
-    }
-
+    };
+    loadTheme();
     return () => {
       mounted = false;
     };
-  }, [storageKey]);
+  }, [storageKey, setTheme]);
 
   // Apply theme to document
   useEffect(() => {
     if (typeof window === "undefined" || !window.document) return;
-
     try {
       const root = window.document.documentElement;
-
-      // Remove all theme classes
       VALID_THEMES.forEach((t) => root.classList.remove(t));
-
-      // Add current theme class
       if (isValidTheme(theme)) {
         root.classList.add(theme);
       } else {
@@ -109,13 +102,13 @@ export function ThemeProvider({
     }
   }, [theme]);
 
-  // Context value
+  // Context value (stable)
   const value = React.useMemo(
     () => ({
       theme,
       setTheme,
     }),
-    [theme, setTheme],
+    [theme, setTheme]
   );
 
   return (
@@ -127,10 +120,8 @@ export function ThemeProvider({
 
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext);
-
   if (context === undefined) {
     throw new Error("useTheme must be used within a ThemeProvider");
   }
-
   return context;
 };
