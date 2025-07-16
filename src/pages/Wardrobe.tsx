@@ -1,14 +1,9 @@
-import React, { useState, useEffect } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,7 +13,14 @@ import { WardrobeItemCard } from "@/components/WardrobeItemCard";
 import { WardrobeUploadFlow } from "@/components/WardrobeUploadFlow";
 import { BatchDeleteWardrobe } from "@/components/BatchDeleteWardrobe";
 import Header from "@/components/Header";
-import { Search, Filter, Sparkles, Shirt, Grid3X3, List } from "lucide-react";
+import { 
+  Search, 
+  Filter, 
+  Sparkles, 
+  Shirt, 
+  Grid3X3, 
+  List
+} from "lucide-react";
 import { usePerformance } from "@/hooks/usePerformance";
 import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
 
@@ -43,7 +45,7 @@ const Wardrobe = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
@@ -53,21 +55,14 @@ const Wardrobe = () => {
   const { executeWithCache } = usePerformance({
     cacheNamespace: CACHE_NAMESPACES.WARDROBE_ITEMS,
     enableCaching: true,
-    enableMonitoring: true,
+    enableMonitoring: true
   });
 
-  const categories = [
-    "tops",
-    "bottoms",
-    "dresses",
-    "outerwear",
-    "shoes",
-    "accessories",
-  ];
+  const categories = ['tops', 'bottoms', 'dresses', 'outerwear', 'shoes', 'accessories'];
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate("/auth");
+      navigate('/auth');
     }
   }, [user, authLoading, navigate]);
 
@@ -87,11 +82,8 @@ const Wardrobe = () => {
     try {
       // Check cache first
       const cacheKey = `wardrobe_items_${user.id}`;
-      const cachedItems = PerformanceCache.get<ClothingItem[]>(
-        cacheKey,
-        CACHE_NAMESPACES.WARDROBE_ITEMS,
-      );
-
+      const cachedItems = PerformanceCache.get<ClothingItem[]>(cacheKey, CACHE_NAMESPACES.WARDROBE_ITEMS);
+      
       if (cachedItems) {
         setItems(cachedItems);
         setLoading(false);
@@ -99,28 +91,28 @@ const Wardrobe = () => {
       }
 
       const { data, error } = await supabase
-        .from("wardrobe_items")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .from('wardrobe_items')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
       if (error) {
         toast({
           title: "Error",
           description: "Failed to load wardrobe items",
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
         setItems(data || []);
-
+        
         // Cache the items for 5 minutes
         PerformanceCache.set(cacheKey, data || [], {
           ttl: 5 * 60 * 1000,
-          namespace: CACHE_NAMESPACES.WARDROBE_ITEMS,
+          namespace: CACHE_NAMESPACES.WARDROBE_ITEMS
         });
       }
     } catch (error) {
-      console.error("Error fetching wardrobe items:", error);
+      console.error('Error fetching wardrobe items:', error);
     } finally {
       setLoading(false);
     }
@@ -130,18 +122,17 @@ const Wardrobe = () => {
     let filtered = items;
 
     if (selectedCategory !== "all") {
-      filtered = filtered.filter((item) => item.category === selectedCategory);
+      filtered = filtered.filter(item => item.category === selectedCategory);
     }
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (item) =>
-          item.name.toLowerCase().includes(query) ||
-          item.category.toLowerCase().includes(query) ||
-          item.style.toLowerCase().includes(query) ||
-          item.tags.some((tag) => tag.toLowerCase().includes(query)) ||
-          item.color.some((color) => color.toLowerCase().includes(query)),
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(query) ||
+        item.category.toLowerCase().includes(query) ||
+        item.style.toLowerCase().includes(query) ||
+        item.tags.some(tag => tag.toLowerCase().includes(query)) ||
+        item.color.some(color => color.toLowerCase().includes(query))
       );
     }
 
@@ -149,11 +140,11 @@ const Wardrobe = () => {
   };
 
   const handleItemAdded = (newItem: ClothingItem) => {
-    setItems((prev) => [newItem, ...prev]);
-
+    setItems(prev => [newItem, ...prev]);
+    
     // Clear cache to refresh data
     PerformanceCache.clearNamespace(CACHE_NAMESPACES.WARDROBE_ITEMS);
-
+    
     toast({
       title: "Success",
       description: "Item added to your wardrobe successfully!",
@@ -161,17 +152,15 @@ const Wardrobe = () => {
   };
 
   const updateItem = (id: string, updates: Partial<ClothingItem>) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...updates } : item)),
-    );
+    setItems(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
   };
 
   const deleteItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+    setItems(prev => prev.filter(item => item.id !== id));
   };
 
   const batchDeleteItems = (ids: string[]) => {
-    setItems((prev) => prev.filter((item) => !ids.includes(item.id)));
+    setItems(prev => prev.filter(item => !ids.includes(item.id)));
   };
 
   if (authLoading || profileLoading) {
@@ -181,9 +170,7 @@ const Wardrobe = () => {
           <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center animate-pulse">
             <Sparkles className="h-8 w-8 text-white" />
           </div>
-          <p className="text-muted-foreground text-lg animate-pulse">
-            Loading your wardrobe...
-          </p>
+          <p className="text-muted-foreground text-lg animate-pulse">Loading your wardrobe...</p>
         </div>
       </div>
     );
@@ -192,7 +179,7 @@ const Wardrobe = () => {
   return (
     <div className="min-h-screen bg-gradient-hero">
       <Header />
-
+      
       <div className="container mx-auto px-4 py-12 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
@@ -214,51 +201,43 @@ const Wardrobe = () => {
                 <div className="flex items-center space-x-2">
                   <Shirt className="h-5 w-5 text-purple-600" />
                   <div>
-                    <p className="text-2xl font-bold">
-                      {items.filter((i) => i.category === "tops").length}
-                    </p>
+                    <p className="text-2xl font-bold">{items.filter(i => i.category === 'tops').length}</p>
                     <p className="text-sm text-muted-foreground">Tops</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
+            
             <Card className="card-premium">
               <CardContent className="p-4">
                 <div className="flex items-center space-x-2">
                   <Shirt className="h-5 w-5 text-blue-600" />
                   <div>
-                    <p className="text-2xl font-bold">
-                      {items.filter((i) => i.category === "bottoms").length}
-                    </p>
+                    <p className="text-2xl font-bold">{items.filter(i => i.category === 'bottoms').length}</p>
                     <p className="text-sm text-muted-foreground">Bottoms</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
+            
             <Card className="card-premium">
               <CardContent className="p-4">
                 <div className="flex items-center space-x-2">
                   <Shirt className="h-5 w-5 text-pink-600" />
                   <div>
-                    <p className="text-2xl font-bold">
-                      {items.filter((i) => i.category === "dresses").length}
-                    </p>
+                    <p className="text-2xl font-bold">{items.filter(i => i.category === 'dresses').length}</p>
                     <p className="text-sm text-muted-foreground">Dresses</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
+            
             <Card className="card-premium">
               <CardContent className="p-4">
                 <div className="flex items-center space-x-2">
                   <Shirt className="h-5 w-5 text-green-600" />
                   <div>
-                    <p className="text-2xl font-bold">
-                      {items.filter((i) => i.category === "shoes").length}
-                    </p>
+                    <p className="text-2xl font-bold">{items.filter(i => i.category === 'shoes').length}</p>
                     <p className="text-sm text-muted-foreground">Shoes</p>
                   </div>
                 </div>
@@ -285,37 +264,34 @@ const Wardrobe = () => {
                 className="pl-10"
               />
             </div>
-
-            <Select
-              value={selectedCategory}
-              onValueChange={setSelectedCategory}
-            >
+            
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-full md:w-48">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
+                {categories.map(category => (
                   <SelectItem key={category} value={category}>
                     {category.charAt(0).toUpperCase() + category.slice(1)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-
+            
             <div className="flex items-center space-x-2">
               <Button
-                variant={viewMode === "grid" ? "default" : "outline"}
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setViewMode("grid")}
+                onClick={() => setViewMode('grid')}
               >
                 <Grid3X3 className="h-4 w-4" />
               </Button>
               <Button
-                variant={viewMode === "list" ? "default" : "outline"}
+                variant={viewMode === 'list' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setViewMode("list")}
+                onClick={() => setViewMode('list')}
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -338,23 +314,18 @@ const Wardrobe = () => {
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shirt className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">
-                Your Wardrobe is Empty
-              </h3>
+              <h3 className="text-lg font-semibold mb-2">Your Wardrobe is Empty</h3>
               <p className="text-muted-foreground mb-4">
-                Start building your digital wardrobe by uploading photos of your
-                clothes.
+                Start building your digital wardrobe by uploading photos of your clothes.
               </p>
             </CardContent>
           </Card>
         ) : (
-          <div
-            className={`grid gap-6 ${
-              viewMode === "grid"
-                ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-                : "grid-cols-1"
-            }`}
-          >
+          <div className={`grid gap-6 ${
+            viewMode === 'grid' 
+              ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' 
+              : 'grid-cols-1'
+          }`}>
             {filteredItems.map((item) => (
               <WardrobeItemCard
                 key={item.id}

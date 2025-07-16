@@ -1,22 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -44,48 +32,48 @@ const Onboarding = () => {
     gender_identity: "",
     preferred_style: [],
     favorite_colors: [],
-    goals: [],
+    goals: []
   });
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const styleOptions = [
-    { id: "streetwear", label: "Streetwear", emoji: "🏙️" },
-    { id: "casual", label: "Casual", emoji: "👕" },
-    { id: "formal", label: "Formal", emoji: "👔" },
-    { id: "bohemian", label: "Bohemian", emoji: "🌸" },
-    { id: "minimalist", label: "Minimalist", emoji: "⚪" },
-    { id: "vintage", label: "Vintage", emoji: "📻" },
-    { id: "sporty", label: "Sporty", emoji: "⚽" },
-    { id: "elegant", label: "Elegant", emoji: "✨" },
+    { id: 'streetwear', label: 'Streetwear', emoji: '🏙️' },
+    { id: 'casual', label: 'Casual', emoji: '👕' },
+    { id: 'formal', label: 'Formal', emoji: '👔' },
+    { id: 'bohemian', label: 'Bohemian', emoji: '🌸' },
+    { id: 'minimalist', label: 'Minimalist', emoji: '⚪' },
+    { id: 'vintage', label: 'Vintage', emoji: '📻' },
+    { id: 'sporty', label: 'Sporty', emoji: '⚽' },
+    { id: 'elegant', label: 'Elegant', emoji: '✨' }
   ];
 
   const colorOptions = [
-    { id: "black", label: "Black", color: "#000000" },
-    { id: "white", label: "White", color: "#FFFFFF" },
-    { id: "navy", label: "Navy", color: "#1e3a8a" },
-    { id: "gray", label: "Gray", color: "#6b7280" },
-    { id: "beige", label: "Beige", color: "#f5f5dc" },
-    { id: "red", label: "Red", color: "#dc2626" },
-    { id: "pink", label: "Pink", color: "#ec4899" },
-    { id: "purple", label: "Purple", color: "#7c3aed" },
-    { id: "blue", label: "Blue", color: "#2563eb" },
-    { id: "green", label: "Green", color: "#16a34a" },
-    { id: "yellow", label: "Yellow", color: "#eab308" },
-    { id: "orange", label: "Orange", color: "#ea580c" },
+    { id: 'black', label: 'Black', color: '#000000' },
+    { id: 'white', label: 'White', color: '#FFFFFF' },
+    { id: 'navy', label: 'Navy', color: '#1e3a8a' },
+    { id: 'gray', label: 'Gray', color: '#6b7280' },
+    { id: 'beige', label: 'Beige', color: '#f5f5dc' },
+    { id: 'red', label: 'Red', color: '#dc2626' },
+    { id: 'pink', label: 'Pink', color: '#ec4899' },
+    { id: 'purple', label: 'Purple', color: '#7c3aed' },
+    { id: 'blue', label: 'Blue', color: '#2563eb' },
+    { id: 'green', label: 'Green', color: '#16a34a' },
+    { id: 'yellow', label: 'Yellow', color: '#eab308' },
+    { id: 'orange', label: 'Orange', color: '#ea580c' }
   ];
 
   const goalOptions = [
-    { id: "organize", label: "Organize my wardrobe", icon: "📦" },
-    { id: "outfits", label: "Find better outfits", icon: "👗" },
-    { id: "upgrade", label: "Upgrade my look", icon: "⬆️" },
-    { id: "surprise", label: "I don't know, surprise me", icon: "🎲" },
+    { id: 'organize', label: 'Organize my wardrobe', icon: '📦' },
+    { id: 'outfits', label: 'Find better outfits', icon: '👗' },
+    { id: 'upgrade', label: 'Upgrade my look', icon: '⬆️' },
+    { id: 'surprise', label: "I don't know, surprise me", icon: '🎲' }
   ];
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/auth");
+      navigate('/auth');
     }
   }, [user, loading, navigate]);
 
@@ -101,15 +89,13 @@ const Onboarding = () => {
     // Adjust these fields as per your schema
     return Boolean(
       profile.display_name &&
-        profile.location &&
-        profile.gender_identity &&
-        profile.preferred_style &&
-        profile.display_name.trim() !== "" &&
-        profile.location.trim() !== "" &&
-        profile.gender_identity.trim() !== "" &&
-        (Array.isArray(profile.preferred_style)
-          ? profile.preferred_style.length > 0
-          : profile.preferred_style.trim() !== ""),
+      profile.location &&
+      profile.gender_identity &&
+      profile.preferred_style &&
+      profile.display_name.trim() !== '' &&
+      profile.location.trim() !== '' &&
+      profile.gender_identity.trim() !== '' &&
+      (Array.isArray(profile.preferred_style) ? profile.preferred_style.length > 0 : profile.preferred_style.trim() !== '')
     );
   }
 
@@ -117,9 +103,9 @@ const Onboarding = () => {
     if (!user) return;
     try {
       const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
         .single();
       if (data && !error && isProfileComplete(data)) {
         // Profile is complete, redirect to dashboard
@@ -127,38 +113,31 @@ const Onboarding = () => {
           title: "Profile already exists",
           description: "Redirecting to your dashboard...",
         });
-        navigate("/dashboard");
+        navigate('/dashboard');
       }
       // else: let user continue onboarding
     } catch (error) {
       // Profile doesn't exist, continue with onboarding
-      console.log("No existing profile found, continuing with onboarding");
+      console.log('No existing profile found, continuing with onboarding');
     }
   };
 
   const handlePhotoAnalysis = (analysisResult: any) => {
-    setProfileData((prev) => ({
+    setProfileData(prev => ({
       ...prev,
       face_photo_url: analysisResult.imageUrl,
-      favorite_colors: [
-        ...prev.favorite_colors,
-        ...analysisResult.colors.slice(0, 3),
-      ],
+      favorite_colors: [...prev.favorite_colors, ...analysisResult.colors.slice(0, 3)]
     }));
     setStep(2);
   };
 
   const handleBasicInfo = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !profileData.display_name ||
-      !profileData.location ||
-      !profileData.gender_identity
-    ) {
+    if (!profileData.display_name || !profileData.location || !profileData.gender_identity) {
       toast({
         title: "Please fill all fields",
         description: "All basic information is required to continue.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -170,7 +149,7 @@ const Onboarding = () => {
       toast({
         title: "Select at least one style",
         description: "Please choose your preferred fashion styles.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -182,7 +161,7 @@ const Onboarding = () => {
       toast({
         title: "Select at least one goal",
         description: "Please choose what you want to achieve with DripMuse.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -193,15 +172,15 @@ const Onboarding = () => {
     try {
       // First check if profile already exists
       const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user.id)
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
         .single();
 
       if (existingProfile) {
         // Profile exists, update it instead
         const { error } = await supabase
-          .from("profiles")
+          .from('profiles')
           .update({
             display_name: profileData.display_name,
             location: profileData.location,
@@ -209,25 +188,27 @@ const Onboarding = () => {
             preferred_style: profileData.preferred_style[0],
             favorite_colors: profileData.favorite_colors,
             goals: profileData.goals,
-            face_photo_url: profileData.face_photo_url,
+            face_photo_url: profileData.face_photo_url
           })
-          .eq("user_id", user.id);
+          .eq('user_id', user.id);
 
         if (error) {
           throw error;
         }
       } else {
         // Profile doesn't exist, create new one
-        const { error } = await supabase.from("profiles").insert({
-          user_id: user.id,
-          display_name: profileData.display_name,
-          location: profileData.location,
-          culture: profileData.gender_identity,
-          preferred_style: profileData.preferred_style[0],
-          favorite_colors: profileData.favorite_colors,
-          goals: profileData.goals,
-          face_photo_url: profileData.face_photo_url,
-        });
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            display_name: profileData.display_name,
+            location: profileData.location,
+            culture: profileData.gender_identity,
+            preferred_style: profileData.preferred_style[0],
+            favorite_colors: profileData.favorite_colors,
+            goals: profileData.goals,
+            face_photo_url: profileData.face_photo_url
+          });
 
         if (error) {
           throw error;
@@ -236,24 +217,25 @@ const Onboarding = () => {
 
       toast({
         title: "Welcome to DripMuse!",
-        description: "Your profile has been created successfully.",
+        description: "Your profile has been created successfully."
       });
-      navigate("/wardrobe-setup");
-    } catch (error: any) {
-      console.error("Profile creation/update error:", error);
+      navigate('/wardrobe-setup');
 
-      if (error.code === "23505") {
+    } catch (error: any) {
+      console.error('Profile creation/update error:', error);
+      
+      if (error.code === '23505') {
         // Duplicate key error - profile already exists
         toast({
           title: "Profile already exists",
           description: "Redirecting to your dashboard...",
         });
-        navigate("/dashboard");
+        navigate('/dashboard');
       } else {
         toast({
           title: "Error",
           description: error.message || "Failed to create profile",
-          variant: "destructive",
+          variant: "destructive"
         });
       }
     } finally {
@@ -263,7 +245,7 @@ const Onboarding = () => {
 
   const toggleSelection = (array: string[], item: string, max?: number) => {
     const newArray = array.includes(item)
-      ? array.filter((i) => i !== item)
+      ? array.filter(i => i !== item)
       : max && array.length >= max
         ? array
         : [...array, item];
@@ -284,9 +266,7 @@ const Onboarding = () => {
         <Card className="w-full max-w-md shadow-elegant">
           <CardContent className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">
-              Redirecting to your dashboard...
-            </p>
+            <p className="text-muted-foreground">Redirecting to your dashboard...</p>
           </CardContent>
         </Card>
       </div>
@@ -297,9 +277,7 @@ const Onboarding = () => {
     <div className="min-h-screen bg-gradient-hero py-8">
       <div className="container mx-auto px-4 max-w-2xl">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">
-            Let's Set Up Your Style Profile
-          </h1>
+          <h1 className="text-3xl font-bold mb-2">Let's Set Up Your Style Profile</h1>
           <p className="text-muted-foreground">
             Help us understand your style to give you the best recommendations
           </p>
@@ -311,8 +289,7 @@ const Onboarding = () => {
             <CardHeader>
               <CardTitle>Upload Your Photo (Optional)</CardTitle>
               <CardDescription>
-                Our AI will analyze your photo to understand your color palette
-                and suggest the best clothing matches
+                Our AI will analyze your photo to understand your color palette and suggest the best clothing matches
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -342,12 +319,7 @@ const Onboarding = () => {
                     id="display_name"
                     placeholder="What should we call you?"
                     value={profileData.display_name}
-                    onChange={(e) =>
-                      setProfileData((prev) => ({
-                        ...prev,
-                        display_name: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => setProfileData(prev => ({ ...prev, display_name: e.target.value }))}
                     required
                   />
                 </div>
@@ -357,25 +329,15 @@ const Onboarding = () => {
                     id="location"
                     placeholder="City, Country"
                     value={profileData.location}
-                    onChange={(e) =>
-                      setProfileData((prev) => ({
-                        ...prev,
-                        location: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="gender_identity">Gender Identity</Label>
-                  <Select
-                    value={profileData.gender_identity}
-                    onValueChange={(value) =>
-                      setProfileData((prev) => ({
-                        ...prev,
-                        gender_identity: value,
-                      }))
-                    }
+                  <Select 
+                    value={profileData.gender_identity} 
+                    onValueChange={(value) => setProfileData(prev => ({ ...prev, gender_identity: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select your gender identity" />
@@ -384,18 +346,12 @@ const Onboarding = () => {
                       <SelectItem value="woman">Woman</SelectItem>
                       <SelectItem value="man">Man</SelectItem>
                       <SelectItem value="non-binary">Non-binary</SelectItem>
-                      <SelectItem value="prefer-not-to-say">
-                        Prefer not to say
-                      </SelectItem>
+                      <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex gap-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setStep(1)}
-                  >
+                  <Button type="button" variant="outline" onClick={() => setStep(1)}>
                     Back
                   </Button>
                   <Button type="submit" className="flex-1 shadow-button">
@@ -412,8 +368,7 @@ const Onboarding = () => {
             <CardHeader>
               <CardTitle>Style Preferences</CardTitle>
               <CardDescription>
-                Choose the fashion styles that resonate with you (select
-                multiple)
+                Choose the fashion styles that resonate with you (select multiple)
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -424,22 +379,12 @@ const Onboarding = () => {
                     <Button
                       key={style.id}
                       type="button"
-                      variant={
-                        profileData.preferred_style.includes(style.id)
-                          ? "default"
-                          : "outline"
-                      }
+                      variant={profileData.preferred_style.includes(style.id) ? "default" : "outline"}
                       className="h-auto p-4 flex flex-col items-center gap-2"
-                      onClick={() =>
-                        setProfileData((prev) => ({
-                          ...prev,
-                          preferred_style: toggleSelection(
-                            prev.preferred_style,
-                            style.id,
-                            4,
-                          ),
-                        }))
-                      }
+                      onClick={() => setProfileData(prev => ({
+                        ...prev,
+                        preferred_style: toggleSelection(prev.preferred_style, style.id, 4)
+                      }))}
                     >
                       <span className="text-2xl">{style.emoji}</span>
                       <span className="text-sm">{style.label}</span>
@@ -457,21 +402,15 @@ const Onboarding = () => {
                       type="button"
                       variant="outline"
                       className={`h-12 w-12 p-0 border-2 ${
-                        profileData.favorite_colors.includes(color.id)
-                          ? "border-primary ring-2 ring-primary/20"
-                          : "border-border"
+                        profileData.favorite_colors.includes(color.id) 
+                          ? 'border-primary ring-2 ring-primary/20' 
+                          : 'border-border'
                       }`}
                       style={{ backgroundColor: color.color }}
-                      onClick={() =>
-                        setProfileData((prev) => ({
-                          ...prev,
-                          favorite_colors: toggleSelection(
-                            prev.favorite_colors,
-                            color.id,
-                            6,
-                          ),
-                        }))
-                      }
+                      onClick={() => setProfileData(prev => ({
+                        ...prev,
+                        favorite_colors: toggleSelection(prev.favorite_colors, color.id, 6)
+                      }))}
                     >
                       {profileData.favorite_colors.includes(color.id) && (
                         <span className="text-white text-lg">✓</span>
@@ -482,18 +421,10 @@ const Onboarding = () => {
               </div>
 
               <div className="flex gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setStep(2)}
-                >
+                <Button type="button" variant="outline" onClick={() => setStep(2)}>
                   Back
                 </Button>
-                <Button
-                  type="button"
-                  className="flex-1 shadow-button"
-                  onClick={handleStylePreferences}
-                >
+                <Button type="button" className="flex-1 shadow-button" onClick={handleStylePreferences}>
                   Continue
                 </Button>
               </div>
@@ -515,18 +446,12 @@ const Onboarding = () => {
                   <Button
                     key={goal.id}
                     type="button"
-                    variant={
-                      profileData.goals.includes(goal.id)
-                        ? "default"
-                        : "outline"
-                    }
+                    variant={profileData.goals.includes(goal.id) ? "default" : "outline"}
                     className="h-auto p-4 flex items-center gap-3 text-left justify-start"
-                    onClick={() =>
-                      setProfileData((prev) => ({
-                        ...prev,
-                        goals: toggleSelection(prev.goals, goal.id, 2),
-                      }))
-                    }
+                    onClick={() => setProfileData(prev => ({
+                      ...prev,
+                      goals: toggleSelection(prev.goals, goal.id, 2)
+                    }))}
                   >
                     <span className="text-2xl">{goal.icon}</span>
                     <span>{goal.label}</span>
@@ -535,16 +460,12 @@ const Onboarding = () => {
               </div>
 
               <div className="flex gap-4 mt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setStep(3)}
-                >
+                <Button type="button" variant="outline" onClick={() => setStep(3)}>
                   Back
                 </Button>
-                <Button
-                  type="button"
-                  className="flex-1 shadow-button"
+                <Button 
+                  type="button" 
+                  className="flex-1 shadow-button" 
                   onClick={handleGoalSelection}
                   disabled={isLoading}
                 >
