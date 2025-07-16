@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { BrowserRouter } from "react-router-dom";
-import { Toaster } from "@/components/ui/toaster";
+import { SafeToaster } from "@/components/SafeToaster";
 import { ThemeProvider } from "@/hooks/useTheme";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { logger } from "@/lib/logger";
@@ -49,7 +49,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <ThemeProvider defaultTheme="default">
         <BrowserRouter>
           <App />
-          <Toaster />
+          <SafeToaster />
         </BrowserRouter>
       </ThemeProvider>
     </ErrorBoundary>
