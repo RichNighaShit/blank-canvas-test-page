@@ -1,16 +1,15 @@
 
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 
 export function SafeToaster() {
-  // Simple check - only render after a brief delay to ensure React is ready
-  const [shouldRender, setShouldRender] = React.useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
 
-  React.useEffect(() => {
-    // Delay rendering to ensure React context is fully initialized
+  useEffect(() => {
+    // Small delay to ensure React context is fully initialized
     const timer = setTimeout(() => {
       setShouldRender(true);
-    }, 100);
+    }, 50);
 
     return () => clearTimeout(timer);
   }, []);

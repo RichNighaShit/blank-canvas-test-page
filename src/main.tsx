@@ -1,8 +1,9 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
+
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import './index.css'
-import { BrowserRouter } from 'react-router-dom'
 import { SafeToaster } from '@/components/SafeToaster'
 import { ThemeProvider } from '@/hooks/useTheme'
 
@@ -19,17 +20,24 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Error boundary component
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean }
-> {
-  constructor(props: { children: React.ReactNode }) {
+// Simple error boundary component
+import { Component, ReactNode } from 'react';
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError() {
+  static getDerivedStateFromError(): ErrorBoundaryState {
     return { hasError: true };
   }
 
@@ -54,58 +62,22 @@ class ErrorBoundary extends React.Component<
 }
 
 // Ensure DOM is ready before rendering
-const renderApp = () => {
-  try {
-    const rootElement = document.getElementById('root');
-    if (!rootElement) {
-      console.error('Root element not found');
-      return;
-    }
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error('Root element not found');
+}
 
-    // Verify React is properly loaded and dispatcher is available
-    if (typeof React === 'undefined' || !React.useState) {
-      console.error('React hooks are not available');
-      setTimeout(renderApp, 100); // Retry after a short delay
-      return;
-    }
+const root = createRoot(rootElement);
 
-    const root = ReactDOM.createRoot(rootElement);
-    
-    root.render(
-      <React.StrictMode>
-        <ErrorBoundary>
-          <ThemeProvider defaultTheme="default">
-            <BrowserRouter>
-              <App />
-              <SafeToaster />
-            </BrowserRouter>
-          </ThemeProvider>
-        </ErrorBoundary>
-      </React.StrictMode>,
-    );
-  } catch (error) {
-    console.error('Error rendering app:', error);
-    // Retry after a short delay if there's an error
-    setTimeout(renderApp, 100);
-  }
-};
-
-// Wait for DOM to be ready and ensure React is fully loaded
-const initializeApp = () => {
-  // Double-check React availability
-  if (typeof React === 'undefined') {
-    console.error('React is not loaded, retrying...');
-    setTimeout(initializeApp, 50);
-    return;
-  }
-  
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', renderApp);
-  } else {
-    // Add a small delay to ensure all modules are fully initialized
-    setTimeout(renderApp, 10);
-  }
-};
-
-// Initialize the app
-initializeApp();
+root.render(
+  <StrictMode>
+    <ErrorBoundary>
+      <ThemeProvider defaultTheme="default">
+        <BrowserRouter>
+          <App />
+          <SafeToaster />
+        </BrowserRouter>
+      </ThemeProvider>
+    </ErrorBoundary>
+  </StrictMode>
+);
