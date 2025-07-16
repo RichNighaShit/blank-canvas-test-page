@@ -1,3 +1,4 @@
+
 import * as React from "react"
 
 import type {
@@ -169,6 +170,16 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
+  // Early return if React is not available
+  if (typeof React === 'undefined' || !React.useState) {
+    console.warn('React is not available, useToast hook cannot be used')
+    return {
+      toasts: [],
+      toast: () => ({ id: '', dismiss: () => {}, update: () => {} }),
+      dismiss: () => {}
+    }
+  }
+
   const [state, setState] = React.useState<State>(memoryState)
 
   React.useEffect(() => {
