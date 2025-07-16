@@ -1,4 +1,3 @@
-
 import * as React from "react"
 
 import type {
@@ -169,29 +168,7 @@ function toast({ ...props }: Toast) {
   }
 }
 
-// Check if React hooks are available safely
-function isReactHooksAvailable(): boolean {
-  try {
-    return typeof React !== 'undefined' && 
-           typeof React.useState === 'function' &&
-           // Check if we're in a component context by testing the dispatcher
-           React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.ReactCurrentDispatcher?.current !== null
-  } catch {
-    return false
-  }
-}
-
 function useToast() {
-  // Early return if React hooks are not available
-  if (!isReactHooksAvailable()) {
-    console.warn('React hooks are not available, useToast hook cannot be used')
-    return {
-      toasts: [],
-      toast: () => ({ id: '', dismiss: () => {}, update: () => {} }),
-      dismiss: () => {}
-    }
-  }
-
   const [state, setState] = React.useState<State>(memoryState)
 
   React.useEffect(() => {

@@ -3,23 +3,19 @@ import React from 'react';
 import { Toaster } from '@/components/ui/toaster';
 
 export function SafeToaster() {
-  // More comprehensive check for React readiness
-  if (typeof React === 'undefined' || 
-      typeof React.useState !== 'function' ||
-      typeof React.useEffect !== 'function') {
-    console.warn('React is not fully loaded, skipping Toaster render');
-    return null;
-  }
+  // Simple check - only render after a brief delay to ensure React is ready
+  const [shouldRender, setShouldRender] = React.useState(false);
 
-  // Additional check for React internals dispatcher
-  try {
-    const internals = (React as any).__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-    if (!internals?.ReactCurrentDispatcher?.current) {
-      console.warn('React dispatcher not ready, skipping Toaster render');
-      return null;
-    }
-  } catch (error) {
-    console.warn('Error checking React internals, skipping Toaster render');
+  React.useEffect(() => {
+    // Delay rendering to ensure React context is fully initialized
+    const timer = setTimeout(() => {
+      setShouldRender(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!shouldRender) {
     return null;
   }
 
