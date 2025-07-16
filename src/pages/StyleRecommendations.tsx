@@ -1,15 +1,24 @@
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import Header from "@/components/Header";
 import { SmartShoppingSuggestions } from "@/components/SmartShoppingSuggestions";
 import { StyleRecommendations as StyleRecs } from "@/components/StyleRecommendations";
+import EnhancedStyleRecommendations from "@/components/EnhancedStyleRecommendations";
 import { OutfitPlanner } from "@/components/OutfitPlanner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ShoppingCart, Sparkles, AlertCircle, Calendar, Crown, Camera, Zap, Star } from "lucide-react";
+import {
+  ShoppingCart,
+  Sparkles,
+  AlertCircle,
+  Calendar,
+  Crown,
+  Camera,
+  Zap,
+  Star,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +32,7 @@ const StyleRecommendations = () => {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/auth');
+      navigate("/auth");
     }
   }, [user, authLoading, navigate]);
 
@@ -34,7 +43,9 @@ const StyleRecommendations = () => {
           <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center animate-pulse">
             <Sparkles className="h-8 w-8 text-white" />
           </div>
-          <p className="text-muted-foreground text-lg animate-pulse">Loading your style assistant...</p>
+          <p className="text-muted-foreground text-lg animate-pulse">
+            Loading your style assistant...
+          </p>
         </div>
       </div>
     );
@@ -50,11 +61,18 @@ const StyleRecommendations = () => {
               <div className="w-20 h-20 mx-auto mb-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                 <Crown className="h-10 w-10 text-white" />
               </div>
-              <h3 className="text-3xl font-heading mb-4 text-foreground">Style Me Awaits</h3>
+              <h3 className="text-3xl font-heading mb-4 text-foreground">
+                Style Me Awaits
+              </h3>
               <p className="text-muted-foreground mb-8 text-lg leading-relaxed">
-                Sign in to access your personal AI-powered style assistant and unlock premium fashion recommendations
+                Sign in to access your personal AI-powered style assistant and
+                unlock premium fashion recommendations
               </p>
-              <Button onClick={() => navigate('/auth')} size="lg" className="btn-premium w-full text-lg">
+              <Button
+                onClick={() => navigate("/auth")}
+                size="lg"
+                className="btn-premium w-full text-lg"
+              >
                 Sign In to Continue
               </Button>
             </CardContent>
@@ -69,7 +87,7 @@ const StyleRecommendations = () => {
   return (
     <div className="min-h-screen bg-gradient-hero">
       <Header />
-      
+
       {/* Photo Upload Prompt */}
       {!profileLoading && user && isPhotoMissing && showPhotoPrompt && (
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-b border-purple-100 dark:border-purple-800 px-6 py-6">
@@ -79,10 +97,16 @@ const StyleRecommendations = () => {
                 <Camera className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-1">Enhance Your Experience</h4>
+                <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-1">
+                  Enhance Your Experience
+                </h4>
                 <p className="text-purple-700 dark:text-purple-200">
-                  Upload a photo to unlock virtual try-on features and get more personalized recommendations.
-                  <a href="/edit-profile" className="underline ml-2 hover:text-purple-900 dark:hover:text-purple-100 transition-colors font-semibold">
+                  Upload a photo to unlock virtual try-on features and get more
+                  personalized recommendations.
+                  <a
+                    href="/edit-profile"
+                    className="underline ml-2 hover:text-purple-900 dark:hover:text-purple-100 transition-colors font-semibold"
+                  >
                     Add Photo
                   </a>
                 </p>
@@ -99,7 +123,7 @@ const StyleRecommendations = () => {
           </div>
         </div>
       )}
-      
+
       <div className="container mx-auto px-4 py-16">
         <div className="space-y-16">
           {/* Hero Section */}
@@ -113,9 +137,10 @@ const StyleRecommendations = () => {
               </h1>
             </div>
             <p className="text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed font-light">
-              Your personal stylist ready to create the perfect look for any occasion, using advanced fashion insights
+              Your personal stylist ready to create the perfect look for any
+              occasion, using advanced fashion insights
             </p>
-            
+
             <div className="flex items-center justify-center gap-8 mt-8">
               <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
                 <Star className="h-5 w-5 fill-purple-600 dark:fill-purple-400" />
@@ -134,26 +159,33 @@ const StyleRecommendations = () => {
 
           {/* Main Content */}
           <div className="max-w-7xl mx-auto">
-            <Tabs defaultValue="outfits" className="space-y-12">
-              <TabsList className="grid w-full grid-cols-3 h-20 bg-card border border-border rounded-2xl p-2 shadow-card">
-                <TabsTrigger 
-                  value="outfits" 
+            <Tabs defaultValue="enhanced" className="space-y-12">
+              <TabsList className="grid w-full grid-cols-4 h-20 bg-card border border-border rounded-2xl p-2 shadow-card">
+                <TabsTrigger
+                  value="enhanced"
+                  className="flex flex-col gap-1 h-16 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+                >
+                  <Crown className="h-5 w-5" />
+                  <span className="text-xs font-medium">AI Enhanced</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="outfits"
                   className="flex items-center gap-4 text-lg font-semibold py-6 px-8 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white transition-all duration-300 text-muted-foreground hover:text-foreground"
                 >
                   <Sparkles className="h-6 w-6" />
                   <span className="hidden sm:inline">AI Recommendations</span>
                   <span className="sm:hidden">AI</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="planner" 
+                <TabsTrigger
+                  value="planner"
                   className="flex items-center gap-4 text-lg font-semibold py-6 px-8 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white transition-all duration-300 text-muted-foreground hover:text-foreground"
                 >
                   <Calendar className="h-6 w-6" />
                   <span className="hidden sm:inline">Outfit Planner</span>
                   <span className="sm:hidden">Planner</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="shopping" 
+                <TabsTrigger
+                  value="shopping"
                   className="flex items-center gap-4 text-lg font-semibold py-6 px-8 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white transition-all duration-300 text-muted-foreground hover:text-foreground"
                 >
                   <ShoppingCart className="h-6 w-6" />
@@ -161,7 +193,11 @@ const StyleRecommendations = () => {
                   <span className="sm:hidden">Shopping</span>
                 </TabsTrigger>
               </TabsList>
-              
+
+              <TabsContent value="enhanced" className="space-y-8">
+                <EnhancedStyleRecommendations />
+              </TabsContent>
+
               <TabsContent value="outfits" className="space-y-8">
                 <div className="card-premium p-12 relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5"></div>
@@ -171,8 +207,12 @@ const StyleRecommendations = () => {
                         <Sparkles className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-heading text-foreground">Style Recommendations</h3>
-                        <p className="text-muted-foreground">Personalized outfit suggestions just for you</p>
+                        <h3 className="text-2xl font-heading text-foreground">
+                          Style Recommendations
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Personalized outfit suggestions just for you
+                        </p>
                       </div>
                       <Badge className="ml-auto bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
                         <Crown className="h-3 w-3 mr-1" />
@@ -183,7 +223,7 @@ const StyleRecommendations = () => {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="planner" className="space-y-8">
                 <div className="card-premium p-12 relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5"></div>
@@ -193,15 +233,19 @@ const StyleRecommendations = () => {
                         <Calendar className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-heading text-foreground">Outfit Planner</h3>
-                        <p className="text-muted-foreground">Plan your outfits for the week ahead</p>
+                        <h3 className="text-2xl font-heading text-foreground">
+                          Outfit Planner
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Plan your outfits for the week ahead
+                        </p>
                       </div>
                     </div>
                     <OutfitPlanner />
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="shopping" className="space-y-8">
                 <div className="card-premium p-12 relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5"></div>
@@ -211,8 +255,12 @@ const StyleRecommendations = () => {
                         <ShoppingCart className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-heading text-foreground">Smart Shopping</h3>
-                        <p className="text-muted-foreground">Discover items that complement your wardrobe</p>
+                        <h3 className="text-2xl font-heading text-foreground">
+                          Smart Shopping
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Discover items that complement your wardrobe
+                        </p>
                       </div>
                     </div>
                     <SmartShoppingSuggestions />
