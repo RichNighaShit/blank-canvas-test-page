@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Sparkles, Heart, Eye, ShoppingBag, Loader2, RefreshCw, Settings, AlertCircle } from 'lucide-react';
+import { Sparkles, Heart, Eye, ShoppingBag, Loader2, RefreshCw, Settings, AlertCircle, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +16,8 @@ import { useWeather } from '@/hooks/useWeather';
 import { usePerformance } from '@/hooks/usePerformance';
 import { PerformanceCache, CACHE_NAMESPACES } from '@/lib/performanceCache';
 import { OptimizedImage } from './OptimizedImage';
+import { FeedbackModal, OutfitFeedback } from './FeedbackModal';
+import { logger } from '@/lib/logger';
 
 export const StyleRecommendations = () => {
   const { user } = useAuth();
@@ -28,6 +29,8 @@ export const StyleRecommendations = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedOutfit, setSelectedOutfit] = useState<OutfitRecommendation | null>(null);
   const [showTryOn, setShowTryOn] = useState(false);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [feedbackOutfitId, setFeedbackOutfitId] = useState<string | null>(null);
   
   // User preferences state
   const [selectedOccasion, setSelectedOccasion] = useState<string>('casual');
@@ -68,7 +71,7 @@ export const StyleRecommendations = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Loading wardrobe items for user:', user.id);
+      logger.info('Loading wardrobe items', { userId: user.id }, 'StyleRecommendations');
 
       // Use cached wardrobe items if available
       const cacheKey = `wardrobe_items_${user.id}`;
@@ -87,11 +90,11 @@ export const StyleRecommendations = () => {
         .eq('user_id', user.id);
 
       if (fetchError) {
-        console.error('Error fetching wardrobe items:', fetchError);
+        logger.logError(fetchError as Error, 'loadWardrobeItems.fetch');
         throw new Error('Failed to load your wardrobe items');
       }
 
-      console.log('Fetched wardrobe items:', items);
+      logger.debug('Fetched wardrobe items', { count: items?.length }, 'StyleRecommendations');
 
       let mappedItems: WardrobeItem[] = (items || []).map(item => ({
         id: item.id,
@@ -115,7 +118,7 @@ export const StyleRecommendations = () => {
       });
 
     } catch (error) {
-      console.error('Error loading wardrobe items:', error);
+      logger.logError(error as Error, 'loadWardrobeItems');
       setError(error instanceof Error ? error.message : 'Failed to load wardrobe items');
       setWardrobeItems([]);
     } finally {
@@ -142,7 +145,10 @@ export const StyleRecommendations = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Generating recommendations for occasion:', selectedOccasion, 'with accessories:', includeAccessories);
+      logger.info('Generating recommendations', { 
+        occasion: selectedOccasion, 
+        accessories: includeAccessories 
+      }, 'StyleRecommendations');
 
       // Filter items based on user preferences
       let filteredItems = wardrobeItems.filter(item => 
@@ -157,10 +163,8 @@ export const StyleRecommendations = () => {
         );
       }
 
-      console.log('Filtered items for recommendations:', filteredItems);
-
       if (filteredItems.length === 0) {
-        console.log('No items found for selected preferences');
+        logger.warn('No items found for selected preferences');
         setRecommendations([]);
         setLoading(false);
         return;
@@ -173,8 +177,6 @@ export const StyleRecommendations = () => {
         favorite_colors: profile.favorite_colors || [],
         goals: profile.goals || []
       };
-
-      console.log('Generating recommendations with profile:', styleProfile, 'occasion:', selectedOccasion);
 
       // Use cached execution for recommendations
       const recs = await executeWithCache(
@@ -192,10 +194,10 @@ export const StyleRecommendations = () => {
         5 * 60 * 1000 // 5 minutes cache
       );
 
-      console.log('Generated recommendations:', recs);
+      logger.info('Generated recommendations', { count: recs.length }, 'StyleRecommendations');
       setRecommendations(recs);
     } catch (error) {
-      console.error('Error loading recommendations:', error);
+      logger.logError(error as Error, 'loadRecommendations');
       setError(error instanceof Error ? error.message : 'Failed to generate recommendations');
       setRecommendations([]);
     } finally {
@@ -217,6 +219,44 @@ export const StyleRecommendations = () => {
     setShowTryOn(true);
   };
 
+  const handleFeedback = (outfitId: string) => {
+    setFeedbackOutfitId(outfitId);
+    setFeedbackModalOpen(true);
+  };
+
+  const handleFeedbackSubmit = async (feedback: OutfitFeedback) => {
+    if (!user) return;
+
+    try {
+      logger.info('Submitting outfit feedback', feedback, 'StyleRecommendations');
+
+      const outfit = recommendations.find(r => r.id === feedback.outfitId);
+      if (!outfit) return;
+
+      // Save detailed feedback to database
+      const { error } = await supabase
+        .from('outfit_feedback')
+        .insert({
+          user_id: user.id,
+          feedback: feedback.sentiment,
+          outfit_item_ids: outfit.items.map(i => i.id),
+          rating: feedback.rating,
+          reasons: feedback.reasons,
+          comments: feedback.comments,
+          would_wear: feedback.wouldWear
+        });
+
+      if (error) {
+        logger.logError(error as Error, 'handleFeedbackSubmit.database');
+      } else {
+        logger.info('Outfit feedback saved successfully');
+        // TODO: Update local state to reflect feedback
+      }
+    } catch (error) {
+      logger.logError(error as Error, 'handleFeedbackSubmit');
+    }
+  };
+
   const handleLike = async (outfitId: string) => {
     if (!user) return;
 
@@ -233,12 +273,12 @@ export const StyleRecommendations = () => {
         });
 
       if (error) {
-        console.error('Error saving feedback:', error);
+        logger.logError(error as Error, 'handleLike');
       } else {
-        console.log('Outfit feedback saved successfully');
+        logger.info('Quick like feedback saved');
       }
     } catch (error) {
-      console.error('Error saving feedback:', error);
+      logger.logError(error as Error, 'handleLike');
     }
   };
 
@@ -461,6 +501,14 @@ export const StyleRecommendations = () => {
                     <Button
                       size="sm"
                       variant="outline"
+                      onClick={() => handleFeedback(outfit.id)}
+                      title="Detailed feedback"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => handleTryOn(outfit)}
                       title="Try this outfit on your photo"
                     >
@@ -481,6 +529,16 @@ export const StyleRecommendations = () => {
           ))}
         </div>
       </div>
+
+      {/* Enhanced Feedback Modal */}
+      {feedbackModalOpen && feedbackOutfitId && (
+        <FeedbackModal
+          isOpen={feedbackModalOpen}
+          onClose={() => setFeedbackModalOpen(false)}
+          outfitId={feedbackOutfitId}
+          onSubmit={handleFeedbackSubmit}
+        />
+      )}
 
       {/* Virtual Try-On Modal */}
       {showTryOn && selectedOutfit && (

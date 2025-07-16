@@ -1,43 +1,48 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import Wardrobe from './pages/Wardrobe';
-import WardrobeSetup from './pages/WardrobeSetup';
-import EditProfile from './pages/EditProfile';
-import StyleRecommendations from './pages/StyleRecommendations';
-import Analytics from './pages/Analytics';
-import VirtualTryOn from './pages/VirtualTryOn';
-import Auth from './pages/Auth';
-import StyleMeImproved from "@/pages/StyleMeImproved";
-import WardrobeAnalyticsPage from "@/pages/WardrobeAnalyticsPage";
-import Onboarding from './pages/Onboarding';
-import Index from './pages/Index';
-import NotFound from './pages/NotFound';
-import { PerformanceDashboard } from './components/PerformanceDashboard';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+
+// Lazy load pages for better performance
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Wardrobe = React.lazy(() => import('./pages/Wardrobe'));
+const WardrobeSetup = React.lazy(() => import('./pages/WardrobeSetup'));
+const EditProfile = React.lazy(() => import('./pages/EditProfile'));
+const StyleRecommendations = React.lazy(() => import('./pages/StyleRecommendations'));
+const Analytics = React.lazy(() => import('./pages/Analytics'));
+const VirtualTryOn = React.lazy(() => import('./pages/VirtualTryOn'));
+const Auth = React.lazy(() => import('./pages/Auth'));
+const StyleMeImproved = React.lazy(() => import("./pages/StyleMeImproved"));
+const WardrobeAnalyticsPage = React.lazy(() => import("./pages/WardrobeAnalyticsPage"));
+const Onboarding = React.lazy(() => import('./pages/Onboarding'));
+const Index = React.lazy(() => import('./pages/Index'));
+const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 function App() {
   return (
-    <div className="min-h-screen bg-background">
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/wardrobe" element={<Wardrobe />} />
-        <Route path="/wardrobe-setup" element={<WardrobeSetup />} />
-        <Route path="/edit-profile" element={<EditProfile />} />
-        <Route path="/recommendations" element={<StyleRecommendations />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/wardrobe-analytics" element={<WardrobeAnalyticsPage />} />
-        <Route path="/virtual-try-on" element={<VirtualTryOn />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/style-me-improved" element={<StyleMeImproved />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/index" element={<Index />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      {/* Performance Dashboard - Development Only */}
-      {import.meta.env.DEV && <PerformanceDashboard />}
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background">
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/wardrobe" element={<Wardrobe />} />
+            <Route path="/wardrobe-setup" element={<WardrobeSetup />} />
+            <Route path="/edit-profile" element={<EditProfile />} />
+            <Route path="/recommendations" element={<StyleRecommendations />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/wardrobe-analytics" element={<WardrobeAnalyticsPage />} />
+            <Route path="/virtual-try-on" element={<VirtualTryOn />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/style-me-improved" element={<StyleMeImproved />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/index" element={<Index />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </div>
+    </ErrorBoundary>
   );
 }
 
