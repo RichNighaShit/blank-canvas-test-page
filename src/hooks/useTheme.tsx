@@ -2,7 +2,6 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useState,
   useCallback,
 } from "react";
 
@@ -38,9 +37,9 @@ export function ThemeProvider({
   storageKey = "dripmuse-ui-theme",
   ...props
 }: ThemeProviderProps) {
-  // Initialize with safe default
-  const [theme, setThemeState] = useState<Theme>(defaultTheme);
-  const [isHydrated, setIsHydrated] = useState(false);
+  // Initialize with safe default - use function form to avoid early evaluation
+  const [theme, setThemeState] = React.useState<Theme>(() => defaultTheme);
+  const [isHydrated, setIsHydrated] = React.useState(false);
 
   // Safe theme setter with validation
   const setTheme = useCallback(
