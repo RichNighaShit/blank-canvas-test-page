@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import React from 'react';
 
 export interface WeatherData {
   temperature: number; // Celsius
@@ -11,10 +12,10 @@ export interface WeatherData {
 }
 
 export const useWeather = (location?: string) => {
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt' | 'unavailable'>('prompt');
+  const [weather, setWeather] = React.useState<WeatherData | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [locationPermission, setLocationPermission] = React.useState<'granted' | 'denied' | 'prompt' | 'unavailable'>('prompt');
 
   const getCurrentPosition = (): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
@@ -50,7 +51,7 @@ export const useWeather = (location?: string) => {
     });
   };
 
-  const fetchWeatherByCoordinates = async (latitude: number, longitude: number, locationName?: string) => {
+  const fetchWeatherByCoordinates = React.useCallback(async (latitude: number, longitude: number, locationName?: string) => {
     try {
       const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m,precipitation,weathercode,windspeed_10m&timezone=auto`);
       const weatherData = await weatherRes.json();
@@ -110,9 +111,9 @@ export const useWeather = (location?: string) => {
     } catch (err: any) {
       throw new Error(`Failed to fetch weather data: ${err.message}`);
     }
-  };
+  }, []);
 
-  const fetchWeather = async (userLocation?: string) => {
+  const fetchWeather = React.useCallback(async (userLocation?: string) => {
     setLoading(true);
     setError(null);
 
@@ -154,9 +155,9 @@ export const useWeather = (location?: string) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [location, locationPermission, fetchWeatherByCoordinates]);
 
-  const getWeatherAdvice = (weatherData: WeatherData): string[] => {
+  const getWeatherAdvice = React.useCallback((weatherData: WeatherData): string[] => {
     const advice: string[] = [];
     
     if (weatherData.temperature < 10) {
@@ -187,9 +188,9 @@ export const useWeather = (location?: string) => {
     }
 
     return advice;
-  };
+  }, []);
 
-  const getWeatherStatus = () => {
+  const getWeatherStatus = React.useCallback(() => {
     if (loading) return 'Loading weather data...';
     if (error) return 'Weather information not available';
     if (weather) {
@@ -205,13 +206,13 @@ export const useWeather = (location?: string) => {
       }
     }
     return 'Weather information not available';
-  };
+  }, [loading, error, weather]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (location) {
       fetchWeather(location);
     }
-  }, [location]);
+  }, [location, fetchWeather]);
 
   return {
     weather,
