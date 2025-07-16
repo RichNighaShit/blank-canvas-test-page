@@ -8,13 +8,5 @@ export function SafeToaster() {
     return null;
   }
 
-  // Additional safety check for the hook dispatcher
-  try {
-    React.useState(null);
-  } catch (error) {
-    console.warn('React hooks not ready, skipping Toaster render');
-    return null;
-  }
-
   return <Toaster />;
 }
