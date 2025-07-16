@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +12,7 @@ import { OccasionQuickStart } from '@/components/OccasionQuickStart';
 import { StyleRecommendations } from '@/components/StyleRecommendations';
 import { Sparkles, User, ShoppingBag, Calendar, ArrowRight } from 'lucide-react';
 
-export const StyleMeImproved = () => {
+export const StyleMeImproved: React.FC = () => {
   const [hasQuizResults, setHasQuizResults] = useState<boolean | null>(null);
   const [quizResults, setQuizResults] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('quiz');

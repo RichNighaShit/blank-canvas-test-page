@@ -1,5 +1,4 @@
-
-import React from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { PerformanceCache, CACHE_NAMESPACES, CacheNamespace } from '@/lib/performanceCache';
 import { PerformanceMonitor } from '@/lib/performanceMonitor';
 import { ImageOptimizer } from '@/lib/imageOptimizer';
@@ -17,10 +16,10 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
     enableMonitoring = true
   } = options;
 
-  const cacheKeyRef = React.useRef<string>('');
+  const cacheKeyRef = useRef<string>('');
 
   // Generate cache key from component props
-  const generateCacheKey = React.useCallback((data: any): string => {
+  const generateCacheKey = useCallback((data: any): string => {
     const key = JSON.stringify(data);
     let hash = 0;
     for (let i = 0; i < key.length; i++) {
@@ -55,7 +54,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
   }
 
   // Optimized image loading
-  const loadOptimizedImage = React.useCallback(async (
+  const loadOptimizedImage = useCallback(async (
     file: File,
     options?: {
       quality?: number;
@@ -70,7 +69,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
   }, []);
 
   // Debounced function execution
-  const debounce = React.useCallback(<T extends (...args: any[]) => any>(
+  const debounce = useCallback(<T extends (...args: any[]) => any>(
     func: T,
     delay: number
   ): T => {
@@ -83,7 +82,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
   }, []);
 
   // Throttled function execution
-  const throttle = React.useCallback(<T extends (...args: any[]) => any>(
+  const throttle = useCallback(<T extends (...args: any[]) => any>(
     func: T,
     delay: number
   ): T => {
@@ -99,19 +98,19 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
   }, []);
 
   // Preload critical resources
-  const preloadResources = React.useCallback(async (urls: string[]) => {
+  const preloadResources = useCallback(async (urls: string[]) => {
     return PerformanceMonitor.measureExecutionTime('resource_preload', () =>
       ImageOptimizer.preloadImages(urls)
     );
   }, []);
 
   // Clear component cache
-  const clearCache = React.useCallback(() => {
+  const clearCache = useCallback(() => {
     PerformanceCache.clearNamespace(cacheNamespace);
   }, [cacheNamespace]);
 
   // Get performance stats
-  const getPerformanceStats = React.useCallback(() => {
+  const getPerformanceStats = useCallback(() => {
     return {
       cache: PerformanceCache.getStats(),
       monitor: PerformanceMonitor.getReport()
@@ -119,7 +118,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
   }, []);
 
   // Cleanup on unmount
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       // Optional: clear component-specific cache on unmount
       // clearCache();

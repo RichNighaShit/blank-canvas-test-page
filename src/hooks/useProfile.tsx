@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -16,24 +16,14 @@ interface Profile {
   face_photo_url?: string;
 }
 
-// Add a simple in-memory cache for profile by user id
-const profileCache: { [userId: string]: Profile } = {};
-
 export const useProfile = () => {
-  const [profile, setProfile] = React.useState<Profile | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const fetchProfile = React.useCallback(async () => {
+  const fetchProfile = async () => {
     if (!user) {
       setProfile(null);
-      setLoading(false);
-      return;
-    }
-
-    // Check cache first
-    if (profileCache[user.id]) {
-      setProfile(profileCache[user.id]);
       setLoading(false);
       return;
     }
@@ -68,7 +58,6 @@ export const useProfile = () => {
           } else {
             console.log('Created new profile:', newProfile);
             setProfile(newProfile);
-            profileCache[user.id] = newProfile;
           }
         } else {
           console.error('Error fetching profile:', error);
@@ -76,18 +65,17 @@ export const useProfile = () => {
       } else {
         console.log('Profile fetched successfully:', data);
         setProfile(data);
-        profileCache[user.id] = data;
       }
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  };
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchProfile();
-  }, [fetchProfile]);
+  }, [user]);
 
   return { profile, loading, refetch: fetchProfile };
 };

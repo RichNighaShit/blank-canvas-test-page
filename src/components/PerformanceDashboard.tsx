@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,8 +32,8 @@ interface PerformanceStats {
 }
 
 export const PerformanceDashboard: React.FC = () => {
-  const [stats, setStats] = React.useState<PerformanceStats | null>(null);
-  const [isVisible, setIsVisible] = React.useState(false);
+  const [stats, setStats] = useState<PerformanceStats | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   const updateStats = () => {
     const cacheStats = PerformanceCache.getStats();
@@ -46,7 +45,7 @@ export const PerformanceDashboard: React.FC = () => {
     });
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     updateStats();
     const interval = setInterval(updateStats, 5000); // Update every 5 seconds
     return () => clearInterval(interval);

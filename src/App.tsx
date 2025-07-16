@@ -1,51 +1,43 @@
 
-import { Routes, Route } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
-import { ThemeProvider } from '@/providers/ThemeProvider';
-import { ToastProvider } from '@/providers/ToastProvider';
-import LoadingSpinner from '@/components/LoadingSpinner';
-
-// Lazy load pages for better performance
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Wardrobe = lazy(() => import('./pages/Wardrobe'));
-const WardrobeSetup = lazy(() => import('./pages/WardrobeSetup'));
-const EditProfile = lazy(() => import('./pages/EditProfile'));
-const StyleRecommendations = lazy(() => import('./pages/StyleRecommendations'));
-const Analytics = lazy(() => import('./pages/Analytics'));
-const VirtualTryOn = lazy(() => import('./pages/VirtualTryOn'));
-const Auth = lazy(() => import('./pages/Auth'));
-const StyleMeImproved = lazy(() => import('./pages/StyleMeImproved'));
-const WardrobeAnalyticsPage = lazy(() => import('./pages/WardrobeAnalyticsPage'));
-const Onboarding = lazy(() => import('./pages/Onboarding'));
-const Index = lazy(() => import('./pages/Index'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+import React from 'react';
+import { Route, Routes } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import Wardrobe from './pages/Wardrobe';
+import WardrobeSetup from './pages/WardrobeSetup';
+import EditProfile from './pages/EditProfile';
+import StyleRecommendations from './pages/StyleRecommendations';
+import Analytics from './pages/Analytics';
+import VirtualTryOn from './pages/VirtualTryOn';
+import Auth from './pages/Auth';
+import StyleMeImproved from "@/pages/StyleMeImproved";
+import WardrobeAnalyticsPage from "@/pages/WardrobeAnalyticsPage";
+import Onboarding from './pages/Onboarding';
+import Index from './pages/Index';
+import NotFound from './pages/NotFound';
+import { PerformanceDashboard } from './components/PerformanceDashboard';
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="default">
-      <ToastProvider>
-        <div className="min-h-screen bg-background">
-          <Suspense fallback={<LoadingSpinner />}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/wardrobe" element={<Wardrobe />} />
-              <Route path="/wardrobe-setup" element={<WardrobeSetup />} />
-              <Route path="/edit-profile" element={<EditProfile />} />
-              <Route path="/recommendations" element={<StyleRecommendations />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/wardrobe-analytics" element={<WardrobeAnalyticsPage />} />
-              <Route path="/virtual-try-on" element={<VirtualTryOn />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/style-me-improved" element={<StyleMeImproved />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/index" element={<Index />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </div>
-      </ToastProvider>
-    </ThemeProvider>
+    <div className="min-h-screen bg-background">
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/wardrobe" element={<Wardrobe />} />
+        <Route path="/wardrobe-setup" element={<WardrobeSetup />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/recommendations" element={<StyleRecommendations />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/wardrobe-analytics" element={<WardrobeAnalyticsPage />} />
+        <Route path="/virtual-try-on" element={<VirtualTryOn />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/style-me-improved" element={<StyleMeImproved />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/index" element={<Index />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      {/* Performance Dashboard - Development Only */}
+      {import.meta.env.DEV && <PerformanceDashboard />}
+    </div>
   );
 }
 
