@@ -16,6 +16,9 @@ interface Profile {
   face_photo_url?: string;
 }
 
+// Add a simple in-memory cache for profile by user id
+const profileCache: { [userId: string]: Profile } = {};
+
 export const useProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,6 +27,13 @@ export const useProfile = () => {
   const fetchProfile = async () => {
     if (!user) {
       setProfile(null);
+      setLoading(false);
+      return;
+    }
+
+    // Check cache first
+    if (profileCache[user.id]) {
+      setProfile(profileCache[user.id]);
       setLoading(false);
       return;
     }
@@ -58,6 +68,7 @@ export const useProfile = () => {
           } else {
             console.log('Created new profile:', newProfile);
             setProfile(newProfile);
+            profileCache[user.id] = newProfile;
           }
         } else {
           console.error('Error fetching profile:', error);
@@ -65,6 +76,7 @@ export const useProfile = () => {
       } else {
         console.log('Profile fetched successfully:', data);
         setProfile(data);
+        profileCache[user.id] = data;
       }
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);
