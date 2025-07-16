@@ -27,17 +27,29 @@ export function ThemeProvider({
   storageKey = "dripmuse-ui-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return defaultTheme;
-    try {
-      const stored = localStorage.getItem(storageKey) as Theme;
-      return stored && ["default", "muse", "dark"].includes(stored) ? stored : defaultTheme;
-    } catch {
-      return defaultTheme;
+  const [isClient, setIsClient] = useState(false);
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
+
+  // Ensure we're on the client side before accessing localStorage
+  useEffect(() => {
+    setIsClient(true);
+    
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(storageKey) as Theme;
+        if (stored && ["default", "muse", "dark"].includes(stored)) {
+          setTheme(stored);
+        }
+      } catch {
+        // Fallback to defaultTheme if localStorage access fails
+        setTheme(defaultTheme);
+      }
     }
-  });
+  }, [defaultTheme, storageKey]);
 
   useEffect(() => {
+    if (!isClient) return;
+    
     const root = window.document.documentElement;
 
     // Remove all theme classes
@@ -49,14 +61,16 @@ export function ThemeProvider({
     } else {
       root.classList.add("default");
     }
-  }, [theme]);
+  }, [theme, isClient]);
 
   const value = {
     theme,
     setTheme: (newTheme: Theme) => {
       if (["default", "muse", "dark"].includes(newTheme)) {
         try {
-          localStorage.setItem(storageKey, newTheme);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(storageKey, newTheme);
+          }
           setTheme(newTheme);
         } catch (error) {
           console.warn("Failed to save theme to localStorage:", error);

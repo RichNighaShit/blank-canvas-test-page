@@ -20,13 +20,31 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ThemeProvider defaultTheme="default">
-      <BrowserRouter>
-        <App />
-        <Toaster />
-      </BrowserRouter>
-    </ThemeProvider>
-  </React.StrictMode>,
-)
+// Ensure DOM is ready before rendering
+const renderApp = () => {
+  const rootElement = document.getElementById('root');
+  if (!rootElement) {
+    console.error('Root element not found');
+    return;
+  }
+
+  const root = ReactDOM.createRoot(rootElement);
+  
+  root.render(
+    <React.StrictMode>
+      <ThemeProvider defaultTheme="default">
+        <BrowserRouter>
+          <App />
+          <Toaster />
+        </BrowserRouter>
+      </ThemeProvider>
+    </React.StrictMode>,
+  );
+};
+
+// Wait for DOM to be ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderApp);
+} else {
+  renderApp();
+}
