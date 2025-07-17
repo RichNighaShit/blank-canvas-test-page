@@ -35,6 +35,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
     const checkIfInstalled = () => {
       const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
       const isInstalled = (window.navigator as any).standalone || isStandalone;
+      console.log("PWA Install Check:", { isStandalone, isInstalled });
       setIsInstalled(isInstalled);
     };
 
@@ -43,6 +44,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
     // Listen for beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       const promptEvent = e as BeforeInstallPromptEvent;
+      console.log("PWA beforeinstallprompt event fired");
       e.preventDefault();
       setDeferredPrompt(promptEvent);
       logUserAction("pwa_install_prompt_available");
@@ -102,9 +104,21 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
     );
   }
 
-  // Don't show if prompt not available
+  // Don't show if prompt not available - show debug info instead
   if (!deferredPrompt) {
-    return null;
+    console.log("PWA Install Button: No deferred prompt available");
+    // Show a debug version for now
+    return (
+      <Button
+        variant={variant}
+        size={size}
+        className={className}
+        disabled
+      >
+        <Download className="w-4 h-4 mr-2" />
+        {showText && "PWA Not Ready"}
+      </Button>
+    );
   }
 
   return (
