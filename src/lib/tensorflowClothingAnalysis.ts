@@ -390,8 +390,10 @@ export class TensorFlowClothingAnalyzer {
     try {
       const predictions = await this.mobilenetModel.classify(imageElement);
 
-      // Look for style-related terms in top predictions
-      for (const prediction of predictions.slice(0, 5)) {
+      // Look for style-related terms in top predictions with higher confidence
+      for (const prediction of predictions
+        .slice(0, 3)
+        .filter((p) => p.probability > 0.1)) {
         const className = prediction.className.toLowerCase();
 
         for (const [keyword, style] of Object.entries(STYLE_MAP)) {
