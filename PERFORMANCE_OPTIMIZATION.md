@@ -249,7 +249,7 @@ const optimizedImage = await ImageOptimizer.optimizeImage(file, {
 ### Planned Improvements
 
 1. **WebP/AVIF Support**: Automatic format detection and conversion
-2. **Progressive Web App**: Full PWA implementation
+2. **Advanced Caching**: Enhanced browser caching strategies
 3. **CDN Integration**: Global content delivery
 4. **Database Optimization**: Query optimization and indexing
 5. **AI Model Optimization**: Smaller, faster inference models
