@@ -459,7 +459,7 @@ export const WardrobeUploadFlow = ({
       color: itemData.color || ["neutral"],
       occasion: itemData.occasion || ["casual"],
       season: itemData.season || ["spring", "summer", "fall", "winter"],
-      tags: itemData.tags || ["new"],
+      tags: [],
       user_id: user.id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
