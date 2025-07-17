@@ -616,10 +616,11 @@ export const WardrobeUploadFlow = ({
             />
             <div className="space-y-2">
               <p className="font-medium text-foreground">
-                Ready for Constrained AI Analysis
+                Ready for Systematic Analysis
               </p>
               <p className="text-sm text-muted-foreground">
-                Structured AI with predefined categories for consistent results
+                Structured analysis with predefined categories for consistent
+                results
               </p>
             </div>
           </div>
