@@ -787,7 +787,7 @@ export const WardrobeUploadFlow = ({
               </div>
               <div>
                 <p className="font-medium text-muted-foreground">
-                  AI Confidence
+                  Analysis Confidence
                 </p>
                 <p className="font-semibold">
                   {Math.round(analysisResults.confidence * 100)}%
