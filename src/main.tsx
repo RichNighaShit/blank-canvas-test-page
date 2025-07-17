@@ -7,7 +7,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/hooks/useTheme";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { logger } from "@/lib/logger";
-import { initializePWAOptimizations } from "@/lib/pwaOptimizations";
 
 // Initialize logger
 logger.info("Application starting", {
