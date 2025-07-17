@@ -57,16 +57,22 @@ export const useWeather = (location?: string) => {
     longitude: number,
     locationName?: string,
   ) => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    const controller = new AbortController();
+
     try {
       // Add timeout for weather API as well
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
       const weatherRes = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m,precipitation,weathercode,windspeed_10m&timezone=auto`,
         { signal: controller.signal },
       );
-      clearTimeout(timeoutId);
+
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
 
       if (!weatherRes.ok) {
         throw new Error(
