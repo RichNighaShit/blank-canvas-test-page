@@ -198,7 +198,7 @@ const WardrobeSetup = () => {
         occasion: occasions,
         season,
         texture,
-        tags: [style, category, ...colors.slice(0, 2)],
+        tags: [],
       };
     } catch (error) {
       console.error("Image analysis error:", error);
