@@ -1,8 +1,7 @@
-
 import React, { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import { PerformanceDashboard } from "./components/PerformanceDashboard";
-import PWAWelcomePrompt from "./components/PWAWelcomePrompt";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import OfflineIndicator from "./components/OfflineIndicator";
 
 // Lazy load components for better bundle splitting
@@ -64,7 +63,7 @@ function App() {
       {/* PWA Components - only render in browser */}
       {typeof window !== "undefined" && (
         <React.Suspense fallback={null}>
-          <PWAWelcomePrompt />
+          <PWAInstallPrompt />
           <OfflineIndicator />
         </React.Suspense>
       )}

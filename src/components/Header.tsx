@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -25,7 +24,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { PWAInstallButton } from "@/components/PWAInstallButton";
 
 const Header = React.memo(() => {
   const navigate = useNavigate();
@@ -160,13 +158,6 @@ const Header = React.memo(() => {
                   {user && (
                     <>
                       <div className="border-t pt-4 mt-4">
-                        <div className="mb-4">
-                          <PWAInstallButton 
-                            variant="outline" 
-                            className="w-full justify-start"
-                            showText={true}
-                          />
-                        </div>
                         <button
                           onClick={() => {
                             navigate("/edit-profile");
@@ -193,13 +184,6 @@ const Header = React.memo(() => {
 
                   {!user && (
                     <div className="border-t pt-4 mt-4 space-y-2">
-                      <div className="mb-4">
-                        <PWAInstallButton 
-                          variant="outline" 
-                          className="w-full justify-start"
-                          showText={true}
-                        />
-                      </div>
                       <Button
                         variant="ghost"
                         className="w-full"
@@ -266,15 +250,6 @@ const Header = React.memo(() => {
                   </div>
                 </div>
                 <DropdownMenuSeparator />
-                <div className="p-2">
-                  <PWAInstallButton 
-                    variant="ghost" 
-                    size="sm"
-                    className="w-full justify-start h-8"
-                    showText={true}
-                  />
-                </div>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                   <Settings className="mr-2 h-4 w-4" />
                   Edit Profile
@@ -291,11 +266,6 @@ const Header = React.memo(() => {
           {/* Desktop Auth Buttons */}
           {!isMobile && !user && (
             <>
-              <PWAInstallButton 
-                variant="ghost" 
-                size="sm"
-                showText={false}
-              />
               <Button variant="ghost" onClick={handleSignIn}>
                 Sign In
               </Button>
