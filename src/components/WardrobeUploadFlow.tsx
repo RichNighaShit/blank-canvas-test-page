@@ -80,11 +80,11 @@ export const WardrobeUploadFlow = ({
       details: "Storing in cloud storage",
     },
     {
-      id: "gemini-ai",
-      name: "🤖 Constrained Gemini AI Analysis",
+      id: "systematic-analysis",
+      name: "🔍 Systematic Analysis",
       status: "pending",
       progress: 0,
-      details: "Advanced clothing recognition with structured responses",
+      details: "Intelligent clothing recognition with structured responses",
     },
     {
       id: "save",
