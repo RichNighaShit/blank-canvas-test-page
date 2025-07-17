@@ -249,75 +249,24 @@ export const WardrobeUploadFlow = ({
     return data.publicUrl;
   };
 
-  const analyzeWithConstrainedAI = async (
+  const performSystematicAnalysis = async (
     imageUrl: string,
   ): Promise<Partial<WardrobeItem>> => {
-    updateStage("gemini-ai", {
+    updateStage("systematic-analysis", {
       status: "processing",
       progress: 20,
-      details: "Initializing constrained Gemini AI...",
+      details: "Initializing systematic analysis...",
     });
 
     try {
-      updateStage("gemini-ai", {
+      updateStage("systematic-analysis", {
         progress: 50,
-        details: "🤖 Gemini analyzing with predefined categories...",
+        details: "🔍 Performing systematic clothing analysis...",
       });
 
-      console.log("Attempting constrained Gemini AI analysis for:", imageUrl);
+      console.log("Starting systematic analysis for:", imageUrl);
 
-      // Try Gemini with constrained responses first
-      const { data: geminiData, error: geminiError } =
-        await supabase.functions.invoke("gemini-clothing-analysis", {
-          body: { imageUrl },
-        });
-
-      console.log("Constrained Gemini response:", {
-        data: geminiData,
-        error: geminiError,
-      });
-
-      // Check if Gemini succeeded (no error response and valid analysis) - LOWERED confidence threshold
-      if (
-        !geminiError &&
-        geminiData &&
-        !geminiData.error &&
-        geminiData.isClothing &&
-        geminiData.confidence > 0.2
-      ) {
-        setAnalysisResults(geminiData);
-        updateStage("gemini-ai", {
-          status: "completed",
-          progress: 100,
-          details: `✨ Constrained Gemini AI: ${Math.round(geminiData.confidence * 100)}% confidence - ${geminiData.analysis.category} detected`,
-        });
-
-        return {
-          name: geminiData.analysis.name || "Clothing Item",
-          category: geminiData.analysis.category || "tops",
-          style: geminiData.analysis.style || "casual",
-          occasion: geminiData.analysis.occasions || ["casual"],
-          season: geminiData.analysis.seasons || ["spring", "summer"],
-          color: geminiData.analysis.colors || ["neutral"],
-          tags: [
-            ...(geminiData.analysis.patterns || []),
-            ...(geminiData.analysis.materials || []),
-            "constrained-gemini",
-            `confidence-${Math.round(geminiData.confidence * 100)}`,
-          ],
-        };
-      }
-
-      // Fallback to analyze-clothing if Gemini fails or has low confidence
-      console.log(
-        "Constrained Gemini failed or low confidence, using analyze-clothing fallback",
-      );
-      updateStage("gemini-ai", {
-        progress: 80,
-        details: "🔄 Using analyze-clothing fallback system...",
-      });
-
-      const { data: fallbackData, error: fallbackError } =
+      const { data: analysisData, error: analysisError } =
         await supabase.functions.invoke("analyze-clothing", {
           body: {
             imageUrl,
@@ -326,48 +275,49 @@ export const WardrobeUploadFlow = ({
           },
         });
 
-      console.log("Fallback AI response:", {
-        data: fallbackData,
-        error: fallbackError,
+      console.log("Systematic analysis response:", {
+        data: analysisData,
+        error: analysisError,
       });
 
-      if (!fallbackError && fallbackData && fallbackData.isClothing) {
-        updateStage("gemini-ai", {
+      if (!analysisError && analysisData && analysisData.isClothing) {
+        setAnalysisResults(analysisData);
+        updateStage("systematic-analysis", {
           status: "completed",
           progress: 100,
-          details: "✅ Fallback AI analysis completed successfully",
+          details: "✅ Systematic analysis completed successfully",
         });
 
         return {
           name:
-            fallbackData.analysis?.name ||
-            generateSmartName(currentFile?.name || "", fallbackData),
-          category: fallbackData.analysis?.category || "tops",
-          style: fallbackData.analysis?.style || "casual",
-          occasion: fallbackData.analysis?.occasions || ["casual"],
-          season: fallbackData.analysis?.seasons || [
+            analysisData.analysis?.name ||
+            generateSmartName(currentFile?.name || "", analysisData),
+          category: analysisData.analysis?.category || "tops",
+          style: analysisData.analysis?.style || "casual",
+          occasion: analysisData.analysis?.occasions || ["casual"],
+          season: analysisData.analysis?.seasons || [
             "spring",
             "summer",
             "fall",
             "winter",
           ],
-          color: fallbackData.analysis?.colors || ["neutral"],
+          color: analysisData.analysis?.colors || ["neutral"],
           tags: [
-            "fallback-ai",
-            "analyze-clothing",
-            fallbackData.analysis?.category || "clothing",
+            "systematic-analysis",
+            "structured-categorization",
+            analysisData.analysis?.category || "clothing",
           ],
         };
       }
 
-      throw new Error("Both AI analyses failed");
+      throw new Error("Systematic analysis failed");
     } catch (error) {
-      console.warn("Both AI analyses failed, using basic analysis:", error);
+      console.warn("Systematic analysis failed, using basic analysis:", error);
 
       // Basic fallback analysis
       const basicAnalysis = await performBasicAnalysis(imageUrl);
 
-      updateStage("gemini-ai", {
+      updateStage("systematic-analysis", {
         status: "completed",
         progress: 100,
         details: "Using basic analysis - manual review recommended",
