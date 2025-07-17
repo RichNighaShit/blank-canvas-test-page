@@ -52,7 +52,7 @@ export const useOffline = () => {
       }));
     } catch (error) {
       handleError(error, "Failed to update offline state", {
-        context: { hook: "useOffline", action: "updateState" },
+        context: { component: "useOffline", action: "updateState" },
       });
     }
   }, [handleError]);
@@ -67,7 +67,7 @@ export const useOffline = () => {
         pendingActions: queueLength,
       }));
 
-      logUserAction("offline_status_change", { isOnline, queueLength });
+      logUserAction("offline_status_change", { metadata: { isOnline, queueLength } });
     };
 
     const handleSyncComplete = (event: CustomEvent) => {
@@ -78,7 +78,7 @@ export const useOffline = () => {
         isSyncInProgress: false,
       }));
 
-      logUserAction("offline_sync_complete", { syncedCount, remainingQueue });
+      logUserAction("offline_sync_complete", { metadata: { syncedCount, remainingQueue } });
     };
 
     // Listen for offline manager events
@@ -116,11 +116,11 @@ export const useOffline = () => {
       async (type: string, data: any, maxRetries: number = 3) => {
         try {
           await offlineManager.queueAction({ type, data, maxRetries });
-          logUserAction("offline_action_queued", { type });
+          logUserAction("offline_action_queued", { metadata: { type } });
           updateState();
         } catch (error) {
           handleError(error, `Failed to queue offline action: ${type}`, {
-            context: { hook: "useOffline", action: "queueAction" },
+            context: { component: "useOffline", action: "queueAction" },
           });
         }
       },
@@ -134,7 +134,7 @@ export const useOffline = () => {
         updateState();
       } catch (error) {
         handleError(error, "Failed to clear offline data", {
-          context: { hook: "useOffline", action: "clearOfflineData" },
+          context: { component: "useOffline", action: "clearOfflineData" },
         });
       }
     }, [logUserAction, handleError, updateState]),
@@ -143,12 +143,12 @@ export const useOffline = () => {
       try {
         const items = await offlineManager.getOfflineWardrobeItems();
         logUserAction("offline_wardrobe_items_retrieved", {
-          count: items.length,
+          metadata: { count: items.length },
         });
         return items;
       } catch (error) {
         handleError(error, "Failed to get offline wardrobe items", {
-          context: { hook: "useOffline", action: "getOfflineWardrobeItems" },
+          context: { component: "useOffline", action: "getOfflineWardrobeItems" },
         });
         return [];
       }
@@ -159,12 +159,12 @@ export const useOffline = () => {
         const recommendations =
           await offlineManager.getOfflineRecommendations();
         logUserAction("offline_recommendations_retrieved", {
-          count: recommendations.length,
+          metadata: { count: recommendations.length },
         });
         return recommendations;
       } catch (error) {
         handleError(error, "Failed to get offline recommendations", {
-          context: { hook: "useOffline", action: "getOfflineRecommendations" },
+          context: { component: "useOffline", action: "getOfflineRecommendations" },
         });
         return [];
       }
@@ -175,12 +175,12 @@ export const useOffline = () => {
         try {
           await offlineManager.storeWardrobeItems(items);
           logUserAction("wardrobe_items_stored_offline", {
-            count: items.length,
+            metadata: { count: items.length },
           });
           updateState();
         } catch (error) {
           handleError(error, "Failed to store wardrobe items offline", {
-            context: { hook: "useOffline", action: "storeWardrobeItems" },
+            context: { component: "useOffline", action: "storeWardrobeItems" },
           });
         }
       },
@@ -192,12 +192,12 @@ export const useOffline = () => {
         try {
           await offlineManager.storeRecommendations(recommendations);
           logUserAction("recommendations_stored_offline", {
-            count: recommendations.length,
+            metadata: { count: recommendations.length },
           });
           updateState();
         } catch (error) {
           handleError(error, "Failed to store recommendations offline", {
-            context: { hook: "useOffline", action: "storeRecommendations" },
+            context: { component: "useOffline", action: "storeRecommendations" },
           });
         }
       },
@@ -208,10 +208,10 @@ export const useOffline = () => {
       async (key: string, data: any, ttl?: number) => {
         try {
           await offlineManager.cacheAppData(key, data, ttl);
-          logUserAction("app_data_cached", { key });
+          logUserAction("app_data_cached", { metadata: { key } });
         } catch (error) {
           handleError(error, `Failed to cache app data: ${key}`, {
-            context: { hook: "useOffline", action: "cacheAppData" },
+            context: { component: "useOffline", action: "cacheAppData" },
           });
         }
       },
@@ -223,12 +223,12 @@ export const useOffline = () => {
         try {
           const data = await offlineManager.getCachedAppData(key);
           if (data) {
-            logUserAction("app_data_retrieved_from_cache", { key });
+            logUserAction("app_data_retrieved_from_cache", { metadata: { key } });
           }
           return data;
         } catch (error) {
           handleError(error, `Failed to get cached app data: ${key}`, {
-            context: { hook: "useOffline", action: "getCachedAppData" },
+            context: { component: "useOffline", action: "getCachedAppData" },
           });
           return null;
         }

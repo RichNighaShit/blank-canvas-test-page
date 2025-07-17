@@ -90,9 +90,10 @@ class PWAPerformanceOptimizer {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         for (const entry of entries) {
+          const fidEntry = entry as any;
           this.performanceMetrics.firstInputDelay =
-            entry.processingStart - entry.startTime;
-          this.reportMetric("FID", entry.processingStart - entry.startTime);
+            fidEntry.processingStart - entry.startTime;
+          this.reportMetric("FID", fidEntry.processingStart - entry.startTime);
         }
       });
       observer.observe({ entryTypes: ["first-input"] });
