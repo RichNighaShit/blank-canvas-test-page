@@ -219,7 +219,7 @@ const optimizedImage = await ImageOptimizer.optimizeImage(file, {
 // Default format: WebP
 ```
 
-### Service Worker Settings
+### Browser Cache Settings
 
 ```typescript
 // Static cache: 'dripmuse-static-v1'
