@@ -285,7 +285,7 @@ const optimizedImage = await ImageOptimizer.optimizeImage(file, {
 ### Common Issues
 
 1. **Cache not working**: Check localStorage quota and clear expired entries
-2. **Images not loading**: Verify service worker registration and cache strategies
+2. **Images not loading**: Verify network connectivity and cache strategies
 3. **Slow performance**: Monitor bundle size and implement code splitting
 4. **Memory leaks**: Ensure proper cleanup in useEffect hooks
 
