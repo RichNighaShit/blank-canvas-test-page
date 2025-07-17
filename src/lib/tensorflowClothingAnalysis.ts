@@ -203,7 +203,7 @@ export class TensorFlowClothingAnalyzer {
         colors,
         occasions,
         seasons,
-        tags: [...customTags, category, style],
+        tags: [],
         confidence,
         reasoning: `Detected ${mainDetection.class} with ${Math.round(mainDetection.score * 100)}% confidence. Classified as ${category} in ${style} style.`,
       };
