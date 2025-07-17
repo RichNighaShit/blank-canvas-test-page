@@ -523,7 +523,7 @@ export const WardrobeUploadFlow = ({
         : "";
 
       toast({
-        title: "🤖 Constrained AI Analysis Complete!",
+        title: "🔍 Systematic Analysis Complete!",
         description: `${savedItem.name} analyzed and added to wardrobe${confidence}${aiInsights}`,
       });
 
