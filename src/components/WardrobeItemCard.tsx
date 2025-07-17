@@ -156,6 +156,7 @@ export const WardrobeItemCard = ({
       if (error) throw error;
 
       onDelete(item.id);
+      setIsEditing(false); // Close the dialog after successful deletion
 
       toast({
         title: "Item Deleted",
