@@ -208,7 +208,7 @@ const WardrobeSetup = () => {
         color: ["neutral"],
         occasion: ["casual"],
         season: ["spring", "summer", "fall", "winter"],
-        tags: ["casual"],
+        tags: [],
       };
     }
   };
