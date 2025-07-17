@@ -596,7 +596,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
 
       {isAnalyzing && (
         <div className="text-center text-sm text-muted-foreground">
-          <p>🤖 Gemini AI analyzing your clothing item...</p>
+          <p>🔍 Performing systematic analysis of your clothing item...</p>
           <p>
             Advanced computer vision detecting style, material, and styling
             suggestions
