@@ -35,27 +35,31 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   const [autoFitNotice, setAutoFitNotice] = useState(false);
   const { refetch: refetchProfile } = useProfile();
 
-  // Enhanced AI analysis using Gemini 2.5 Pro
-  const analyzeWithGeminiAI = async (imageUrl: string): Promise<any> => {
+  // Systematic analysis using structured recognition
+  const performSystematicAnalysis = async (imageUrl: string): Promise<any> => {
     try {
-      console.log("Starting Gemini AI analysis for:", imageUrl);
+      console.log("Starting systematic analysis for:", imageUrl);
 
       const { data, error } = await supabase.functions.invoke(
-        "gemini-clothing-analysis",
+        "analyze-clothing",
         {
-          body: { imageUrl },
+          body: {
+            imageUrl,
+            enhancedAnalysis: true,
+            fileName: "clothing-item",
+          },
         },
       );
 
       if (error) {
-        console.error("Gemini analysis error:", error);
+        console.error("Systematic analysis error:", error);
         throw error;
       }
 
-      console.log("Gemini AI analysis result:", data);
+      console.log("Systematic analysis result:", data);
       return data;
     } catch (error) {
-      console.error("Failed to analyze with Gemini AI:", error);
+      console.error("Failed to perform systematic analysis:", error);
       throw error;
     }
   };
