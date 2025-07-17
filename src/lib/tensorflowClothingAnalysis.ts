@@ -1,7 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import * as mobilenet from "@tensorflow-models/mobilenet";
-// @ts-ignore - colorthief doesn't have proper TypeScript definitions
 import ColorThief from "colorthief";
 
 // Interface definitions
