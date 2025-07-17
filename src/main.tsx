@@ -30,6 +30,3 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </ErrorBoundary>
   </React.StrictMode>,
 );
-
-// Initialize PWA optimizations
-initializePWAOptimizations();
