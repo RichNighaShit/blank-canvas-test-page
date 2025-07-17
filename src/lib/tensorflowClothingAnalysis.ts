@@ -632,7 +632,7 @@ export class TensorFlowClothingAnalyzer {
         colors: colors.length > 0 ? colors : ["neutral"],
         occasions: ["casual"],
         seasons: this.getCurrentSeasons(),
-        tags: ["fallback-analysis", "needs-review"],
+        tags: [],
         confidence: 0.3,
         reasoning: "Fallback analysis used due to detection failure",
       };
