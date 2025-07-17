@@ -226,6 +226,11 @@ export const useWeather = (location?: string) => {
             : null,
         );
       } catch (geocodingError: any) {
+        // Clean up timeout if still active
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+
         // Handle specific error types
         if (geocodingError.name === "AbortError") {
           throw new Error("Weather service request timed out");
