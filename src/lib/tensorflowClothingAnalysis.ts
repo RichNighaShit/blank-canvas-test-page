@@ -230,7 +230,7 @@ export class TensorFlowClothingAnalyzer {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
 
-        const maxSize = 512;
+        const maxSize = 640; // Slightly larger for better accuracy
         let { width, height } = imageElement;
 
         if (width > maxSize || height > maxSize) {
