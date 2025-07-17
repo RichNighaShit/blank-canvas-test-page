@@ -186,13 +186,19 @@ export const useWeather = (location?: string) => {
       // Geocode city name to lat/lon using Open-Meteo's geocoding API
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        let timeoutId: NodeJS.Timeout | null = null;
+
+        timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationToUse)}&count=1&language=en&format=json`,
           { signal: controller.signal },
         );
-        clearTimeout(timeoutId);
+
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
 
         if (!geoRes.ok) {
           throw new Error(
