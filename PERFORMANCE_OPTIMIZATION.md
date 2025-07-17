@@ -274,7 +274,7 @@ const optimizedImage = await ImageOptimizer.optimizeImage(file, {
 
 ### Production
 
-1. Enable service worker for offline support
+1. Enable browser caching optimizations
 2. Monitor Core Web Vitals
 3. Implement error boundaries for graceful failures
 4. Use performance budgets to prevent regressions
