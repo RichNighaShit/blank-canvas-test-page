@@ -648,11 +648,11 @@ export const WardrobeUploadFlow = ({
               <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground mb-4">
                 <div className="flex items-center gap-1">
                   <Brain className="w-4 h-4" />
-                  <span>Constrained Gemini</span>
+                  <span>Systematic Analysis</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4" />
-                  <span>Smart Fallback</span>
+                  <span>Smart Recognition</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Palette className="w-4 h-4" />
