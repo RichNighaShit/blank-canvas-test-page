@@ -35,27 +35,31 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   const [autoFitNotice, setAutoFitNotice] = useState(false);
   const { refetch: refetchProfile } = useProfile();
 
-  // Enhanced AI analysis using Gemini 2.5 Pro
-  const analyzeWithGeminiAI = async (imageUrl: string): Promise<any> => {
+  // Systematic analysis using structured recognition
+  const performSystematicAnalysis = async (imageUrl: string): Promise<any> => {
     try {
-      console.log("Starting Gemini AI analysis for:", imageUrl);
+      console.log("Starting systematic analysis for:", imageUrl);
 
       const { data, error } = await supabase.functions.invoke(
-        "gemini-clothing-analysis",
+        "analyze-clothing",
         {
-          body: { imageUrl },
+          body: {
+            imageUrl,
+            enhancedAnalysis: true,
+            fileName: "clothing-item",
+          },
         },
       );
 
       if (error) {
-        console.error("Gemini analysis error:", error);
+        console.error("Systematic analysis error:", error);
         throw error;
       }
 
-      console.log("Gemini AI analysis result:", data);
+      console.log("Systematic analysis result:", data);
       return data;
     } catch (error) {
-      console.error("Failed to analyze with Gemini AI:", error);
+      console.error("Failed to perform systematic analysis:", error);
       throw error;
     }
   };
@@ -318,21 +322,21 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
       // Upload to storage first
       const imageUrl = await uploadToStorage(croppedFile);
 
-      // Analyze with Gemini AI
+      // Perform systematic analysis
       let aiAnalysis = null;
       let colors = ["neutral"];
 
       try {
-        aiAnalysis = await analyzeWithGeminiAI(imageUrl);
+        aiAnalysis = await performSystematicAnalysis(imageUrl);
         colors = aiAnalysis?.analysis?.colors || colors;
 
         toast({
-          title: "🤖 AI Analysis Complete!",
-          description: `Gemini AI identified: ${aiAnalysis?.analysis?.name || "clothing item"} with ${Math.round((aiAnalysis?.confidence || 0) * 100)}% confidence`,
+          title: "🔍 Systematic Analysis Complete!",
+          description: `Analysis identified: ${aiAnalysis?.analysis?.name || "clothing item"} with ${Math.round((aiAnalysis?.confidence || 0) * 100)}% confidence`,
         });
       } catch (aiError) {
         console.warn(
-          "AI analysis failed, using fallback color analysis:",
+          "Systematic analysis failed, using fallback color analysis:",
           aiError,
         );
         colors = await analyzeImageColors(croppedFile);
@@ -340,7 +344,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
         toast({
           title: "Photo analyzed!",
           description:
-            "Using enhanced color detection. AI analysis temporarily unavailable.",
+            "Using enhanced color detection. Analysis temporarily unavailable.",
         });
       }
 
@@ -555,12 +559,12 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
             </div>
             <h3 className="text-xl font-semibold mb-2">
               {isAnalyzing
-                ? "🤖 Gemini AI analyzing your photo..."
+                ? "🔍 Systematic analysis in progress..."
                 : "Upload your photo"}
             </h3>
             <p className="text-muted-foreground mb-4">
               {isAnalyzing
-                ? "Advanced AI is analyzing your clothing's style, color, and material"
+                ? "Analyzing your clothing's style, color, and material with structured recognition"
                 : "Drag & drop your photo or click to browse"}
             </p>
           </>
@@ -592,7 +596,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
 
       {isAnalyzing && (
         <div className="text-center text-sm text-muted-foreground">
-          <p>🤖 Gemini AI analyzing your clothing item...</p>
+          <p>🔍 Performing systematic analysis of your clothing item...</p>
           <p>
             Advanced computer vision detecting style, material, and styling
             suggestions

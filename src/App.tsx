@@ -1,8 +1,6 @@
 import React, { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import { PerformanceDashboard } from "./components/PerformanceDashboard";
-import PWAInstallPrompt from "./components/PWAInstallPrompt";
-import OfflineIndicator from "./components/OfflineIndicator";
 
 // Lazy load components for better bundle splitting
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
@@ -59,14 +57,6 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-
-      {/* PWA Components - only render in browser */}
-      {typeof window !== "undefined" && (
-        <React.Suspense fallback={null}>
-          <PWAInstallPrompt />
-          <OfflineIndicator />
-        </React.Suspense>
-      )}
 
       {/* Performance Dashboard - Development Only */}
       {import.meta.env.DEV && <PerformanceDashboard />}

@@ -168,10 +168,16 @@ const Wardrobe = () => {
 
   const deleteItem = (id: string) => {
     setItems((prev) => prev.filter((item) => item.id !== id));
+
+    // Clear cache to ensure fresh data on next load
+    PerformanceCache.clearNamespace(CACHE_NAMESPACES.WARDROBE_ITEMS);
   };
 
   const batchDeleteItems = (ids: string[]) => {
     setItems((prev) => prev.filter((item) => !ids.includes(item.id)));
+
+    // Clear cache to ensure fresh data on next load
+    PerformanceCache.clearNamespace(CACHE_NAMESPACES.WARDROBE_ITEMS);
   };
 
   if (authLoading || profileLoading) {

@@ -80,11 +80,11 @@ export const WardrobeUploadFlow = ({
       details: "Storing in cloud storage",
     },
     {
-      id: "gemini-ai",
-      name: "🤖 Constrained Gemini AI Analysis",
+      id: "systematic-analysis",
+      name: "🔍 Systematic Analysis",
       status: "pending",
       progress: 0,
-      details: "Advanced clothing recognition with structured responses",
+      details: "Intelligent clothing recognition with structured responses",
     },
     {
       id: "save",
@@ -249,75 +249,24 @@ export const WardrobeUploadFlow = ({
     return data.publicUrl;
   };
 
-  const analyzeWithConstrainedAI = async (
+  const performSystematicAnalysis = async (
     imageUrl: string,
   ): Promise<Partial<WardrobeItem>> => {
-    updateStage("gemini-ai", {
+    updateStage("systematic-analysis", {
       status: "processing",
       progress: 20,
-      details: "Initializing constrained Gemini AI...",
+      details: "Initializing systematic analysis...",
     });
 
     try {
-      updateStage("gemini-ai", {
+      updateStage("systematic-analysis", {
         progress: 50,
-        details: "🤖 Gemini analyzing with predefined categories...",
+        details: "🔍 Performing systematic clothing analysis...",
       });
 
-      console.log("Attempting constrained Gemini AI analysis for:", imageUrl);
+      console.log("Starting systematic analysis for:", imageUrl);
 
-      // Try Gemini with constrained responses first
-      const { data: geminiData, error: geminiError } =
-        await supabase.functions.invoke("gemini-clothing-analysis", {
-          body: { imageUrl },
-        });
-
-      console.log("Constrained Gemini response:", {
-        data: geminiData,
-        error: geminiError,
-      });
-
-      // Check if Gemini succeeded (no error response and valid analysis) - LOWERED confidence threshold
-      if (
-        !geminiError &&
-        geminiData &&
-        !geminiData.error &&
-        geminiData.isClothing &&
-        geminiData.confidence > 0.2
-      ) {
-        setAnalysisResults(geminiData);
-        updateStage("gemini-ai", {
-          status: "completed",
-          progress: 100,
-          details: `✨ Constrained Gemini AI: ${Math.round(geminiData.confidence * 100)}% confidence - ${geminiData.analysis.category} detected`,
-        });
-
-        return {
-          name: geminiData.analysis.name || "Clothing Item",
-          category: geminiData.analysis.category || "tops",
-          style: geminiData.analysis.style || "casual",
-          occasion: geminiData.analysis.occasions || ["casual"],
-          season: geminiData.analysis.seasons || ["spring", "summer"],
-          color: geminiData.analysis.colors || ["neutral"],
-          tags: [
-            ...(geminiData.analysis.patterns || []),
-            ...(geminiData.analysis.materials || []),
-            "constrained-gemini",
-            `confidence-${Math.round(geminiData.confidence * 100)}`,
-          ],
-        };
-      }
-
-      // Fallback to analyze-clothing if Gemini fails or has low confidence
-      console.log(
-        "Constrained Gemini failed or low confidence, using analyze-clothing fallback",
-      );
-      updateStage("gemini-ai", {
-        progress: 80,
-        details: "🔄 Using analyze-clothing fallback system...",
-      });
-
-      const { data: fallbackData, error: fallbackError } =
+      const { data: analysisData, error: analysisError } =
         await supabase.functions.invoke("analyze-clothing", {
           body: {
             imageUrl,
@@ -326,48 +275,49 @@ export const WardrobeUploadFlow = ({
           },
         });
 
-      console.log("Fallback AI response:", {
-        data: fallbackData,
-        error: fallbackError,
+      console.log("Systematic analysis response:", {
+        data: analysisData,
+        error: analysisError,
       });
 
-      if (!fallbackError && fallbackData && fallbackData.isClothing) {
-        updateStage("gemini-ai", {
+      if (!analysisError && analysisData && analysisData.isClothing) {
+        setAnalysisResults(analysisData);
+        updateStage("systematic-analysis", {
           status: "completed",
           progress: 100,
-          details: "✅ Fallback AI analysis completed successfully",
+          details: "✅ Systematic analysis completed successfully",
         });
 
         return {
           name:
-            fallbackData.analysis?.name ||
-            generateSmartName(currentFile?.name || "", fallbackData),
-          category: fallbackData.analysis?.category || "tops",
-          style: fallbackData.analysis?.style || "casual",
-          occasion: fallbackData.analysis?.occasions || ["casual"],
-          season: fallbackData.analysis?.seasons || [
+            analysisData.analysis?.name ||
+            generateSmartName(currentFile?.name || "", analysisData),
+          category: analysisData.analysis?.category || "tops",
+          style: analysisData.analysis?.style || "casual",
+          occasion: analysisData.analysis?.occasions || ["casual"],
+          season: analysisData.analysis?.seasons || [
             "spring",
             "summer",
             "fall",
             "winter",
           ],
-          color: fallbackData.analysis?.colors || ["neutral"],
+          color: analysisData.analysis?.colors || ["neutral"],
           tags: [
-            "fallback-ai",
-            "analyze-clothing",
-            fallbackData.analysis?.category || "clothing",
+            "systematic-analysis",
+            "structured-categorization",
+            analysisData.analysis?.category || "clothing",
           ],
         };
       }
 
-      throw new Error("Both AI analyses failed");
+      throw new Error("Systematic analysis failed");
     } catch (error) {
-      console.warn("Both AI analyses failed, using basic analysis:", error);
+      console.warn("Systematic analysis failed, using basic analysis:", error);
 
       // Basic fallback analysis
       const basicAnalysis = await performBasicAnalysis(imageUrl);
 
-      updateStage("gemini-ai", {
+      updateStage("systematic-analysis", {
         status: "completed",
         progress: 100,
         details: "Using basic analysis - manual review recommended",
@@ -555,7 +505,7 @@ export const WardrobeUploadFlow = ({
 
       const imageUrl = await uploadToStorage(optimizedFile);
 
-      const aiAnalysis = await analyzeWithConstrainedAI(imageUrl);
+      const aiAnalysis = await performSystematicAnalysis(imageUrl);
 
       const savedItem = await saveToDatabase({
         ...aiAnalysis,
@@ -573,7 +523,7 @@ export const WardrobeUploadFlow = ({
         : "";
 
       toast({
-        title: "🤖 Constrained AI Analysis Complete!",
+        title: "🔍 Systematic Analysis Complete!",
         description: `${savedItem.name} analyzed and added to wardrobe${confidence}${aiInsights}`,
       });
 
@@ -666,10 +616,11 @@ export const WardrobeUploadFlow = ({
             />
             <div className="space-y-2">
               <p className="font-medium text-foreground">
-                Ready for Constrained AI Analysis
+                Ready for Systematic Analysis
               </p>
               <p className="text-sm text-muted-foreground">
-                Structured AI with predefined categories for consistent results
+                Structured analysis with predefined categories for consistent
+                results
               </p>
             </div>
           </div>
@@ -684,24 +635,24 @@ export const WardrobeUploadFlow = ({
             </div>
             <h3 className="text-2xl font-bold mb-3 text-foreground">
               {isProcessing
-                ? "🤖 Constrained AI Analysis in Progress..."
-                : "Upload for Structured AI Fashion Analysis"}
+                ? "🔍 Systematic Analysis in Progress..."
+                : "Upload for Structured Fashion Analysis"}
             </h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               {isProcessing
-                ? "AI analyzing with predefined categories for consistent, accurate results"
-                : "Drag & drop your photo for intelligent AI analysis with structured, consistent categorization"}
+                ? "Analyzing with predefined categories for consistent, accurate results"
+                : "Drag & drop your photo for intelligent analysis with structured, consistent categorization"}
             </p>
 
             {!isProcessing && (
               <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground mb-4">
                 <div className="flex items-center gap-1">
                   <Brain className="w-4 h-4" />
-                  <span>Constrained Gemini</span>
+                  <span>Systematic Analysis</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4" />
-                  <span>Smart Fallback</span>
+                  <span>Smart Recognition</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Palette className="w-4 h-4" />
@@ -721,10 +672,10 @@ export const WardrobeUploadFlow = ({
           size="lg"
         >
           {isProcessing
-            ? "🤖 Constrained AI Processing..."
+            ? "🔍 Systematic Analysis Processing..."
             : previewUrl
               ? "Change Photo"
-              : "Choose Photo for Structured AI Analysis"}
+              : "Choose Photo for Systematic Analysis"}
         </Button>
 
         <input
@@ -745,7 +696,7 @@ export const WardrobeUploadFlow = ({
               <div className="w-8 h-8 bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 rounded-full flex items-center justify-center">
                 <Brain className="w-4 h-4 text-white" />
               </div>
-              Constrained AI Fashion Analysis Pipeline
+              Systematic Fashion Analysis Pipeline
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -817,7 +768,7 @@ export const WardrobeUploadFlow = ({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700">
               <Brain className="w-5 h-5" />
-              🤖 Constrained AI Analysis Results
+              🔍 Systematic Analysis Results
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -836,7 +787,7 @@ export const WardrobeUploadFlow = ({
               </div>
               <div>
                 <p className="font-medium text-muted-foreground">
-                  AI Confidence
+                  Analysis Confidence
                 </p>
                 <p className="font-semibold">
                   {Math.round(analysisResults.confidence * 100)}%
@@ -853,7 +804,7 @@ export const WardrobeUploadFlow = ({
             {analysisResults.styling_suggestions && (
               <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                 <p className="font-medium text-blue-800 mb-2">
-                  ✨ AI Styling Suggestions:
+                  ✨ Styling Suggestions:
                 </p>
                 <ul className="text-sm text-blue-700 space-y-1">
                   {analysisResults.styling_suggestions.map(
