@@ -337,7 +337,7 @@ export const WardrobeUploadFlow = ({
       occasion: ["casual"],
       season: ["spring", "summer", "fall", "winter"],
       color: ["neutral"],
-      tags: ["basic-analysis", "needs-review", detectedCategory],
+      tags: [],
     };
   };
 
