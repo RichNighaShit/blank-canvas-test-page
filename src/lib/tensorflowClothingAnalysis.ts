@@ -646,7 +646,7 @@ export class TensorFlowClothingAnalyzer {
         colors: ["neutral"],
         occasions: ["casual"],
         seasons: ["spring", "summer", "fall", "winter"],
-        tags: ["basic-fallback", "manual-review-needed"],
+        tags: [],
         confidence: 0.1,
         reasoning: "Basic fallback used - manual review recommended",
       };
