@@ -18,30 +18,6 @@ logger.info("Application starting", {
   },
 });
 
-// Register service worker for offline support
-if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/sw.js")
-      .then((registration) => {
-        logger.info("Service Worker registered successfully", {
-          component: "ServiceWorker",
-          action: "registration",
-          metadata: { scope: registration.scope },
-        });
-      })
-      .catch((registrationError) => {
-        logger.error("Service Worker registration failed", {
-          error: registrationError,
-          context: {
-            component: "ServiceWorker",
-            action: "registration",
-          },
-        });
-      });
-  });
-}
-
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ErrorBoundary>
