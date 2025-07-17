@@ -1,8 +1,6 @@
 import React, { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import { PerformanceDashboard } from "./components/PerformanceDashboard";
-import PWAInstallPrompt from "./components/PWAInstallPrompt";
-import OfflineIndicator from "./components/OfflineIndicator";
 
 // Lazy load components for better bundle splitting
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
