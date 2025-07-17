@@ -293,7 +293,7 @@ const optimizedImage = await ImageOptimizer.optimizeImage(file, {
 
 1. **Performance Monitor**: Use `PerformanceMonitor.getReport()`
 2. **Cache Statistics**: Use `PerformanceCache.getStats()`
-3. **Service Worker**: Check browser dev tools for SW status
+3. **Network Tools**: Check browser dev tools for network performance
 4. **Bundle Analyzer**: Use Vite's built-in bundle analysis
 
 This comprehensive performance optimization implementation provides a solid foundation for a fast, responsive, and user-friendly AI wardrobe application.
