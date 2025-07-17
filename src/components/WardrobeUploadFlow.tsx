@@ -768,7 +768,7 @@ export const WardrobeUploadFlow = ({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700">
               <Brain className="w-5 h-5" />
-              🤖 Constrained AI Analysis Results
+              🔍 Systematic Analysis Results
             </CardTitle>
           </CardHeader>
           <CardContent>
