@@ -635,13 +635,13 @@ export const WardrobeUploadFlow = ({
             </div>
             <h3 className="text-2xl font-bold mb-3 text-foreground">
               {isProcessing
-                ? "🤖 Constrained AI Analysis in Progress..."
-                : "Upload for Structured AI Fashion Analysis"}
+                ? "🔍 Systematic Analysis in Progress..."
+                : "Upload for Structured Fashion Analysis"}
             </h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               {isProcessing
-                ? "AI analyzing with predefined categories for consistent, accurate results"
-                : "Drag & drop your photo for intelligent AI analysis with structured, consistent categorization"}
+                ? "Analyzing with predefined categories for consistent, accurate results"
+                : "Drag & drop your photo for intelligent analysis with structured, consistent categorization"}
             </p>
 
             {!isProcessing && (
