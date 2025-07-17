@@ -504,34 +504,8 @@ export class TensorFlowClothingAnalyzer {
   private async generateTags(
     imageElement: HTMLImageElement,
   ): Promise<string[]> {
-    if (!this.mobilenetModel) return ["ai-analyzed"];
-
-    try {
-      const predictions = await this.mobilenetModel.classify(imageElement);
-      const tags: string[] = [];
-
-      // Extract relevant tags from predictions
-      for (const prediction of predictions.slice(0, 3)) {
-        const className = prediction.className.toLowerCase();
-
-        // Add style-related tags
-        if (className.includes("striped")) tags.push("striped");
-        if (className.includes("floral")) tags.push("floral");
-        if (className.includes("denim")) tags.push("denim");
-        if (className.includes("leather")) tags.push("leather");
-        if (className.includes("cotton")) tags.push("cotton");
-        if (className.includes("wool")) tags.push("wool");
-        if (className.includes("silk")) tags.push("silk");
-        if (className.includes("vintage")) tags.push("vintage");
-        if (className.includes("casual")) tags.push("casual");
-        if (className.includes("formal")) tags.push("formal");
-      }
-
-      return [...new Set(tags)]; // Remove duplicates
-    } catch (error) {
-      console.warn("Tag generation failed:", error);
-      return ["ai-analyzed"];
-    }
+    // Return empty tags as requested
+    return [];
   }
 
   /**
