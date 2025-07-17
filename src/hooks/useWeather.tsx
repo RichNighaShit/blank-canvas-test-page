@@ -137,6 +137,14 @@ export const useWeather = (location?: string) => {
       setWeather(realWeather);
       setError(null);
     } catch (err: any) {
+      // Clean up timeout if still active
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+
+      if (err.name === "AbortError") {
+        throw new Error("Weather request timed out");
+      }
       throw new Error(`Failed to fetch weather data: ${err.message}`);
     }
   };
