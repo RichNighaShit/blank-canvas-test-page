@@ -505,7 +505,7 @@ export const WardrobeUploadFlow = ({
 
       const imageUrl = await uploadToStorage(optimizedFile);
 
-      const aiAnalysis = await analyzeWithConstrainedAI(imageUrl);
+      const aiAnalysis = await performSystematicAnalysis(imageUrl);
 
       const savedItem = await saveToDatabase({
         ...aiAnalysis,
