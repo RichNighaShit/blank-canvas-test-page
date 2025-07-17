@@ -58,14 +58,6 @@ function App() {
         </Routes>
       </Suspense>
 
-      {/* PWA Components - only render in browser */}
-      {typeof window !== "undefined" && (
-        <React.Suspense fallback={null}>
-          <PWAInstallPrompt />
-          <OfflineIndicator />
-        </React.Suspense>
-      )}
-
       {/* Performance Dashboard - Development Only */}
       {import.meta.env.DEV && <PerformanceDashboard />}
     </div>
