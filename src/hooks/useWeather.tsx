@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export interface WeatherData {
   temperature: number; // Celsius
@@ -57,16 +57,22 @@ export const useWeather = (location?: string) => {
     longitude: number,
     locationName?: string,
   ) => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    const controller = new AbortController();
+
     try {
       // Add timeout for weather API as well
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
       const weatherRes = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m,precipitation,weathercode,windspeed_10m&timezone=auto`,
         { signal: controller.signal },
       );
-      clearTimeout(timeoutId);
+
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
 
       if (!weatherRes.ok) {
         throw new Error(
@@ -131,6 +137,14 @@ export const useWeather = (location?: string) => {
       setWeather(realWeather);
       setError(null);
     } catch (err: any) {
+      // Clean up timeout if still active
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+
+      if (err.name === "AbortError") {
+        throw new Error("Weather request timed out");
+      }
       throw new Error(`Failed to fetch weather data: ${err.message}`);
     }
   };
@@ -170,15 +184,21 @@ export const useWeather = (location?: string) => {
       console.log("Using fallback location:", locationToUse);
 
       // Geocode city name to lat/lon using Open-Meteo's geocoding API
+      const controller = new AbortController();
+      let timeoutId: NodeJS.Timeout | null = null;
+
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationToUse)}&count=1&language=en&format=json`,
           { signal: controller.signal },
         );
-        clearTimeout(timeoutId);
+
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
 
         if (!geoRes.ok) {
           throw new Error(
@@ -206,6 +226,11 @@ export const useWeather = (location?: string) => {
             : null,
         );
       } catch (geocodingError: any) {
+        // Clean up timeout if still active
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+
         // Handle specific error types
         if (geocodingError.name === "AbortError") {
           throw new Error("Weather service request timed out");

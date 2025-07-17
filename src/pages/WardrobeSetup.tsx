@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { pipeline } from "@huggingface/transformers";
+import { tensorflowClothingAnalyzer } from "@/lib/tensorflowClothingAnalysis";
 
 interface ClothingItem {
   id: string;
@@ -92,6 +93,31 @@ const WardrobeSetup = () => {
 
   const analyzeImage = async (file: File): Promise<Partial<ClothingItem>> => {
     try {
+      console.log("Starting TensorFlow.js analysis for uploaded file...");
+
+      // Try TensorFlow.js analysis first
+      try {
+        const analysisResult =
+          await tensorflowClothingAnalyzer.analyzeClothing(file);
+
+        if (analysisResult.isClothing && analysisResult.confidence > 0.3) {
+          console.log("TensorFlow.js analysis successful:", analysisResult);
+
+          return {
+            category: analysisResult.category,
+            style: analysisResult.style,
+            color: analysisResult.colors,
+            occasion: analysisResult.occasions,
+            season: analysisResult.seasons,
+            tags: [],
+          };
+        }
+      } catch (tfError) {
+        console.warn("TensorFlow.js analysis failed, using fallback:", tfError);
+      }
+
+      // Fallback to filename-based analysis
+      console.log("Using filename-based analysis as fallback...");
       const fileName = file.name.toLowerCase();
       let category = "tops";
       let style = "casual";
@@ -172,7 +198,7 @@ const WardrobeSetup = () => {
         occasion: occasions,
         season,
         texture,
-        tags: [style, category, ...colors.slice(0, 2)],
+        tags: [],
       };
     } catch (error) {
       console.error("Image analysis error:", error);
@@ -182,7 +208,7 @@ const WardrobeSetup = () => {
         color: ["neutral"],
         occasion: ["casual"],
         season: ["spring", "summer", "fall", "winter"],
-        tags: ["casual"],
+        tags: [],
       };
     }
   };
@@ -337,7 +363,7 @@ const WardrobeSetup = () => {
                 "winter",
               ],
               texture: analysisResult.texture,
-              tags: analysisResult.tags || [],
+              tags: [],
             };
 
             setItems((prev) => [...prev, newItem]);

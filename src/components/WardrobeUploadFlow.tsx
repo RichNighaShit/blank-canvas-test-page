@@ -302,11 +302,7 @@ export const WardrobeUploadFlow = ({
             "winter",
           ],
           color: analysisData.analysis?.colors || ["neutral"],
-          tags: [
-            "systematic-analysis",
-            "structured-categorization",
-            analysisData.analysis?.category || "clothing",
-          ],
+          tags: [],
         };
       }
 
@@ -341,7 +337,7 @@ export const WardrobeUploadFlow = ({
       occasion: ["casual"],
       season: ["spring", "summer", "fall", "winter"],
       color: ["neutral"],
-      tags: ["basic-analysis", "needs-review", detectedCategory],
+      tags: [],
     };
   };
 
@@ -463,7 +459,7 @@ export const WardrobeUploadFlow = ({
       color: itemData.color || ["neutral"],
       occasion: itemData.occasion || ["casual"],
       season: itemData.season || ["spring", "summer", "fall", "winter"],
-      tags: itemData.tags || ["new"],
+      tags: [],
       user_id: user.id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -616,11 +612,10 @@ export const WardrobeUploadFlow = ({
             />
             <div className="space-y-2">
               <p className="font-medium text-foreground">
-                Ready for Systematic Analysis
+                Ready for TensorFlow.js Analysis
               </p>
               <p className="text-sm text-muted-foreground">
-                Structured analysis with predefined categories for consistent
-                results
+                AI-powered object detection and style classification
               </p>
             </div>
           </div>
@@ -672,10 +667,10 @@ export const WardrobeUploadFlow = ({
           size="lg"
         >
           {isProcessing
-            ? "🔍 Systematic Analysis Processing..."
+            ? "🧠 TensorFlow.js Analysis Processing..."
             : previewUrl
               ? "Change Photo"
-              : "Choose Photo for Systematic Analysis"}
+              : "Choose Photo for AI Analysis"}
         </Button>
 
         <input
@@ -696,7 +691,7 @@ export const WardrobeUploadFlow = ({
               <div className="w-8 h-8 bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 rounded-full flex items-center justify-center">
                 <Brain className="w-4 h-4 text-white" />
               </div>
-              Systematic Fashion Analysis Pipeline
+              TensorFlow.js Fashion Analysis Pipeline
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -768,7 +763,7 @@ export const WardrobeUploadFlow = ({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700">
               <Brain className="w-5 h-5" />
-              🔍 Systematic Analysis Results
+              🧠 TensorFlow.js Analysis Results
             </CardTitle>
           </CardHeader>
           <CardContent>
