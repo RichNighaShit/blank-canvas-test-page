@@ -322,21 +322,21 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
       // Upload to storage first
       const imageUrl = await uploadToStorage(croppedFile);
 
-      // Analyze with Gemini AI
+      // Perform systematic analysis
       let aiAnalysis = null;
       let colors = ["neutral"];
 
       try {
-        aiAnalysis = await analyzeWithGeminiAI(imageUrl);
+        aiAnalysis = await performSystematicAnalysis(imageUrl);
         colors = aiAnalysis?.analysis?.colors || colors;
 
         toast({
-          title: "🤖 AI Analysis Complete!",
-          description: `Gemini AI identified: ${aiAnalysis?.analysis?.name || "clothing item"} with ${Math.round((aiAnalysis?.confidence || 0) * 100)}% confidence`,
+          title: "🔍 Systematic Analysis Complete!",
+          description: `Analysis identified: ${aiAnalysis?.analysis?.name || "clothing item"} with ${Math.round((aiAnalysis?.confidence || 0) * 100)}% confidence`,
         });
       } catch (aiError) {
         console.warn(
-          "AI analysis failed, using fallback color analysis:",
+          "Systematic analysis failed, using fallback color analysis:",
           aiError,
         );
         colors = await analyzeImageColors(croppedFile);
@@ -344,7 +344,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
         toast({
           title: "Photo analyzed!",
           description:
-            "Using enhanced color detection. AI analysis temporarily unavailable.",
+            "Using enhanced color detection. Analysis temporarily unavailable.",
         });
       }
 
