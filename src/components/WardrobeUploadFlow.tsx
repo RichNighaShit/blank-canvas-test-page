@@ -696,7 +696,7 @@ export const WardrobeUploadFlow = ({
               <div className="w-8 h-8 bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 rounded-full flex items-center justify-center">
                 <Brain className="w-4 h-4 text-white" />
               </div>
-              Constrained AI Fashion Analysis Pipeline
+              Systematic Fashion Analysis Pipeline
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
