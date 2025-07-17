@@ -508,7 +508,7 @@ export class TensorFlowClothingAnalyzer {
 
     try {
       const predictions = await this.mobilenetModel.classify(imageElement);
-      const tags: string[] = ["ai-analyzed", "tensorflow-js"];
+      const tags: string[] = [];
 
       // Extract relevant tags from predictions
       for (const prediction of predictions.slice(0, 3)) {
