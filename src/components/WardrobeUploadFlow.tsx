@@ -672,10 +672,10 @@ export const WardrobeUploadFlow = ({
           size="lg"
         >
           {isProcessing
-            ? "🤖 Constrained AI Processing..."
+            ? "🔍 Systematic Analysis Processing..."
             : previewUrl
               ? "Change Photo"
-              : "Choose Photo for Structured AI Analysis"}
+              : "Choose Photo for Systematic Analysis"}
         </Button>
 
         <input
