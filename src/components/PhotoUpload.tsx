@@ -559,12 +559,12 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
             </div>
             <h3 className="text-xl font-semibold mb-2">
               {isAnalyzing
-                ? "🤖 Gemini AI analyzing your photo..."
+                ? "🔍 Systematic analysis in progress..."
                 : "Upload your photo"}
             </h3>
             <p className="text-muted-foreground mb-4">
               {isAnalyzing
-                ? "Advanced AI is analyzing your clothing's style, color, and material"
+                ? "Analyzing your clothing's style, color, and material with structured recognition"
                 : "Drag & drop your photo or click to browse"}
             </p>
           </>
