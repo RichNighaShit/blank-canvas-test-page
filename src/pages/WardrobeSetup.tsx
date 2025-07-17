@@ -109,7 +109,7 @@ const WardrobeSetup = () => {
             color: analysisResult.colors,
             occasion: analysisResult.occasions,
             season: analysisResult.seasons,
-            tags: [...analysisResult.tags, "tensorflow-analyzed"],
+            tags: [],
           };
         }
       } catch (tfError) {
