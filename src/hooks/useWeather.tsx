@@ -184,10 +184,10 @@ export const useWeather = (location?: string) => {
       console.log("Using fallback location:", locationToUse);
 
       // Geocode city name to lat/lon using Open-Meteo's geocoding API
-      try {
-        const controller = new AbortController();
-        let timeoutId: NodeJS.Timeout | null = null;
+      const controller = new AbortController();
+      let timeoutId: NodeJS.Timeout | null = null;
 
+      try {
         timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
         const geoRes = await fetch(
