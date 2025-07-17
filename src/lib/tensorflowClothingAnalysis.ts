@@ -316,7 +316,7 @@ export class TensorFlowClothingAnalyzer {
       (detection) =>
         clothingKeywords.some((keyword) =>
           detection.class.toLowerCase().includes(keyword),
-        ) && detection.score > 0.3, // Minimum confidence threshold
+        ) && detection.score > 0.5, // Higher confidence threshold for better accuracy
     );
   }
 
