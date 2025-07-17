@@ -166,7 +166,7 @@ export class TensorFlowClothingAnalyzer {
           colors: ["unknown"],
           occasions: ["casual"],
           seasons: this.getCurrentSeasons(),
-          tags: ["no-clothing-detected"],
+          tags: [],
           confidence: 0.1,
           reasoning: "No clothing items detected in the image",
         };
