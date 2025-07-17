@@ -363,7 +363,7 @@ const WardrobeSetup = () => {
                 "winter",
               ],
               texture: analysisResult.texture,
-              tags: analysisResult.tags || [],
+              tags: [],
             };
 
             setItems((prev) => [...prev, newItem]);
