@@ -302,11 +302,7 @@ export const WardrobeUploadFlow = ({
             "winter",
           ],
           color: analysisData.analysis?.colors || ["neutral"],
-          tags: [
-            "systematic-analysis",
-            "structured-categorization",
-            analysisData.analysis?.category || "clothing",
-          ],
+          tags: [],
         };
       }
 
