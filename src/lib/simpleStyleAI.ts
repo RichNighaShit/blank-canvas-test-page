@@ -197,9 +197,17 @@ export class SimpleStyleAI {
 
     items.forEach((item) => {
       const usageCount = this.usedItemsHistory[item.id] || 0;
-      // Heavily penalize frequently used items
-      score -= usageCount * 0.3;
+      // Less harsh penalty to allow more combinations
+      score -= usageCount * 0.2;
     });
+
+    // Add bonus for truly unused items
+    const unusedItems = items.filter(
+      (item) => (this.usedItemsHistory[item.id] || 0) === 0,
+    );
+    if (unusedItems.length > 0) {
+      score += unusedItems.length * 0.1;
+    }
 
     return Math.max(0, score);
   }
@@ -506,6 +514,163 @@ export class SimpleStyleAI {
       colors1.some((c) => neutrals.includes(c.toLowerCase())) &&
       colors2.some((c) => neutrals.includes(c.toLowerCase()))
     );
+  }
+
+  private isFlexibleColorMatch(colors1: string[], colors2: string[]): boolean {
+    try {
+      // More lenient color matching for diversity
+      // Allow combinations that might not be perfect but create interesting looks
+
+      // If one item has neutral colors, it's flexible with most colors
+      const neutrals = [
+        "black",
+        "white",
+        "grey",
+        "gray",
+        "beige",
+        "navy",
+        "brown",
+        "cream",
+        "tan",
+        "khaki",
+        "denim",
+      ];
+      if (
+        colors1.some((c) =>
+          neutrals.some((n) => c.toLowerCase().includes(n)),
+        ) ||
+        colors2.some((c) => neutrals.some((n) => c.toLowerCase().includes(n)))
+      ) {
+        return true;
+      }
+
+      // Allow earth tone combinations (more forgiving)
+      const earthTones = [
+        "brown",
+        "tan",
+        "olive",
+        "rust",
+        "terracotta",
+        "sand",
+        "camel",
+        "khaki",
+        "mustard",
+      ];
+      const hasEarth1 = colors1.some((c) =>
+        earthTones.some((e) => c.toLowerCase().includes(e)),
+      );
+      const hasEarth2 = colors2.some((c) =>
+        earthTones.some((e) => c.toLowerCase().includes(e)),
+      );
+      if (hasEarth1 && hasEarth2) {
+        return true;
+      }
+
+      // Allow jewel tone combinations (emerald, sapphire, ruby tones)
+      const jewelTones = [
+        "emerald",
+        "ruby",
+        "sapphire",
+        "amethyst",
+        "topaz",
+        "garnet",
+        "jade",
+      ];
+      const hasJewel1 = colors1.some((c) =>
+        jewelTones.some((j) => c.toLowerCase().includes(j)),
+      );
+      const hasJewel2 = colors2.some((c) =>
+        jewelTones.some((j) => c.toLowerCase().includes(j)),
+      );
+      if (hasJewel1 || hasJewel2) {
+        return true;
+      }
+
+      // Allow pastels together (softer, more flexible matching)
+      const pastels = [
+        "pastel",
+        "light",
+        "pale",
+        "soft",
+        "powder",
+        "baby",
+        "mint",
+        "blush",
+        "lavender",
+        "peach",
+      ];
+      const hasPastel1 = colors1.some((c) =>
+        pastels.some((p) => c.toLowerCase().includes(p)),
+      );
+      const hasPastel2 = colors2.some((c) =>
+        pastels.some((p) => c.toLowerCase().includes(p)),
+      );
+      if (hasPastel1 && hasPastel2) {
+        return true;
+      }
+
+      // More lenient same color family matching
+      const colorFamilies = {
+        reds: [
+          "red",
+          "pink",
+          "rose",
+          "coral",
+          "salmon",
+          "cherry",
+          "burgundy",
+          "wine",
+          "maroon",
+        ],
+        blues: [
+          "blue",
+          "navy",
+          "royal",
+          "sky",
+          "powder",
+          "denim",
+          "indigo",
+          "cobalt",
+        ],
+        greens: [
+          "green",
+          "forest",
+          "olive",
+          "sage",
+          "mint",
+          "lime",
+          "emerald",
+          "jade",
+        ],
+        yellows: [
+          "yellow",
+          "gold",
+          "mustard",
+          "lemon",
+          "butter",
+          "cream",
+          "ivory",
+        ],
+        purples: ["purple", "violet", "lavender", "plum", "mauve", "lilac"],
+      };
+
+      for (const family of Object.values(colorFamilies)) {
+        const inFamily1 = colors1.some((c) =>
+          family.some((f) => c.toLowerCase().includes(f)),
+        );
+        const inFamily2 = colors2.some((c) =>
+          family.some((f) => c.toLowerCase().includes(f)),
+        );
+        if (inFamily1 && inFamily2) {
+          return true;
+        }
+      }
+
+      return false;
+    } catch (error) {
+      console.warn("Error in isFlexibleColorMatch:", error);
+      return false;
+    }
   }
 
   private groupByCategory(items: WardrobeItem[]): {
