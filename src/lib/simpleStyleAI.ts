@@ -41,6 +41,9 @@ export class SimpleStyleAI {
   private lastGenerationTime: number = 0;
   private readonly ITEM_COOLDOWN_MS = 30000; // 30 seconds before item can be used again
   private readonly MAX_ITEM_USAGE_PER_SESSION = 2; // Max times an item can appear in one session
+  private debugMode: boolean = false;
+  private performanceMetrics: { [key: string]: number } = {};
+  private generationStats: { [key: string]: any } = {};
 
   generateRecommendations(
     wardrobeItems: WardrobeItem[],
