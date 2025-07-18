@@ -352,22 +352,21 @@ export const StyleRecommendations = () => {
     executeWithCache,
   ]);
 
-  // Debounced recommendation loading
-  const debouncedLoadRecommendations = useMemo(() => {
-    return debounce(loadRecommendations, 500);
+  // Debounced recommendation loading with stable reference
+  const debouncedLoadRecommendationsRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    debouncedLoadRecommendationsRef.current = debounce(
+      loadRecommendations,
+      500,
+    );
   }, [debounce, loadRecommendations]);
 
   useEffect(() => {
-    if (wardrobeItems.length > 0) {
-      debouncedLoadRecommendations();
+    if (wardrobeItems.length > 0 && debouncedLoadRecommendationsRef.current) {
+      debouncedLoadRecommendationsRef.current();
     }
-  }, [
-    wardrobeItems,
-    selectedOccasion,
-    includeAccessories,
-    weather,
-    debouncedLoadRecommendations,
-  ]);
+  }, [wardrobeItems, selectedOccasion, includeAccessories, weather]);
 
   const handleTryOn = (outfit: OutfitRecommendation) => {
     setSelectedOutfit(outfit);
