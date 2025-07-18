@@ -163,18 +163,25 @@ export const StyleRecommendations = () => {
       extractOccasions(mappedItems);
 
       // Cache wardrobe items for 10 minutes
-      PerformanceCache.set(cacheKey, mappedItems, {
-        ttl: 10 * 60 * 1000,
-        namespace: CACHE_NAMESPACES.WARDROBE_ITEMS,
-      });
+      if (mappedItems.length > 0) {
+        try {
+          PerformanceCache.set(cacheKey, mappedItems, {
+            ttl: 10 * 60 * 1000,
+            namespace: CACHE_NAMESPACES.WARDROBE_ITEMS,
+          });
+        } catch (cacheError) {
+          console.warn("Error caching wardrobe items:", cacheError);
+        }
+      }
     } catch (error) {
       console.error("Error loading wardrobe items:", error);
-      setError(
+      const errorMessage =
         error instanceof Error
           ? error.message
-          : "Failed to load wardrobe items",
-      );
+          : "Failed to load wardrobe items";
+      setError(errorMessage);
       setWardrobeItems([]);
+      setAvailableOccasions(["casual"]);
     } finally {
       setLoading(false);
     }
