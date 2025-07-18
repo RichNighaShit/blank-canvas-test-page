@@ -710,16 +710,42 @@ export class SimpleStyleAI {
   }
 
   private isNeutralColor(colors: string[]): boolean {
-    const neutrals = [
-      "black",
-      "white",
-      "grey",
-      "gray",
-      "beige",
-      "navy",
-      "brown",
-    ];
-    return colors.some((color) => neutrals.includes(color.toLowerCase()));
+    try {
+      if (!this.validateColorInput(colors)) return false;
+
+      const neutrals = [
+        "black",
+        "white",
+        "grey",
+        "gray",
+        "beige",
+        "navy",
+        "brown",
+        "cream",
+        "ivory",
+        "charcoal",
+        "khaki",
+        "tan",
+        "taupe",
+        "nude",
+        "sand",
+        "stone",
+        "off-white",
+        "bone",
+        "champagne",
+        "mushroom",
+        "camel",
+        "chocolate",
+        "coffee",
+        "pewter",
+      ];
+      return colors.some((color) =>
+        neutrals.some((n) => color.toLowerCase().includes(n)),
+      );
+    } catch (error) {
+      console.warn("Error in isNeutralColor:", error);
+      return false;
+    }
   }
 
   private areComplementary(colors1: string[], colors2: string[]): boolean {
