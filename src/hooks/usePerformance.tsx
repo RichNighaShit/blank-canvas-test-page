@@ -84,13 +84,21 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
       let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
       return ((...args: Parameters<T>) => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
+        try {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+          timeoutId = setTimeout(() => {
+            timeoutId = null;
+            try {
+              func(...args);
+            } catch (error) {
+              console.error("Error in debounced function:", error);
+            }
+          }, delay);
+        } catch (error) {
+          console.error("Error setting up debounced function:", error);
         }
-        timeoutId = setTimeout(() => {
-          timeoutId = null;
-          func(...args);
-        }, delay);
       }) as T;
     },
     [],
