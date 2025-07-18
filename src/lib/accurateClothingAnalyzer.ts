@@ -194,7 +194,7 @@ export class AccurateClothingAnalyzer {
         ],
       };
 
-            const response = await fetch(
+      const response = await fetch(
         `https://vision.googleapis.com/v1/images:annotate?key=${this.apiKey}`,
         {
           method: "POST",
@@ -209,8 +209,14 @@ export class AccurateClothingAnalyzer {
       });
 
       if (!response.ok) {
-        console.warn("Vision API request failed:", response.status, response.statusText);
-        throw new Error(`Vision API error: ${response.status} ${response.statusText}`);
+        console.warn(
+          "Vision API request failed:",
+          response.status,
+          response.statusText,
+        );
+        throw new Error(
+          `Vision API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: VisionAPIResponse = await response.json();
@@ -1874,7 +1880,7 @@ export class AccurateClothingAnalyzer {
    * Utility functions
    */
   private async convertToBase64(input: File | string): Promise<string> {
-        if (typeof input === "string") {
+    if (typeof input === "string") {
       // If it's a URL, fetch and convert
       try {
         const response = await fetch(input).catch((fetchError) => {
@@ -1883,7 +1889,9 @@ export class AccurateClothingAnalyzer {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `Failed to fetch image: ${response.status} ${response.statusText}`,
+          );
         }
 
         const blob = await response.blob();
@@ -1891,15 +1899,20 @@ export class AccurateClothingAnalyzer {
         if (!blob || blob.size === 0) {
           throw new Error("Received empty or invalid image data");
         }
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64 = reader.result as string;
-          resolve(base64.split(",")[1]); // Remove data:image/...;base64, prefix
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64 = reader.result as string;
+            resolve(base64.split(",")[1]); // Remove data:image/...;base64, prefix
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch (error) {
+        throw new Error(
+          `Image processing error: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
+      }
     } else {
       // If it's a File, convert directly
       return new Promise((resolve, reject) => {
