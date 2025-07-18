@@ -38,27 +38,43 @@ const PageLoader = () => (
 function App() {
   return (
     <div className="min-h-screen bg-background">
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/wardrobe" element={<Wardrobe />} />
-          <Route path="/wardrobe-setup" element={<WardrobeSetup />} />
-          <Route path="/edit-profile" element={<EditProfile />} />
-          <Route path="/recommendations" element={<StyleRecommendations />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route
-            path="/wardrobe-analytics"
-            element={<WardrobeAnalyticsPage />}
-          />
-          <Route path="/virtual-try-on" element={<VirtualTryOn />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/style-me-improved" element={<StyleMeImproved />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/index" element={<Index />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+      <Routes>
+        {/* Auth route without Suspense wrapper since it's not lazy loaded */}
+        <Route path="/auth" element={<Auth />} />
+
+        {/* Other routes with Suspense wrapper */}
+        <Route
+          path="/*"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/wardrobe" element={<Wardrobe />} />
+                <Route path="/wardrobe-setup" element={<WardrobeSetup />} />
+                <Route path="/edit-profile" element={<EditProfile />} />
+                <Route
+                  path="/recommendations"
+                  element={<StyleRecommendations />}
+                />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route
+                  path="/wardrobe-analytics"
+                  element={<WardrobeAnalyticsPage />}
+                />
+                <Route path="/virtual-try-on" element={<VirtualTryOn />} />
+                <Route
+                  path="/style-me-improved"
+                  element={<StyleMeImproved />}
+                />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/index" element={<Index />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          }
+        />
+      </Routes>
 
       {/* Performance Dashboard - Development Only */}
       {import.meta.env.DEV && <PerformanceDashboard />}
