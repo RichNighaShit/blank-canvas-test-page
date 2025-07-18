@@ -29,8 +29,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { pipeline } from "@huggingface/transformers";
-import { tensorflowClothingAnalyzer } from "@/lib/tensorflowClothingAnalysis";
+import { accurateClothingAnalyzer } from "@/lib/accurateClothingAnalyzer";
 
 interface ClothingItem {
   id: string;
@@ -93,15 +92,16 @@ const WardrobeSetup = () => {
 
   const analyzeImage = async (file: File): Promise<Partial<ClothingItem>> => {
     try {
-      console.log("Starting TensorFlow.js analysis for uploaded file...");
+      console.log("Starting advanced AI analysis for uploaded file...");
 
-      // Try TensorFlow.js analysis first
+      // Try advanced AI analysis first
       try {
+        await accurateClothingAnalyzer.initialize();
         const analysisResult =
-          await tensorflowClothingAnalyzer.analyzeClothing(file);
+          await accurateClothingAnalyzer.analyzeClothing(file);
 
         if (analysisResult.isClothing && analysisResult.confidence > 0.3) {
-          console.log("TensorFlow.js analysis successful:", analysisResult);
+          console.log("Advanced AI analysis successful:", analysisResult);
 
           return {
             category: analysisResult.category,
@@ -109,11 +109,16 @@ const WardrobeSetup = () => {
             color: analysisResult.colors,
             occasion: analysisResult.occasions,
             season: analysisResult.seasons,
-            tags: [],
+            tags: analysisResult.tags,
           };
+        } else if (!analysisResult.isClothing) {
+          // Reject non-clothing items
+          throw new Error(
+            `This image doesn't appear to be a clothing item. ${analysisResult.reasoning}. Please upload an image of clothing, shoes, or accessories.`,
+          );
         }
-      } catch (tfError) {
-        console.warn("TensorFlow.js analysis failed, using fallback:", tfError);
+      } catch (aiError) {
+        console.warn("Advanced AI analysis failed, using fallback:", aiError);
       }
 
       // Fallback to filename-based analysis

@@ -10,7 +10,7 @@ DripMuse represents the cutting edge of AI-powered fashion technology, combining
 
 ### 🧠 Deep Learning Style Intelligence
 
-- **Advanced Neural Networks**: In-browser TensorFlow.js models that learn and adapt to your unique style preferences
+- **Advanced Computer Vision**: Intelligent clothing recognition with accurate color detection and smart style classification
 - **Real-time Feedback Learning**: Every like, dislike, and skip trains the AI to become more accurate with each interaction
 - **Contextual Understanding**: AI considers weather, occasion, and your personal style evolution to deliver perfect recommendations
 - **Unified AI System**: Consistent StylemeAI engine powers both style recommendations and outfit planning for seamless experience
@@ -107,8 +107,8 @@ DripMuse represents the cutting edge of AI-powered fashion technology, combining
 ### Backend & AI Infrastructure
 
 - **Supabase** for scalable authentication, database, and storage
-- **Hugging Face Models** for advanced AI clothing analysis
-- **TensorFlow.js** for in-browser machine learning
+- **Advanced Computer Vision** for accurate clothing analysis
+- **Intelligent Pattern Recognition** for smart categorization
 - **Edge Functions** for serverless AI processing
 
 ### Performance & Optimization
