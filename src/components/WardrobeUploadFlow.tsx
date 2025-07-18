@@ -262,6 +262,13 @@ export const WardrobeUploadFlow = ({
   const performAdvancedAIAnalysis = async (
     imageUrl: string,
   ): Promise<Partial<WardrobeItem>> => {
+    // Step 1: Clothing Validation
+    updateStage("clothing-validation", {
+      status: "processing",
+      progress: 50,
+      details: "🔍 Checking if this is a clothing item...",
+    });
+
     updateStage("ai-analysis", {
       status: "processing",
       progress: 20,
@@ -269,15 +276,15 @@ export const WardrobeUploadFlow = ({
     });
 
     try {
+      // Initialize the accurate analyzer
+      await accurateClothingAnalyzer.initialize();
+
       updateStage("ai-analysis", {
         progress: 40,
         details: "🧠 Analyzing clothing with computer vision...",
       });
 
       console.log("Starting advanced AI analysis for:", imageUrl);
-
-      // Initialize the accurate analyzer
-      await accurateClothingAnalyzer.initialize();
 
       updateStage("ai-analysis", {
         progress: 60,
@@ -290,6 +297,22 @@ export const WardrobeUploadFlow = ({
       );
 
       console.log("Advanced AI analysis result:", analysisResult);
+
+      // Complete clothing validation stage
+      if (analysisResult.isClothing) {
+        updateStage("clothing-validation", {
+          status: "completed",
+          progress: 100,
+          details: "✅ Clothing item verified successfully",
+        });
+      } else {
+        updateStage("clothing-validation", {
+          status: "failed",
+          progress: 100,
+          details: "❌ This doesn't appear to be a clothing item",
+          error: "Non-clothing item detected",
+        });
+      }
 
       if (analysisResult.isClothing) {
         setAnalysisResults({
