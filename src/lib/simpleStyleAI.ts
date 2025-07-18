@@ -1068,52 +1068,26 @@ export class SimpleStyleAI {
     occasion: string,
     preferredStyle?: string,
   ): boolean {
-    // More flexible category matching for diversity
+    // Much more flexible matching to ensure combinations are generated
     const isOccasionMatch =
-      item.occasion.includes(occasion) || item.occasion.includes("versatile");
-
-    // For formal occasions, still maintain some standards but be more flexible
-    if (occasion === "formal" || occasion === "business") {
-      // Still exclude very casual items, but allow smart-casual
-      if (item.style === "streetwear" || item.style === "sporty") {
-        return false;
-      }
-      return (
-        isOccasionMatch ||
-        item.style === "formal" ||
-        item.style === "business" ||
-        item.style === "smart-casual" ||
-        item.style === "elegant" ||
-        item.occasion.includes("smart-casual")
-      );
-    }
-
-    // For casual occasions, be very inclusive
-    if (occasion === "casual") {
-      return (
-        isOccasionMatch ||
-        item.occasion.includes("casual") ||
-        item.style === "casual" ||
-        item.style === "smart-casual" ||
-        item.style === "versatile"
-      );
-    }
-
-    // For other occasions, be more inclusive based on style preference
-    if (
-      preferredStyle &&
-      (item.style === preferredStyle || item.style === "versatile")
-    ) {
-      return true;
-    }
-
-    // Default to more inclusive matching
-    return (
-      isOccasionMatch ||
-      item.occasion.includes("casual") ||
+      item.occasion.includes(occasion) ||
       item.occasion.includes("versatile") ||
-      item.style === "versatile"
-    );
+      item.occasion.includes("casual"); // Include casual as it's versatile
+
+    // For formal occasions, be more inclusive
+    if (occasion === "formal" || occasion === "business") {
+      // Only exclude extremely casual items
+      if (item.style === "streetwear" || item.style === "sporty") {
+        // But allow if it's the only option or explicitly marked as versatile
+        return (
+          item.style === "versatile" || item.occasion.includes("versatile")
+        );
+      }
+      return true; // Allow most items for formal occasions
+    }
+
+    // For any occasion, be very inclusive to ensure combinations
+    return true; // Allow all items, let the scoring system filter appropriateness
   }
 
   private colorsWork(colors1: string[], colors2: string[]): boolean {
