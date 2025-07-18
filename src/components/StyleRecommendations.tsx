@@ -583,11 +583,45 @@ export const StyleRecommendations = () => {
               No Recommendations Available
             </h3>
             <p className="text-muted-foreground mb-4">
-              Try adjusting your preferences or add more items to your wardrobe.
+              We couldn't generate outfit recommendations with your current
+              settings. This might be because:
             </p>
-            <Button onClick={() => setShowPreferences(true)}>
-              Adjust Preferences
-            </Button>
+            <div className="text-left space-y-2 mb-4 text-sm text-muted-foreground">
+              <div className="flex items-start gap-2">
+                <div className="w-1 h-1 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
+                <span>
+                  You need more clothing items in your wardrobe (
+                  {wardrobeItems.length} items currently)
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="w-1 h-1 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
+                <span>
+                  Try selecting "casual" occasion as it's more flexible
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="w-1 h-1 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
+                <span>
+                  Include accessories to create more outfit combinations
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="w-1 h-1 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
+                <span>
+                  Add items in different categories (tops, bottoms, shoes)
+                </span>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-center">
+              <Button
+                onClick={() => setShowPreferences(true)}
+                variant="outline"
+              >
+                Adjust Preferences
+              </Button>
+              <Button onClick={loadRecommendations}>Try Again</Button>
+            </div>
           </Card>
         )}
 
