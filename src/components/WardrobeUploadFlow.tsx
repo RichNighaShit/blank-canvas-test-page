@@ -82,6 +82,13 @@ export const WardrobeUploadFlow = ({
       details: "Storing in cloud storage",
     },
     {
+      id: "clothing-validation",
+      name: "👗 Clothing Validation",
+      status: "pending",
+      progress: 0,
+      details: "Verifying this is a clothing item",
+    },
+    {
       id: "ai-analysis",
       name: "🧠 Advanced AI Analysis",
       status: "pending",
