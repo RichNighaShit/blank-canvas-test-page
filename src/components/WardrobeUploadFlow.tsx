@@ -201,59 +201,95 @@ export const WardrobeUploadFlow = ({
       details: "Preparing for AI analysis...",
     });
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       const img = new Image();
+      let objectUrl: string | null = null;
 
-      img.onload = () => {
-        updateStage("optimize", {
-          progress: 50,
-          details: "Optimizing resolution and quality...",
-        });
-
-        const maxSize = 1536;
-        let { width, height } = img;
-
-        if (width > maxSize || height > maxSize) {
-          if (width > height) {
-            height = (height * maxSize) / width;
-            width = maxSize;
-          } else {
-            width = (width * maxSize) / height;
-            height = maxSize;
-          }
+      const cleanup = () => {
+        if (objectUrl) {
+          URL.revokeObjectURL(objectUrl);
+          objectUrl = null;
         }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        if (ctx) {
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = "high";
-          ctx.drawImage(img, 0, 0, width, height);
-        }
-
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              const optimizedFile = new File([blob], file.name, {
-                type: "image/jpeg",
-              });
-              updateStage("optimize", {
-                status: "completed",
-                progress: 100,
-                details: "Optimization complete",
-              });
-              resolve(optimizedFile);
-            }
-          },
-          "image/jpeg",
-          0.92,
-        );
       };
 
-      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        try {
+          updateStage("optimize", {
+            progress: 50,
+            details: "Optimizing resolution and quality...",
+          });
+
+          const maxSize = 1536;
+          let { width, height } = img;
+
+          if (width > maxSize || height > maxSize) {
+            if (width > height) {
+              height = (height * maxSize) / width;
+              width = maxSize;
+            } else {
+              width = (width * maxSize) / height;
+              height = maxSize;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(img, 0, 0, width, height);
+          } else {
+            cleanup();
+            reject(new Error("Failed to get canvas context"));
+            return;
+          }
+
+          canvas.toBlob(
+            (blob) => {
+              cleanup();
+              if (blob) {
+                const optimizedFile = new File([blob], file.name, {
+                  type: "image/jpeg",
+                });
+                updateStage("optimize", {
+                  status: "completed",
+                  progress: 100,
+                  details: "Optimization complete",
+                });
+                resolve(optimizedFile);
+              } else {
+                reject(new Error("Failed to optimize image"));
+              }
+            },
+            "image/jpeg",
+            0.92,
+          );
+        } catch (error) {
+          cleanup();
+          reject(
+            new Error(
+              "Image optimization failed: " +
+                (error instanceof Error ? error.message : "Unknown error"),
+            ),
+          );
+        }
+      };
+
+      img.onerror = (error) => {
+        cleanup();
+        reject(new Error("Failed to load image for optimization"));
+      };
+
+      try {
+        objectUrl = URL.createObjectURL(file);
+        img.src = objectUrl;
+      } catch (error) {
+        cleanup();
+        reject(new Error("Failed to create image URL"));
+      }
     });
   };
 
