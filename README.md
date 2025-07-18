@@ -107,8 +107,8 @@ DripMuse represents the cutting edge of AI-powered fashion technology, combining
 ### Backend & AI Infrastructure
 
 - **Supabase** for scalable authentication, database, and storage
-- **Hugging Face Models** for advanced AI clothing analysis
-- **TensorFlow.js** for in-browser machine learning
+- **Advanced Computer Vision** for accurate clothing analysis
+- **Intelligent Pattern Recognition** for smart categorization
 - **Edge Functions** for serverless AI processing
 
 ### Performance & Optimization
