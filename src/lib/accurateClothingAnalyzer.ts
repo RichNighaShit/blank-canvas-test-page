@@ -1979,13 +1979,44 @@ export class AccurateClothingAnalyzer {
     imageElement.crossOrigin = "anonymous";
 
     return new Promise((resolve, reject) => {
-      imageElement.onload = () => resolve(imageElement);
-      imageElement.onerror = reject;
+      // Set up timeout to prevent hanging
+      const timeout = setTimeout(() => {
+        reject(new Error("Image loading timeout after 10 seconds"));
+      }, 10000);
 
-      if (typeof input === "string") {
-        imageElement.src = input;
-      } else {
-        imageElement.src = URL.createObjectURL(input);
+      imageElement.onload = () => {
+        clearTimeout(timeout);
+        resolve(imageElement);
+      };
+
+      imageElement.onerror = (error) => {
+        clearTimeout(timeout);
+        reject(new Error(`Image loading failed: ${error}`));
+      };
+
+      try {
+        if (typeof input === "string") {
+          // Validate URL format
+          if (
+            !input.startsWith("http") &&
+            !input.startsWith("data:") &&
+            !input.startsWith("blob:")
+          ) {
+            reject(new Error("Invalid image URL format"));
+            return;
+          }
+          imageElement.src = input;
+        } else {
+          // Validate file type
+          if (!input.type.startsWith("image/")) {
+            reject(new Error("Invalid file type - must be an image"));
+            return;
+          }
+          imageElement.src = URL.createObjectURL(input);
+        }
+      } catch (error) {
+        clearTimeout(timeout);
+        reject(new Error(`Error setting image source: ${error}`));
       }
     });
   }
