@@ -664,7 +664,7 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
-   * Smart style detection
+   * Enhanced smart style detection with comprehensive analysis
    */
   private smartStyleDetection(
     category: string,
@@ -673,66 +673,332 @@ export class AccurateClothingAnalyzer {
   ): string {
     const fname = filename.toLowerCase();
 
-    // Style keywords
+    // Enhanced style keyword mapping with confidence scoring
+    const styleKeywords = {
+      formal: [
+        "formal",
+        "business",
+        "professional",
+        "corporate",
+        "office",
+        "work",
+        "suit",
+        "blazer",
+        "dress shirt",
+        "tie",
+        "oxford",
+        "loafer",
+        "pump",
+        "professional",
+        "executive",
+        "boardroom",
+        "interview",
+      ],
+      elegant: [
+        "elegant",
+        "sophisticated",
+        "classy",
+        "luxury",
+        "designer",
+        "premium",
+        "evening",
+        "cocktail",
+        "party",
+        "gala",
+        "red carpet",
+        "glamorous",
+        "chic",
+        "refined",
+        "polished",
+        "upscale",
+        "high-end",
+      ],
+      casual: [
+        "casual",
+        "everyday",
+        "comfortable",
+        "relaxed",
+        "weekend",
+        "leisure",
+        "basic",
+        "simple",
+        "easy",
+        "effortless",
+        "laid-back",
+        "chill",
+      ],
+      sporty: [
+        "sport",
+        "athletic",
+        "gym",
+        "fitness",
+        "workout",
+        "running",
+        "training",
+        "active",
+        "performance",
+        "exercise",
+        "yoga",
+        "tennis",
+        "basketball",
+        "soccer",
+        "outdoor",
+        "hiking",
+        "jogging",
+        "cycling",
+      ],
+      streetwear: [
+        "street",
+        "urban",
+        "hip",
+        "trendy",
+        "cool",
+        "edgy",
+        "modern",
+        "contemporary",
+        "fashion-forward",
+        "avant-garde",
+        "youth",
+        "skate",
+        "grunge",
+        "punk",
+        "alternative",
+        "indie",
+      ],
+      bohemian: [
+        "bohemian",
+        "boho",
+        "hippie",
+        "free-spirit",
+        "artistic",
+        "creative",
+        "eclectic",
+        "unconventional",
+        "indie",
+        "festival",
+        "flowy",
+        "relaxed",
+        "earthy",
+        "natural",
+        "organic",
+        "handmade",
+      ],
+      minimalist: [
+        "minimalist",
+        "simple",
+        "clean",
+        "basic",
+        "essential",
+        "understated",
+        "sleek",
+        "modern",
+        "streamlined",
+        "classic",
+        "timeless",
+        "versatile",
+        "neutral",
+        "monochrome",
+      ],
+      vintage: [
+        "vintage",
+        "retro",
+        "classic",
+        "throwback",
+        "old-school",
+        "traditional",
+        "heritage",
+        "timeless",
+        "antique",
+        "period",
+        "nostalgic",
+        "historical",
+      ],
+      romantic: [
+        "romantic",
+        "feminine",
+        "soft",
+        "delicate",
+        "pretty",
+        "sweet",
+        "lovely",
+        "floral",
+        "lace",
+        "ruffle",
+        "bow",
+        "pastel",
+        "dreamy",
+        "whimsical",
+      ],
+      edgy: [
+        "edgy",
+        "bold",
+        "daring",
+        "fierce",
+        "tough",
+        "rebel",
+        "rock",
+        "goth",
+        "dark",
+        "dramatic",
+        "statement",
+        "powerful",
+        "confident",
+      ],
+    };
+
+    // Check filename for style keywords with weighted scoring
+    let styleScores = new Map<string, number>();
+
+    for (const [style, keywords] of Object.entries(styleKeywords)) {
+      let score = 0;
+      for (const keyword of keywords) {
+        if (fname.includes(keyword)) {
+          // Longer, more specific keywords get higher scores
+          score += keyword.length * 0.1 + 1;
+        }
+      }
+      if (score > 0) {
+        styleScores.set(style, score);
+      }
+    }
+
+    // Get highest scoring style from filename
+    const topFilenameStyle = Array.from(styleScores.entries()).sort(
+      ([, a], [, b]) => b - a,
+    )[0];
+
+    if (topFilenameStyle && topFilenameStyle[1] > 1) {
+      return topFilenameStyle[0];
+    }
+
+    // Advanced color-based style analysis
+    const colorBasedStyle = this.analyzeStyleFromColors(colors);
+    if (colorBasedStyle !== "unknown") {
+      return colorBasedStyle;
+    }
+
+    // Category-based style intelligence
+    const categoryBasedStyle = this.getCategoryStyleDefault(category, colors);
+
+    return categoryBasedStyle;
+  }
+
+  /**
+   * Analyze style based on color combinations and patterns
+   */
+  private analyzeStyleFromColors(colors: string[]): string {
+    const colorSet = new Set(colors);
+
+    // Minimalist: monochromatic or very limited palette
+    if (colors.length === 1) {
+      if (["black", "white", "gray", "charcoal"].includes(colors[0])) {
+        return "minimalist";
+      }
+    }
+
+    // Elegant: sophisticated color combinations
     if (
-      fname.includes("formal") ||
-      fname.includes("dress") ||
-      fname.includes("suit")
-    )
-      return "formal";
-    if (
-      fname.includes("sport") ||
-      fname.includes("gym") ||
-      fname.includes("athletic")
-    )
-      return "sporty";
-    if (fname.includes("casual") || fname.includes("everyday")) return "casual";
-    if (
-      fname.includes("elegant") ||
-      fname.includes("evening") ||
-      fname.includes("cocktail")
-    )
+      colorSet.has("black") &&
+      (colorSet.has("gold") || colorSet.has("silver"))
+    ) {
       return "elegant";
+    }
     if (
-      fname.includes("bohemian") ||
-      fname.includes("boho") ||
-      fname.includes("hippie")
-    )
+      ["navy", "burgundy", "emerald", "sapphire"].some((c) => colorSet.has(c))
+    ) {
+      return "elegant";
+    }
+
+    // Romantic: soft, feminine colors
+    if (
+      ["pink", "lavender", "peach", "cream", "rose"].some((c) =>
+        colorSet.has(c),
+      )
+    ) {
+      return "romantic";
+    }
+
+    // Bohemian: earthy, natural colors
+    if (
+      ["brown", "tan", "olive", "rust", "terracotta", "sage"].some((c) =>
+        colorSet.has(c),
+      )
+    ) {
       return "bohemian";
-    if (
-      fname.includes("minimalist") ||
-      fname.includes("simple") ||
-      fname.includes("clean")
-    )
-      return "minimalist";
-    if (
-      fname.includes("street") ||
-      fname.includes("urban") ||
-      fname.includes("hip")
-    )
-      return "streetwear";
-    if (
-      fname.includes("vintage") ||
-      fname.includes("retro") ||
-      fname.includes("classic")
-    )
-      return "vintage";
+    }
 
-    // Color-based style hints
-    if (colors.includes("black") && colors.length === 1) return "minimalist";
-    if (colors.includes("pink") || colors.includes("purple")) return "elegant";
-    if (colors.includes("neon") || colors.includes("bright"))
-      return "streetwear";
+    // Edgy: bold, dramatic colors
+    if (
+      colorSet.has("black") &&
+      ["red", "purple", "electric"].some((c) => colorSet.has(c))
+    ) {
+      return "edgy";
+    }
 
-    // Category-based defaults
+    // Sporty: bright, energetic colors
+    if (
+      ["neon", "bright", "electric", "lime", "orange"].some((c) =>
+        colorSet.has(c),
+      )
+    ) {
+      return "sporty";
+    }
+
+    // Streetwear: urban color combinations
+    if (
+      colorSet.has("black") &&
+      ["white", "gray"].some((c) => colorSet.has(c))
+    ) {
+      return "streetwear";
+    }
+
+    return "unknown";
+  }
+
+  /**
+   * Get smart category-based style defaults
+   */
+  private getCategoryStyleDefault(category: string, colors: string[]): string {
     switch (category) {
       case "dresses":
+        // Dresses default to elegant unless colors suggest otherwise
+        if (colors.includes("black") || colors.includes("navy"))
+          return "elegant";
+        if (colors.includes("pink") || colors.includes("floral"))
+          return "romantic";
         return "elegant";
+
       case "outerwear":
-        return "formal";
+        // Outerwear style depends on formality
+        if (colors.includes("black") || colors.includes("navy"))
+          return "formal";
+        if (colors.includes("brown") || colors.includes("olive"))
+          return "casual";
+        return "casual";
+
       case "shoes":
-        return "sporty";
+        // Shoes default based on color and likely use
+        if (colors.includes("black") || colors.includes("brown"))
+          return "formal";
+        if (colors.includes("white") || colors.includes("colorful"))
+          return "sporty";
+        return "casual";
+
+      case "accessories":
+        // Accessories are usually elegant unless very casual
+        return "elegant";
+
+      case "bottoms":
+        // Bottoms are versatile - default to casual
+        if (colors.includes("black") && colors.length === 1) return "formal";
+        return "casual";
+
+      case "tops":
       default:
+        // Tops default to casual but can be upgraded based on colors
+        if (colors.includes("white") && colors.length === 1) return "formal";
+        if (colors.includes("black") && colors.length === 1)
+          return "minimalist";
         return "casual";
     }
   }
