@@ -200,7 +200,7 @@ export const StyleRecommendations = () => {
     }
   };
 
-    const loadRecommendations = useCallback(async () => {
+  const loadRecommendations = useCallback(async () => {
     if (!user || !profile || wardrobeItems.length === 0) {
       console.info(
         "Cannot generate recommendations: missing user, profile, or wardrobe items",
@@ -336,7 +336,15 @@ export const StyleRecommendations = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    user,
+    profile,
+    wardrobeItems,
+    selectedOccasion,
+    includeAccessories,
+    weather,
+    executeWithCache,
+  ]);
 
   // Debounced recommendation loading
   const debouncedLoadRecommendations = useMemo(() => {
