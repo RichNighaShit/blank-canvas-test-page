@@ -587,23 +587,27 @@ export class SimpleStyleAI {
 
       // Enhanced color harmony analysis
       const colorHarmonyScore = this.calculateColorHarmonyScore(
-        outfit,
+        validItems,
         profile,
       );
-      confidence += colorHarmonyScore * 0.2;
+      confidence += colorHarmonyScore * scoringWeights.colorHarmony;
 
-      if (colorHarmonyScore > 0.8) {
+      if (colorHarmonyScore > 0.9) {
+        reasoning.push(
+          "Masterful color coordination creates stunning visual impact",
+        );
+      } else if (colorHarmonyScore > 0.7) {
         reasoning.push("Exceptional color harmony creates visual flow");
-      } else if (colorHarmonyScore > 0.6) {
+      } else if (colorHarmonyScore > 0.5) {
         reasoning.push("Well-balanced color palette");
       }
 
       // Occasion appropriateness with formality levels
       const occasionScore = this.calculateOccasionScore(
-        outfit,
+        validItems,
         context.occasion,
       );
-      confidence += occasionScore * 0.25;
+      confidence += occasionScore * scoringWeights.occasion;
 
       if (occasionScore > 0.9) {
         reasoning.push(`Perfectly tailored for ${context.occasion} occasions`);
