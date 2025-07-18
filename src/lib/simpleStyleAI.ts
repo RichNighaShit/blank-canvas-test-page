@@ -152,27 +152,8 @@ export class SimpleStyleAI {
           return [];
         }
 
-        // Sort by a combination of diversity and confidence for better variety
-        const diverseOutfits = scoredOutfits
-          .sort((a, b) => {
-            try {
-              const diversityScoreA = this.calculateDiversityScore(a.items);
-              const diversityScoreB = this.calculateDiversityScore(b.items);
-
-              // Create a composite score that balances diversity and confidence
-              // Give more weight to diversity to show more variety
-              const compositeScoreA =
-                diversityScoreA * 0.6 + a.confidence * 0.4;
-              const compositeScoreB =
-                diversityScoreB * 0.6 + b.confidence * 0.4;
-
-              return compositeScoreB - compositeScoreA;
-            } catch (error) {
-              console.warn("Error sorting outfits:", error);
-              return 0;
-            }
-          })
-          .slice(0, 12); // Generate even more options
+        // Enhanced sorting for maximum diversity
+        const diverseOutfits = this.selectDiverseOutfits(scoredOutfits);
 
         // Update usage history
         try {
@@ -186,7 +167,7 @@ export class SimpleStyleAI {
           console.warn("Error updating usage history:", error);
         }
 
-        return diverseOutfits.slice(0, 8); // Return top 8 diverse outfits for more variety
+        return diverseOutfits.slice(0, 10); // Return top 10 diverse outfits
       } catch (error) {
         console.error("Unexpected error in generateRecommendations:", error);
         this.log("Error in generateRecommendations", error);
