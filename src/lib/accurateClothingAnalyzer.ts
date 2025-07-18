@@ -255,6 +255,169 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
+   * Detect if filename suggests clothing (lenient check)
+   */
+  private detectClothingFromFilename(filename: string): {
+    isClothing: boolean;
+    confidence: number;
+    reasoning: string;
+  } {
+    const fname = filename.toLowerCase();
+
+    // Strong clothing indicators
+    const strongClothingKeywords = [
+      "shirt",
+      "top",
+      "blouse",
+      "sweater",
+      "hoodie",
+      "tshirt",
+      "t-shirt",
+      "tank",
+      "pullover",
+      "cardigan",
+      "pant",
+      "jean",
+      "trouser",
+      "short",
+      "legging",
+      "slack",
+      "chino",
+      "skirt",
+      "dress",
+      "gown",
+      "frock",
+      "sundress",
+      "maxi",
+      "mini",
+      "jacket",
+      "coat",
+      "blazer",
+      "parka",
+      "windbreaker",
+      "bomber",
+      "shoe",
+      "boot",
+      "sneaker",
+      "sandal",
+      "heel",
+      "pump",
+      "loafer",
+      "oxford",
+      "runner",
+      "bag",
+      "purse",
+      "backpack",
+      "hat",
+      "cap",
+      "scarf",
+      "belt",
+      "watch",
+      "clothing",
+      "apparel",
+      "fashion",
+      "wear",
+      "outfit",
+    ];
+
+    // Non-clothing indicators (be conservative to avoid false rejections)
+    const nonClothingKeywords = [
+      "food",
+      "drink",
+      "kitchen",
+      "cooking",
+      "recipe",
+      "car",
+      "vehicle",
+      "auto",
+      "motorcycle",
+      "bike",
+      "animal",
+      "dog",
+      "cat",
+      "pet",
+      "bird",
+      "building",
+      "house",
+      "architecture",
+      "room",
+      "furniture",
+      "nature",
+      "landscape",
+      "tree",
+      "flower",
+      "plant",
+      "document",
+      "paper",
+      "text",
+      "book",
+      "magazine",
+      "computer",
+      "phone",
+      "electronic",
+      "device",
+      "screen",
+      "medical",
+      "hospital",
+      "doctor",
+      "medicine",
+    ];
+
+    // Check for strong clothing indicators
+    const hasClothingKeyword = strongClothingKeywords.some((keyword) =>
+      fname.includes(keyword),
+    );
+    if (hasClothingKeyword) {
+      return {
+        isClothing: true,
+        confidence: 0.9,
+        reasoning: "Filename contains clothing-related keywords",
+      };
+    }
+
+    // Check for non-clothing indicators
+    const hasNonClothingKeyword = nonClothingKeywords.some((keyword) =>
+      fname.includes(keyword),
+    );
+    if (hasNonClothingKeyword) {
+      return {
+        isClothing: false,
+        confidence: 0.8,
+        reasoning: "Filename suggests non-clothing item",
+      };
+    }
+
+    // Check for generic image names (assume clothing to be lenient)
+    const genericNames = [
+      "img",
+      "image",
+      "pic",
+      "photo",
+      "screenshot",
+      "photo_",
+      "img_",
+    ];
+    const isGeneric =
+      genericNames.some((name) => fname.includes(name)) ||
+      /^\d+\.(jpg|jpeg|png|webp)$/.test(fname);
+
+    if (isGeneric || fname.length < 3) {
+      return {
+        isClothing: true,
+        confidence: 0.6,
+        reasoning: "Generic filename - assuming clothing (lenient mode)",
+      };
+    }
+
+    // For any other filenames, be lenient and assume clothing
+    return {
+      isClothing: true,
+      confidence: 0.7,
+      reasoning: "No clear non-clothing indicators found - assuming clothing",
+    };
+  }
+
+  /**
    * Smart category detection using multiple signals
    */
   private smartCategoryDetection(
