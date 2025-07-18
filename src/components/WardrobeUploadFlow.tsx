@@ -106,11 +106,15 @@ export const WardrobeUploadFlow = ({
   ];
 
   const updateStage = (stageId: string, updates: Partial<UploadStage>) => {
-    setStages((prev) =>
-      prev.map((stage) =>
+    setStages((prev) => {
+      if (!prev || prev.length === 0) {
+        console.warn("No stages found when trying to update stage:", stageId);
+        return prev;
+      }
+      return prev.map((stage) =>
         stage.id === stageId ? { ...stage, ...updates } : stage,
-      ),
-    );
+      );
+    });
   };
 
   const resetUpload = () => {
