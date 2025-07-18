@@ -611,14 +611,24 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
-   * Advanced color analysis
+   * Advanced color analysis with background detection
    */
   private analyzeImageColors(imageData: ImageData): string[] {
     const data = imageData.data;
     const colorCounts = new Map<string, number>();
+    const edgeColors = new Map<string, number>();
+    const centerColors = new Map<string, number>();
+
+    const width = imageData.width;
+    const height = imageData.height;
+    const edgeThreshold = Math.min(width, height) * 0.1; // 10% of image edge
 
     // Sample every 4th pixel for performance
     for (let i = 0; i < data.length; i += 16) {
+      const pixelIndex = i / 4;
+      const x = pixelIndex % width;
+      const y = Math.floor(pixelIndex / width);
+
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
@@ -629,16 +639,125 @@ export class AccurateClothingAnalyzer {
 
       const colorName = this.rgbToColorName(r, g, b);
       colorCounts.set(colorName, (colorCounts.get(colorName) || 0) + 1);
+
+      // Detect edge pixels (likely background)
+      const isEdge =
+        x < edgeThreshold ||
+        x > width - edgeThreshold ||
+        y < edgeThreshold ||
+        y > height - edgeThreshold;
+
+      if (isEdge) {
+        edgeColors.set(colorName, (edgeColors.get(colorName) || 0) + 1);
+      } else {
+        centerColors.set(colorName, (centerColors.get(colorName) || 0) + 1);
+      }
     }
 
+    // Detect background colors (most frequent at edges)
+    const backgroundColors = this.detectBackgroundColors(
+      edgeColors,
+      centerColors,
+    );
+
+    // Filter out background colors from final result
+    const clothingColors = this.filterBackgroundColors(
+      colorCounts,
+      backgroundColors,
+    );
+
     // Sort colors by frequency and return top 3
-    const sortedColors = Array.from(colorCounts.entries())
+    const sortedColors = Array.from(clothingColors.entries())
       .sort(([, a], [, b]) => b - a)
       .slice(0, 3)
       .map(([color]) => color)
-      .filter((color) => color !== "neutral"); // Filter out neutral unless it's the only color
+      .filter((color) => color !== "neutral" && !backgroundColors.has(color));
 
     return sortedColors.length > 0 ? sortedColors : ["neutral"];
+  }
+
+  /**
+   * Detect background colors based on edge analysis
+   */
+  private detectBackgroundColors(
+    edgeColors: Map<string, number>,
+    centerColors: Map<string, number>,
+  ): Set<string> {
+    const backgroundColors = new Set<string>();
+    const totalEdgePixels = Array.from(edgeColors.values()).reduce(
+      (a, b) => a + b,
+      0,
+    );
+    const totalCenterPixels = Array.from(centerColors.values()).reduce(
+      (a, b) => a + b,
+      0,
+    );
+
+    for (const [color, edgeCount] of edgeColors.entries()) {
+      const centerCount = centerColors.get(color) || 0;
+      const edgeRatio = edgeCount / totalEdgePixels;
+      const centerRatio =
+        totalCenterPixels > 0 ? centerCount / totalCenterPixels : 0;
+
+      // If color is much more frequent at edges than center, it's likely background
+      if (edgeRatio > 0.15 && edgeRatio > centerRatio * 2) {
+        backgroundColors.add(color);
+      }
+
+      // Very common edge colors are likely background
+      if (edgeRatio > 0.3) {
+        backgroundColors.add(color);
+      }
+    }
+
+    // Common background colors
+    const commonBackgrounds = [
+      "white",
+      "light-gray",
+      "gray",
+      "black",
+      "neutral",
+    ];
+    commonBackgrounds.forEach((color) => {
+      const edgeRatio = (edgeColors.get(color) || 0) / totalEdgePixels;
+      if (edgeRatio > 0.2) {
+        backgroundColors.add(color);
+      }
+    });
+
+    return backgroundColors;
+  }
+
+  /**
+   * Filter out background colors from clothing colors
+   */
+  private filterBackgroundColors(
+    allColors: Map<string, number>,
+    backgroundColors: Set<string>,
+  ): Map<string, number> {
+    const filteredColors = new Map<string, number>();
+
+    for (const [color, count] of allColors.entries()) {
+      if (!backgroundColors.has(color)) {
+        filteredColors.set(color, count);
+      }
+    }
+
+    // If no colors remain after filtering, keep the most common non-background color
+    if (filteredColors.size === 0 && allColors.size > 0) {
+      const sortedAll = Array.from(allColors.entries()).sort(
+        ([, a], [, b]) => b - a,
+      );
+
+      for (const [color] of sortedAll) {
+        if (!["white", "light-gray"].includes(color)) {
+          filteredColors.set(color, allColors.get(color)!);
+          break;
+        }
+      }
+    }
+
+    return filteredColors.size > 0 ? filteredColors : allColors;
   }
 
   /**
