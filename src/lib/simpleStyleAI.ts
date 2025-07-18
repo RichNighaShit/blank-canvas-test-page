@@ -2321,6 +2321,93 @@ export class SimpleStyleAI {
       return [];
     }
   }
+
+  private calculateSeasonalColorScore(outfit: WardrobeItem[]): number {
+    try {
+      const currentSeason = this.getCurrentSeason();
+      const allColors = outfit.flatMap((item) => item.color);
+
+      if (allColors.length === 0) {
+        return 0.5;
+      }
+
+      const seasonalPalette = this.getSeasonalColorPalette(currentSeason);
+      let seasonalMatches = 0;
+      let totalColors = allColors.length;
+
+      allColors.forEach((color) => {
+        const normalizedColor = this.normalizeColor(color);
+        if (
+          seasonalPalette.some(
+            (seasonalColor) =>
+              normalizedColor.includes(seasonalColor) ||
+              seasonalColor.includes(normalizedColor),
+          )
+        ) {
+          seasonalMatches++;
+        }
+      });
+
+      // Also give bonus for items that specify appropriate seasons
+      const seasonalItems = outfit.filter(
+        (item) =>
+          item.season &&
+          (item.season.includes(currentSeason) ||
+            item.season.includes("all") ||
+            item.season.includes("year-round")),
+      ).length;
+
+      const seasonalItemBonus = (seasonalItems / outfit.length) * 0.3;
+      const colorScore = (seasonalMatches / totalColors) * 0.7;
+
+      return Math.min(1, colorScore + seasonalItemBonus);
+    } catch (error) {
+      console.warn("Error calculating seasonal color score:", error);
+      return 0.5;
+    }
+  }
+
+  private getCurrentSeason(): string {
+    const month = new Date().getMonth() + 1; // 1-12
+
+    if (month >= 3 && month <= 5) {
+      return "spring";
+    } else if (month >= 6 && month <= 8) {
+      return "summer";
+    } else if (month >= 9 && month <= 11) {
+      return "autumn";
+    } else {
+      return "winter";
+    }
+  }
+
+  private enhanceColorMatchingWithSeason(
+    colors1: string[],
+    colors2: string[],
+    season?: string,
+  ): boolean {
+    const currentSeason = season || this.getCurrentSeason();
+    const seasonalPalette = this.getSeasonalColorPalette(currentSeason);
+
+    // Check if both color sets have seasonal colors
+    const colors1Seasonal = colors1.some((color) =>
+      seasonalPalette.some((seasonal) =>
+        color.toLowerCase().includes(seasonal),
+      ),
+    );
+    const colors2Seasonal = colors2.some((color) =>
+      seasonalPalette.some((seasonal) =>
+        color.toLowerCase().includes(seasonal),
+      ),
+    );
+
+    // Bonus for seasonal color combinations
+    if (colors1Seasonal && colors2Seasonal) {
+      return true;
+    }
+
+    return this.colorsWork(colors1, colors2);
+  }
 }
 
 // Export a singleton instance
