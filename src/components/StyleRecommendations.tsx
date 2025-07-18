@@ -252,10 +252,20 @@ export const StyleRecommendations = () => {
       console.log("Filtered items for recommendations:", filteredItems);
 
       if (filteredItems.length === 0) {
-        console.log("No items found for selected preferences");
+        console.info("No items found for selected preferences");
         setRecommendations([]);
+        setError(
+          "No suitable items found for the selected occasion. Try adjusting your preferences or adding more items to your wardrobe.",
+        );
         setLoading(false);
         return;
+      }
+
+      if (filteredItems.length < 2) {
+        console.warn("Limited items available for outfit generation");
+        setError(
+          "Limited wardrobe items available. Add more items for better recommendations.",
+        );
       }
 
       // Create style profile
