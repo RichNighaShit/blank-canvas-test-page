@@ -130,34 +130,67 @@ export const WardrobeUploadFlow = ({
 
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => {
-        updateStage("validate", {
-          progress: 60,
-          details: "Checking dimensions and quality...",
-        });
+      let objectUrl: string | null = null;
 
-        if (img.width < 150 || img.height < 150) {
+      const cleanup = () => {
+        if (objectUrl) {
+          URL.revokeObjectURL(objectUrl);
+          objectUrl = null;
+        }
+      };
+
+      img.onload = () => {
+        try {
+          updateStage("validate", {
+            progress: 60,
+            details: "Checking dimensions and quality...",
+          });
+
+          if (img.width < 150 || img.height < 150) {
+            cleanup();
+            reject(
+              new Error(
+                "Image too small (minimum 150x150px for accurate analysis)",
+              ),
+            );
+            return;
+          }
+          if (file.size > 15 * 1024 * 1024) {
+            cleanup();
+            reject(new Error("File too large (maximum 15MB)"));
+            return;
+          }
+
+          updateStage("validate", {
+            status: "completed",
+            progress: 100,
+            details: "Image validation successful",
+          });
+          cleanup();
+          resolve();
+        } catch (error) {
+          cleanup();
           reject(
             new Error(
-              "Image too small (minimum 150x150px for accurate analysis)",
+              "Image validation failed: " +
+                (error instanceof Error ? error.message : "Unknown error"),
             ),
           );
-          return;
         }
-        if (file.size > 15 * 1024 * 1024) {
-          reject(new Error("File too large (maximum 15MB)"));
-          return;
-        }
-
-        updateStage("validate", {
-          status: "completed",
-          progress: 100,
-          details: "Image validation successful",
-        });
-        resolve();
       };
-      img.onerror = () => reject(new Error("Invalid or corrupted image file"));
-      img.src = URL.createObjectURL(file);
+
+      img.onerror = (error) => {
+        cleanup();
+        reject(new Error("Invalid or corrupted image file"));
+      };
+
+      try {
+        objectUrl = URL.createObjectURL(file);
+        img.src = objectUrl;
+      } catch (error) {
+        cleanup();
+        reject(new Error("Failed to load image file"));
+      }
     });
   };
 
