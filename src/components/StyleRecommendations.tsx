@@ -339,13 +339,21 @@ export const StyleRecommendations = () => {
   };
 
   // Debounced recommendation loading
-  const debouncedLoadRecommendations = debounce(loadRecommendations, 500);
+  const debouncedLoadRecommendations = useMemo(() => {
+    return debounce(loadRecommendations, 500);
+  }, [debounce, loadRecommendations]);
 
   useEffect(() => {
     if (wardrobeItems.length > 0) {
       debouncedLoadRecommendations();
     }
-  }, [wardrobeItems, selectedOccasion, includeAccessories, weather]);
+  }, [
+    wardrobeItems,
+    selectedOccasion,
+    includeAccessories,
+    weather,
+    debouncedLoadRecommendations,
+  ]);
 
   const handleTryOn = (outfit: OutfitRecommendation) => {
     setSelectedOutfit(outfit);
