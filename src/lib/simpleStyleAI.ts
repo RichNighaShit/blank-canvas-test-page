@@ -39,8 +39,9 @@ export interface OutfitRecommendation {
 export class SimpleStyleAI {
   private usedItemsHistory: { [itemId: string]: number } = {};
   private lastGenerationTime: number = 0;
-  private readonly ITEM_COOLDOWN_MS = 30000; // 30 seconds before item can be used again
-  private readonly MAX_ITEM_USAGE_PER_SESSION = 2; // Max times an item can appear in one session
+  private readonly ITEM_COOLDOWN_MS = 15000; // 15 seconds before item can be used again (reduced)
+  private readonly MAX_ITEM_USAGE_PER_SESSION = 3; // Increased to allow more combinations
+  private diversityBoost: boolean = true; // Flag to encourage variety
   private debugMode: boolean = false;
   private performanceMetrics: { [key: string]: number } = {};
   private generationStats: { [key: string]: any } = {};
@@ -100,9 +101,24 @@ export class SimpleStyleAI {
 
         const currentTime = Date.now();
 
-        // Reset usage history if it's been more than 5 minutes since last generation
-        if (currentTime - this.lastGenerationTime > 300000) {
+        // Reset usage history more frequently for better variety
+        if (currentTime - this.lastGenerationTime > 180000) {
+          // 3 minutes instead of 5
           this.usedItemsHistory = {};
+          this.diversityBoost = true;
+        }
+
+        // Gradual decay of usage history to allow items to become "fresh" again
+        if (currentTime - this.lastGenerationTime > 60000) {
+          // After 1 minute
+          Object.keys(this.usedItemsHistory).forEach((itemId) => {
+            if (this.usedItemsHistory[itemId] > 0) {
+              this.usedItemsHistory[itemId] = Math.max(
+                0,
+                this.usedItemsHistory[itemId] - 0.5,
+              );
+            }
+          });
         }
         this.lastGenerationTime = currentTime;
 
