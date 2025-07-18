@@ -209,6 +209,28 @@ export const useWeather = (location?: string) => {
         const geoData = await geoRes.json();
 
         if (!geoData.results || geoData.results.length === 0) {
+          console.warn(
+            `Location "${locationToUse}" not found, trying alternatives...`,
+          );
+
+          // Try alternative location names for Pakistan locations
+          const alternativeLocations =
+            await this.tryAlternativeLocations(locationToUse);
+          if (alternativeLocations) {
+            const { latitude, longitude, name, country } = alternativeLocations;
+            await fetchWeatherByCoordinates(
+              latitude,
+              longitude,
+              `${name}, ${country}`,
+            );
+            setWeather((prev) =>
+              prev
+                ? { ...prev, source: userLocation ? "profile" : "default" }
+                : null,
+            );
+            return;
+          }
+
           throw new Error(`Location "${locationToUse}" not found`);
         }
 
