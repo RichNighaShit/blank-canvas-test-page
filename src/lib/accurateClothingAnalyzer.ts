@@ -66,20 +66,106 @@ export class AccurateClothingAnalyzer {
    */
   async analyzeClothing(input: File | string): Promise<ClothingAnalysisResult> {
     try {
+      let result: ClothingAnalysisResult;
+
       // Try Google Vision API first if available
       if (this.apiKey) {
         const visionResult = await this.analyzeWithVisionAPI(input);
         if (visionResult) {
-          return visionResult;
+          result = visionResult;
+        } else {
+          result = await this.analyzeWithAdvancedHeuristics(input);
         }
+      } else {
+        // Fall back to advanced heuristic analysis
+        result = await this.analyzeWithAdvancedHeuristics(input);
       }
 
-      // Fall back to advanced heuristic analysis
-      return await this.analyzeWithAdvancedHeuristics(input);
+      // Final validation to ensure no background colors in results
+      return this.validateAndCleanResult(result);
     } catch (error) {
       console.error("Clothing analysis failed:", error);
-      return await this.analyzeWithAdvancedHeuristics(input);
+      const fallbackResult = await this.analyzeWithAdvancedHeuristics(input);
+      return this.validateAndCleanResult(fallbackResult);
     }
+  }
+
+  /**
+   * Final validation and cleaning of analysis results
+   */
+  private validateAndCleanResult(
+    result: ClothingAnalysisResult,
+  ): ClothingAnalysisResult {
+    // Ensure no background colors in final result
+    const cleanedColors = this.finalColorFilter(result.colors);
+
+    // Validate category
+    const validCategories = [
+      "tops",
+      "bottoms",
+      "dresses",
+      "outerwear",
+      "shoes",
+      "accessories",
+    ];
+    const validatedCategory = validCategories.includes(result.category)
+      ? result.category
+      : "tops";
+
+    // Validate style
+    const validStyles = [
+      "casual",
+      "formal",
+      "elegant",
+      "sporty",
+      "streetwear",
+      "bohemian",
+      "minimalist",
+      "vintage",
+      "romantic",
+      "edgy",
+    ];
+    const validatedStyle = validStyles.includes(result.style)
+      ? result.style
+      : "casual";
+
+    return {
+      ...result,
+      category: validatedCategory,
+      style: validatedStyle,
+      colors: cleanedColors,
+      confidence: Math.min(0.95, Math.max(0.5, result.confidence)), // Ensure reasonable confidence bounds
+      reasoning:
+        result.reasoning +
+        " - Final validation and background filtering applied",
+    };
+  }
+
+  /**
+   * Final filter to remove any remaining background colors
+   */
+  private finalColorFilter(colors: string[]): string[] {
+    const backgroundColors = [
+      "white",
+      "light-gray",
+      "off-white",
+      "cream",
+      "neutral",
+      "beige",
+      "ivory",
+    ];
+
+    const filteredColors = colors.filter(
+      (color) => !backgroundColors.includes(color) || colors.length === 1,
+    );
+
+    // Ensure we always have at least one color
+    if (filteredColors.length === 0) {
+      return ["neutral"];
+    }
+
+    // Limit to top 3 most meaningful colors
+    return filteredColors.slice(0, 3);
   }
 
   /**
