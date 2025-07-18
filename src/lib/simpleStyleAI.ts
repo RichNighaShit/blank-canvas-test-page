@@ -124,13 +124,25 @@ export class SimpleStyleAI {
 
         const recommendations: OutfitRecommendation[] = [];
 
-        // Filter items by weather appropriateness first
-        const weatherFilteredItems = context.weather
+        // Filter items by weather appropriateness first, but be more lenient
+        let weatherFilteredItems = context.weather
           ? this.filterByWeather(validItems, context.weather)
           : validItems;
 
+        // If weather filtering eliminated all items, ignore weather restrictions
+        if (weatherFilteredItems.length === 0 && validItems.length > 0) {
+          console.warn(
+            "Weather filtering eliminated all items, ignoring weather restrictions",
+          );
+          weatherFilteredItems = validItems;
+        }
+
+        console.log(
+          `Weather filtered items: ${weatherFilteredItems.length} from ${validItems.length} total`,
+        );
+
         if (weatherFilteredItems.length === 0) {
-          console.info("No items suitable for current weather conditions");
+          console.warn("No items available for outfit generation");
           return [];
         }
 
