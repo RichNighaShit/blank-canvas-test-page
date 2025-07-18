@@ -327,14 +327,26 @@ export const useWeather = (location?: string) => {
         }
       }
     } catch (err: any) {
-      setError(
-        "Weather information not available. Generating recommendations without weather data.",
-      );
       console.error(
         "Weather fetch error:",
         err instanceof Error ? err.message : String(err),
       );
-      setWeather(null);
+
+      // Provide default weather data as final fallback
+      const defaultWeather: WeatherData = {
+        temperature: 22, // Comfortable default temperature
+        condition: "clear",
+        humidity: 60,
+        windSpeed: 5,
+        description: "Weather data unavailable - using default conditions",
+        location: userLocation || location || "Unknown location",
+        source: "default",
+      };
+
+      setWeather(defaultWeather);
+      setError(
+        "Using default weather conditions. Location-specific weather not available.",
+      );
     } finally {
       setLoading(false);
     }
