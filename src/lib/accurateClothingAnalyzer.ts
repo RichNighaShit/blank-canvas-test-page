@@ -210,6 +210,23 @@ export class AccurateClothingAnalyzer {
     // Extract filename if available
     const filename = input instanceof File ? input.name : "";
 
+    // First check if this appears to be clothing
+    const clothingDetection = this.detectClothingFromFilename(filename);
+
+    if (!clothingDetection.isClothing) {
+      return {
+        isClothing: false,
+        category: "other",
+        style: "unknown",
+        colors: ["neutral"],
+        occasions: ["casual"],
+        seasons: this.getCurrentSeasons(),
+        tags: [],
+        confidence: clothingDetection.confidence,
+        reasoning: clothingDetection.reasoning,
+      };
+    }
+
     // Analyze colors using canvas
     const colors = await this.extractColorsFromCanvas(imageElement);
 
@@ -231,9 +248,9 @@ export class AccurateClothingAnalyzer {
       occasions,
       seasons,
       tags: this.generateSmartTags(category, style, colors),
-      confidence: 0.75, // Higher confidence for our smart heuristics
+      confidence: Math.max(0.75, clothingDetection.confidence), // Use higher of detection or analysis confidence
       reasoning:
-        "Advanced heuristic analysis with intelligent pattern recognition",
+        clothingDetection.reasoning + " - Clothing detected and analyzed",
     };
   }
 
