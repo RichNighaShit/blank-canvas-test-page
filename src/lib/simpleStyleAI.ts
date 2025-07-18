@@ -749,18 +749,46 @@ export class SimpleStyleAI {
   }
 
   private areComplementary(colors1: string[], colors2: string[]): boolean {
-    const complementaryPairs = [
-      ["red", "green"],
-      ["blue", "orange"],
-      ["yellow", "purple"],
-      ["pink", "green"],
-    ];
+    try {
+      if (
+        !this.validateColorInput(colors1) ||
+        !this.validateColorInput(colors2)
+      ) {
+        return false;
+      }
 
-    return complementaryPairs.some(
-      ([color1, color2]) =>
-        colors1.some((c1) => c1.toLowerCase().includes(color1)) &&
-        colors2.some((c2) => c2.toLowerCase().includes(color2)),
-    );
+      const complementaryPairs = [
+        ["red", "green"],
+        ["green", "red"],
+        ["blue", "orange"],
+        ["orange", "blue"],
+        ["yellow", "purple"],
+        ["purple", "yellow"],
+        ["pink", "green"],
+        ["green", "pink"],
+        ["teal", "coral"],
+        ["coral", "teal"],
+        ["magenta", "lime"],
+        ["lime", "magenta"],
+        ["cyan", "red"],
+        ["red", "cyan"],
+        ["navy", "gold"],
+        ["gold", "navy"],
+        ["burgundy", "forest"],
+        ["forest", "burgundy"],
+        ["rust", "teal"],
+        ["teal", "rust"],
+      ];
+
+      return complementaryPairs.some(
+        ([color1, color2]) =>
+          colors1.some((c1) => c1.toLowerCase().includes(color1)) &&
+          colors2.some((c2) => c2.toLowerCase().includes(color2)),
+      );
+    } catch (error) {
+      console.warn("Error in areComplementary:", error);
+      return false;
+    }
   }
 
   private hasGoodColorHarmony(outfit: WardrobeItem[]): boolean {
