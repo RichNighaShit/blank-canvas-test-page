@@ -1697,6 +1697,88 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
+   * Infer likely materials based on category, style, and colors
+   */
+  private inferMaterials(
+    category: string,
+    style: string,
+    colors: string[],
+  ): string[] {
+    const materials = [];
+
+    // Category-based material inference
+    switch (category) {
+      case "dresses":
+        if (style === "elegant" || style === "formal") {
+          materials.push("silk", "chiffon", "satin");
+        } else if (style === "casual") {
+          materials.push("cotton", "jersey", "polyester");
+        }
+        break;
+
+      case "tops":
+        if (style === "formal") {
+          materials.push("cotton", "silk", "polyester-blend");
+        } else if (style === "sporty") {
+          materials.push("polyester", "spandex", "moisture-wicking");
+        } else {
+          materials.push("cotton", "jersey", "blend");
+        }
+        break;
+
+      case "bottoms":
+        if (
+          colors.includes("blue") &&
+          (style === "casual" || style === "streetwear")
+        ) {
+          materials.push("denim", "cotton");
+        } else if (style === "formal") {
+          materials.push("wool", "polyester", "cotton-blend");
+        } else {
+          materials.push("cotton", "stretch", "polyester");
+        }
+        break;
+
+      case "outerwear":
+        if (style === "formal") {
+          materials.push("wool", "cashmere", "polyester");
+        } else {
+          materials.push("cotton", "polyester", "nylon");
+        }
+        break;
+
+      case "shoes":
+        if (style === "formal") {
+          materials.push("leather", "suede");
+        } else if (style === "sporty") {
+          materials.push("synthetic", "mesh", "rubber");
+        } else {
+          materials.push("canvas", "leather", "synthetic");
+        }
+        break;
+
+      case "accessories":
+        materials.push("varied", "metal", "fabric");
+        break;
+    }
+
+    // Color-based material hints
+    if (
+      colors.includes("metallic") ||
+      colors.includes("silver") ||
+      colors.includes("gold")
+    ) {
+      materials.push("metallic-finish");
+    }
+
+    if (colors.includes("black") && (style === "edgy" || style === "formal")) {
+      materials.push("leather", "synthetic-leather");
+    }
+
+    return materials.slice(0, 3);
+  }
+
+  /**
    * Utility functions
    */
   private async convertToBase64(input: File | string): Promise<string> {
