@@ -43,7 +43,7 @@ import { usePerformance } from "@/hooks/usePerformance";
 import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
 import { OptimizedImage } from "./OptimizedImage";
 
-export const StyleRecommendations = () => {
+const StyleRecommendations: React.FC = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const {
@@ -740,3 +740,7 @@ export const StyleRecommendations = () => {
     </div>
   );
 };
+
+// Ensure proper default export for dynamic imports
+export { StyleRecommendations };
+export default StyleRecommendations;
