@@ -667,6 +667,16 @@ export class SimpleStyleAI {
         reasoning.push("Follows current fashion trends");
       }
 
+      // Seasonal color intelligence
+      const seasonalScore = this.calculateSeasonalColorScore(validItems);
+      confidence += seasonalScore * 0.05; // Small additional bonus for seasonal appropriateness
+
+      if (seasonalScore > 0.8) {
+        reasoning.push("Perfect seasonal color palette");
+      } else if (seasonalScore > 0.6) {
+        reasoning.push("Season-appropriate color choices");
+      }
+
       // Goal alignment (if user has specific goals)
       if (profile.goals && profile.goals.length > 0) {
         const goalScore = this.calculateGoalAlignment(
