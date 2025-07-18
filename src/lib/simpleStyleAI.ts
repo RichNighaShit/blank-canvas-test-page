@@ -1625,6 +1625,258 @@ export class SimpleStyleAI {
     if (coolCount > warmCount) return "cool";
     return "neutral";
   }
+
+  private getPatternsFromItem(item: WardrobeItem): string[] {
+    const patternTags = [
+      "striped",
+      "polka-dot",
+      "floral",
+      "geometric",
+      "plaid",
+      "checkered",
+      "paisley",
+      "animal-print",
+      "leopard",
+      "zebra",
+      "abstract",
+      "tribal",
+      "damask",
+      "toile",
+      "houndstooth",
+      "tartan",
+      "argyle",
+      "chevron",
+      "herringbone",
+      "dots",
+      "stripes",
+    ];
+
+    return (item.tags || []).filter((tag) =>
+      patternTags.some((pattern) => tag.toLowerCase().includes(pattern)),
+    );
+  }
+
+  private getTexturesFromItem(item: WardrobeItem): string[] {
+    const textureTags = [
+      "silk",
+      "cotton",
+      "linen",
+      "wool",
+      "cashmere",
+      "denim",
+      "leather",
+      "suede",
+      "velvet",
+      "satin",
+      "chiffon",
+      "lace",
+      "knit",
+      "jersey",
+      "tweed",
+      "corduroy",
+      "fleece",
+      "mesh",
+      "canvas",
+      "flannel",
+      "organza",
+      "taffeta",
+      "crepe",
+      "tulle",
+      "mohair",
+      "angora",
+      "bamboo",
+      "polyester",
+      "rayon",
+      "spandex",
+      "nylon",
+    ];
+
+    return (item.tags || []).filter((tag) =>
+      textureTags.some((texture) => tag.toLowerCase().includes(texture)),
+    );
+  }
+
+  private checkPatternHarmony(outfit: WardrobeItem[]): {
+    score: number;
+    reasoning: string;
+  } {
+    try {
+      const patternedItems = outfit.filter(
+        (item) => this.getPatternsFromItem(item).length > 0,
+      );
+      const patternCount = patternedItems.length;
+
+      if (patternCount === 0) {
+        return {
+          score: 0.8,
+          reasoning: "Clean, solid colors create elegant simplicity",
+        };
+      }
+
+      if (patternCount === 1) {
+        return {
+          score: 1.0,
+          reasoning: "Single pattern creates perfect focal point",
+        };
+      }
+
+      if (patternCount === 2) {
+        // Check if patterns are compatible
+        const patterns1 = this.getPatternsFromItem(patternedItems[0]);
+        const patterns2 = this.getPatternsFromItem(patternedItems[1]);
+
+        // Different scales work well together
+        const hasSmallPattern =
+          patterns1.some((p) => p.includes("dots") || p.includes("small")) ||
+          patterns2.some((p) => p.includes("dots") || p.includes("small"));
+        const hasLargePattern =
+          patterns1.some(
+            (p) => p.includes("floral") || p.includes("geometric"),
+          ) ||
+          patterns2.some(
+            (p) => p.includes("floral") || p.includes("geometric"),
+          );
+
+        if (hasSmallPattern && hasLargePattern) {
+          return {
+            score: 0.9,
+            reasoning: "Expertly mixed patterns with different scales",
+          };
+        }
+
+        // Similar pattern families
+        const patternFamilies = {
+          geometric: [
+            "geometric",
+            "chevron",
+            "herringbone",
+            "houndstooth",
+            "plaid",
+            "checkered",
+          ],
+          organic: ["floral", "paisley", "animal-print", "abstract"],
+          linear: ["striped", "chevron", "herringbone"],
+        };
+
+        for (const family of Object.values(patternFamilies)) {
+          const family1Match = patterns1.some((p) =>
+            family.some((f) => p.includes(f)),
+          );
+          const family2Match = patterns2.some((p) =>
+            family.some((f) => p.includes(f)),
+          );
+
+          if (family1Match && family2Match) {
+            return {
+              score: 0.8,
+              reasoning: "Well-coordinated patterns from same family",
+            };
+          }
+        }
+
+        return {
+          score: 0.6,
+          reasoning: "Mixed patterns - proceed with caution",
+        };
+      }
+
+      // More than 2 patterns - generally not recommended
+      return {
+        score: 0.3,
+        reasoning: "Too many patterns may create visual chaos",
+      };
+    } catch (error) {
+      console.warn("Error in checkPatternHarmony:", error);
+      return { score: 0.5, reasoning: "Pattern analysis unavailable" };
+    }
+  }
+
+  private checkTextureBalance(outfit: WardrobeItem[]): {
+    score: number;
+    reasoning: string;
+  } {
+    try {
+      const textures = outfit.flatMap((item) => this.getTexturesFromItem(item));
+      const uniqueTextures = [...new Set(textures)];
+
+      if (uniqueTextures.length === 0) {
+        return { score: 0.5, reasoning: "Texture information not available" };
+      }
+
+      if (uniqueTextures.length === 1) {
+        return {
+          score: 0.7,
+          reasoning: "Uniform texture creates cohesive look",
+        };
+      }
+
+      if (uniqueTextures.length === 2 || uniqueTextures.length === 3) {
+        // Check for good texture combinations
+        const textureGroups = {
+          smooth: ["silk", "satin", "cotton", "polyester", "rayon"],
+          textured: ["wool", "tweed", "corduroy", "knit", "fleece"],
+          structured: ["denim", "canvas", "leather", "suede"],
+          delicate: ["lace", "chiffon", "organza", "tulle"],
+        };
+
+        // Different texture groups work well together
+        const representedGroups = Object.entries(textureGroups).filter(
+          ([, materials]) =>
+            uniqueTextures.some((texture) =>
+              materials.some((material) => texture.includes(material)),
+            ),
+        );
+
+        if (representedGroups.length >= 2) {
+          return {
+            score: 0.9,
+            reasoning: "Excellent texture contrast creates visual interest",
+          };
+        }
+
+        return { score: 0.8, reasoning: "Good texture variety" };
+      }
+
+      // Too many different textures
+      return {
+        score: 0.4,
+        reasoning: "Too many textures may overwhelm the look",
+      };
+    } catch (error) {
+      console.warn("Error in checkTextureBalance:", error);
+      return { score: 0.5, reasoning: "Texture analysis unavailable" };
+    }
+  }
+
+  private calculateFabricWeight(
+    item: WardrobeItem,
+  ): "light" | "medium" | "heavy" {
+    const lightFabrics = [
+      "silk",
+      "chiffon",
+      "organza",
+      "cotton",
+      "linen",
+      "rayon",
+    ];
+    const heavyFabrics = [
+      "wool",
+      "denim",
+      "leather",
+      "suede",
+      "velvet",
+      "tweed",
+      "corduroy",
+    ];
+
+    const textures = this.getTexturesFromItem(item);
+
+    if (textures.some((t) => lightFabrics.some((f) => t.includes(f))))
+      return "light";
+    if (textures.some((t) => heavyFabrics.some((f) => t.includes(f))))
+      return "heavy";
+    return "medium";
+  }
 }
 
 // Export a singleton instance
