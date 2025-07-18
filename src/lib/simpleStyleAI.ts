@@ -1310,6 +1310,58 @@ export class SimpleStyleAI {
     return Math.min(1, score);
   }
 
+  private calculateSimplifiedColorHarmony(
+    outfit: WardrobeItem[],
+    profile: StyleProfile,
+  ): number {
+    const allColors = outfit.flatMap((item) =>
+      item.color.map((c) => c.toLowerCase()),
+    );
+    let score = 0.5; // Base score
+
+    // Simple scoring based on popular combinations
+    const neutrals = [
+      "black",
+      "white",
+      "grey",
+      "gray",
+      "beige",
+      "navy",
+      "brown",
+      "cream",
+    ];
+    const neutralCount = allColors.filter((c) =>
+      neutrals.some((n) => c.includes(n)),
+    ).length;
+
+    // Bonus for neutral base
+    if (neutralCount >= allColors.length * 0.5) {
+      score += 0.3;
+    }
+
+    // Bonus for not too many colors (avoid chaos)
+    const uniqueColors = new Set(allColors).size;
+    if (uniqueColors <= 4) {
+      score += 0.2;
+    } else if (uniqueColors > 6) {
+      score -= 0.2;
+    }
+
+    // Bonus for user's favorite colors
+    if (profile.favorite_colors && profile.favorite_colors.length > 0) {
+      const favoriteMatches = allColors.filter((color) =>
+        profile.favorite_colors!.some((fav) =>
+          color.includes(fav.toLowerCase()),
+        ),
+      ).length;
+      if (favoriteMatches > 0) {
+        score += 0.2;
+      }
+    }
+
+    return Math.min(1, Math.max(0, score));
+  }
+
   private calculateColorHarmonyScore(
     outfit: WardrobeItem[],
     profile: StyleProfile,
@@ -1801,7 +1853,7 @@ export class SimpleStyleAI {
     if (weather.temperature < 10) {
       return `Expertly layered for cold weather (${temp}°C) with proper insulation`;
     } else if (weather.temperature > 25) {
-      return `Optimally chosen for warm conditions (${temp}°C) with breathable pieces`;
+      return `Optimally chosen for warm conditions (${temp}��C) with breathable pieces`;
     } else if (weather.condition === "rain") {
       return `Weather-smart choices for rainy conditions with protective elements`;
     } else if (weather.condition === "snow") {
