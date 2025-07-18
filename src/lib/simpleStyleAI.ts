@@ -370,6 +370,17 @@ export class SimpleStyleAI {
       const outerwear = this.shuffleArray(itemsByCategory.outerwear || []);
       const accessories = this.shuffleArray(itemsByCategory.accessories || []);
 
+      console.log(
+        `Category breakdown - Tops: ${tops.length}, Bottoms: ${bottoms.length}, Dresses: ${dresses.length}, Shoes: ${shoes.length}, Outerwear: ${outerwear.length}, Accessories: ${accessories.length}`,
+      );
+
+      if (tops.length === 0 && bottoms.length === 0 && dresses.length === 0) {
+        console.warn(
+          "No core clothing items (tops/bottoms/dresses) found for combinations",
+        );
+        return [];
+      }
+
       // Check if we should exclude outerwear due to high temperature
       const shouldExcludeOuterwear = weather && weather.temperature > 25;
 
