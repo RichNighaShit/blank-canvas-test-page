@@ -66,20 +66,151 @@ export class AccurateClothingAnalyzer {
    */
   async analyzeClothing(input: File | string): Promise<ClothingAnalysisResult> {
     try {
+      let result: ClothingAnalysisResult;
+
       // Try Google Vision API first if available
       if (this.apiKey) {
-        const visionResult = await this.analyzeWithVisionAPI(input);
-        if (visionResult) {
-          return visionResult;
+        try {
+          const visionResult = await this.analyzeWithVisionAPI(input);
+          if (visionResult) {
+            result = visionResult;
+          } else {
+            console.info(
+              "Vision API returned null, falling back to heuristics",
+            );
+            result = await this.analyzeWithAdvancedHeuristics(input);
+          }
+        } catch (visionError) {
+          console.warn(
+            "Vision API failed, falling back to heuristics:",
+            visionError,
+          );
+          result = await this.analyzeWithAdvancedHeuristics(input);
         }
+      } else {
+        // Fall back to advanced heuristic analysis
+        result = await this.analyzeWithAdvancedHeuristics(input);
       }
 
-      // Fall back to advanced heuristic analysis
-      return await this.analyzeWithAdvancedHeuristics(input);
+      // Final validation to ensure no background colors in results
+      return this.validateAndCleanResult(result);
     } catch (error) {
       console.error("Clothing analysis failed:", error);
-      return await this.analyzeWithAdvancedHeuristics(input);
+
+      // Handle network errors specifically
+      if (
+        error instanceof TypeError &&
+        error.message.includes("NetworkError")
+      ) {
+        console.error("Network error detected, providing fallback result");
+        return this.getFallbackResult(error.message);
+      }
+
+      try {
+        const fallbackResult = await this.analyzeWithAdvancedHeuristics(input);
+        return this.validateAndCleanResult(fallbackResult);
+      } catch (fallbackError) {
+        console.error("Fallback analysis also failed:", fallbackError);
+        return this.getFallbackResult("Complete analysis failure");
+      }
     }
+  }
+
+  /**
+   * Final validation and cleaning of analysis results
+   */
+  private validateAndCleanResult(
+    result: ClothingAnalysisResult,
+  ): ClothingAnalysisResult {
+    // Ensure no background colors in final result
+    const cleanedColors = this.finalColorFilter(result.colors);
+
+    // Validate category
+    const validCategories = [
+      "tops",
+      "bottoms",
+      "dresses",
+      "outerwear",
+      "shoes",
+      "accessories",
+    ];
+    const validatedCategory = validCategories.includes(result.category)
+      ? result.category
+      : "tops";
+
+    // Validate style
+    const validStyles = [
+      "casual",
+      "formal",
+      "elegant",
+      "sporty",
+      "streetwear",
+      "bohemian",
+      "minimalist",
+      "vintage",
+      "romantic",
+      "edgy",
+    ];
+    const validatedStyle = validStyles.includes(result.style)
+      ? result.style
+      : "casual";
+
+    return {
+      ...result,
+      category: validatedCategory,
+      style: validatedStyle,
+      colors: cleanedColors,
+      confidence: Math.min(0.95, Math.max(0.5, result.confidence)), // Ensure reasonable confidence bounds
+      reasoning:
+        result.reasoning +
+        " - Final validation and background filtering applied",
+    };
+  }
+
+  /**
+   * Final filter to remove any remaining background colors
+   */
+  private finalColorFilter(colors: string[]): string[] {
+    const backgroundColors = [
+      "white",
+      "light-gray",
+      "off-white",
+      "cream",
+      "neutral",
+      "beige",
+      "ivory",
+    ];
+
+    const filteredColors = colors.filter(
+      (color) => !backgroundColors.includes(color) || colors.length === 1,
+    );
+
+    // Ensure we always have at least one color
+    if (filteredColors.length === 0) {
+      return ["neutral"];
+    }
+
+    // Limit to top 3 most meaningful colors
+    return filteredColors.slice(0, 3);
+  }
+
+  /**
+   * Provide a safe fallback result when all analysis methods fail
+   */
+  private getFallbackResult(errorReason: string): ClothingAnalysisResult {
+    return {
+      isClothing: true,
+      category: "tops", // Most common category
+      style: "casual", // Most common style
+      colors: ["neutral"],
+      occasions: ["casual"],
+      seasons: ["all"],
+      tags: ["basic"],
+      confidence: 0.3, // Low confidence due to analysis failure
+      reasoning: `Analysis failed (${errorReason}) - using safe defaults`,
+      patterns: [],
+      materials: ["unknown"],
+    };
   }
 
   /**
@@ -117,11 +248,20 @@ export class AccurateClothingAnalyzer {
           },
           body: JSON.stringify(requestBody),
         },
-      );
+      ).catch((fetchError) => {
+        console.warn("Vision API network error:", fetchError);
+        throw new Error(`Network error: ${fetchError.message}`);
+      });
 
       if (!response.ok) {
-        console.warn("Vision API request failed:", response.status);
-        return null;
+        console.warn(
+          "Vision API request failed:",
+          response.status,
+          response.statusText,
+        );
+        throw new Error(
+          `Vision API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: VisionAPIResponse = await response.json();
@@ -173,8 +313,9 @@ export class AccurateClothingAnalyzer {
     // Analyze style
     const style = this.determineStyleFromVision(clothingLabels);
 
-    // Extract colors
-    const colors = this.extractColorsFromVision(imageProperties);
+    // Extract colors with background filtering
+    const allColors = this.extractColorsFromVision(imageProperties);
+    const colors = this.filterBackgroundFromColorList(allColors);
 
     // Determine occasions and seasons
     const occasions = this.determineOccasions(category, style, colors);
@@ -190,12 +331,14 @@ export class AccurateClothingAnalyzer {
       isClothing: true,
       category,
       style,
-      colors,
+      colors: colors.length > 0 ? colors : ["neutral"],
       occasions,
       seasons,
-      tags: this.extractTags(clothingLabels),
+      tags: this.generateSmartTags(category, style, colors),
       confidence,
-      reasoning: `Vision API detected ${clothingLabels.length} clothing labels and ${clothingObjects.length} clothing objects`,
+      reasoning: `Vision API detected ${clothingLabels.length} clothing labels and ${clothingObjects.length} clothing objects - enhanced with background filtering`,
+      patterns: this.detectClothingPatterns(colors, category),
+      materials: this.inferMaterials(category, style, colors),
     };
   }
 
@@ -227,30 +370,39 @@ export class AccurateClothingAnalyzer {
       };
     }
 
-    // Analyze colors using canvas
+    // Analyze colors using canvas with background detection
     const colors = await this.extractColorsFromCanvas(imageElement);
 
-    // Intelligent category detection from filename and basic image analysis
+    // Intelligent category detection from filename and image analysis
     const category = this.smartCategoryDetection(filename, imageElement);
 
-    // Smart style detection
+    // Enhanced style detection
     const style = this.smartStyleDetection(category, colors, filename);
 
-    // Generate occasions and seasons
+    // Generate occasions and seasons based on improved analysis
     const occasions = this.determineOccasions(category, style, colors);
     const seasons = this.determineSeasons(category, colors, style);
+
+    // Filter out background colors for final result
+    const clothingColors = this.filterBackgroundFromColorList(colors);
+
+    // Generate enhanced tags with pattern detection
+    const tags = this.generateSmartTags(category, style, clothingColors);
 
     return {
       isClothing: true,
       category,
       style,
-      colors,
+      colors: clothingColors.length > 0 ? clothingColors : ["neutral"],
       occasions,
       seasons,
-      tags: this.generateSmartTags(category, style, colors),
-      confidence: Math.max(0.75, clothingDetection.confidence), // Use higher of detection or analysis confidence
+      tags,
+      confidence: Math.max(0.8, clothingDetection.confidence), // Higher confidence with improved analysis
       reasoning:
-        clothingDetection.reasoning + " - Clothing detected and analyzed",
+        clothingDetection.reasoning +
+        " - Enhanced AI analysis with background filtering applied",
+      patterns: this.detectClothingPatterns(clothingColors, category),
+      materials: this.inferMaterials(category, style, clothingColors),
     };
   }
 
@@ -418,7 +570,7 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
-   * Smart category detection using multiple signals
+   * Enhanced smart category detection using multiple signals
    */
   private smartCategoryDetection(
     filename: string,
@@ -426,7 +578,7 @@ export class AccurateClothingAnalyzer {
   ): string {
     const fname = filename.toLowerCase();
 
-    // Enhanced filename analysis
+    // Enhanced filename analysis with more specific keywords
     const categoryKeywords = {
       tops: [
         "shirt",
@@ -439,6 +591,18 @@ export class AccurateClothingAnalyzer {
         "tshirt",
         "t-shirt",
         "tank",
+        "polo",
+        "henley",
+        "crop",
+        "tube",
+        "halter",
+        "camisole",
+        "vest",
+        "turtleneck",
+        "sweatshirt",
+        "jersey",
+        "bodysuit",
+        "leotard",
       ],
       bottoms: [
         "pant",
@@ -449,8 +613,42 @@ export class AccurateClothingAnalyzer {
         "skirt",
         "chino",
         "slack",
+        "khaki",
+        "cargo",
+        "jogger",
+        "sweatpant",
+        "yoga",
+        "capri",
+        "bermuda",
+        "culottes",
+        "palazzo",
+        "wide-leg",
+        "skinny",
+        "bootcut",
+        "straight-leg",
+        "flare",
       ],
-      dresses: ["dress", "gown", "frock", "sundress", "maxi", "mini"],
+      dresses: [
+        "dress",
+        "gown",
+        "frock",
+        "sundress",
+        "maxi",
+        "mini",
+        "midi",
+        "cocktail",
+        "evening",
+        "wedding",
+        "prom",
+        "formal",
+        "shift",
+        "wrap",
+        "a-line",
+        "bodycon",
+        "slip",
+        "tunic",
+        "kaftan",
+      ],
       outerwear: [
         "jacket",
         "coat",
@@ -459,6 +657,19 @@ export class AccurateClothingAnalyzer {
         "windbreaker",
         "bomber",
         "denim jacket",
+        "leather jacket",
+        "trench",
+        "peacoat",
+        "puffer",
+        "anorak",
+        "vest",
+        "poncho",
+        "cape",
+        "shawl",
+        "wrap",
+        "cardigan",
+        "overcoat",
+        "raincoat",
       ],
       shoes: [
         "shoe",
@@ -470,6 +681,28 @@ export class AccurateClothingAnalyzer {
         "loafer",
         "oxford",
         "runner",
+        "trainer",
+        "athletic",
+        "tennis",
+        "basketball",
+        "running",
+        "walking",
+        "hiking",
+        "combat",
+        "ankle",
+        "knee-high",
+        "platform",
+        "wedge",
+        "stiletto",
+        "flat",
+        "ballet",
+        "slip-on",
+        "lace-up",
+        "moccasin",
+        "clog",
+        "flip-flop",
+        "thong",
+        "slide",
       ],
       accessories: [
         "bag",
@@ -482,35 +715,108 @@ export class AccurateClothingAnalyzer {
         "watch",
         "necklace",
         "bracelet",
+        "earring",
+        "ring",
+        "brooch",
+        "pin",
+        "tie",
+        "bowtie",
+        "cufflink",
+        "glasses",
+        "sunglasses",
+        "glove",
+        "mitten",
+        "wallet",
+        "clutch",
+        "tote",
+        "crossbody",
+        "messenger",
+        "satchel",
+        "duffel",
+        "fanny",
+        "headband",
+        "hair",
+        "beanie",
+        "fedora",
+        "visor",
       ],
     };
 
-    // Check filename for category keywords
+    // Check filename for category keywords with confidence scoring
+    let bestMatch = { category: "", confidence: 0 };
+
     for (const [category, keywords] of Object.entries(categoryKeywords)) {
-      if (keywords.some((keyword) => fname.includes(keyword))) {
-        return category;
+      for (const keyword of keywords) {
+        if (fname.includes(keyword)) {
+          const confidence = keyword.length / fname.length; // Longer matches get higher confidence
+          if (confidence > bestMatch.confidence) {
+            bestMatch = { category, confidence };
+          }
+        }
       }
     }
 
-    // Image analysis for aspect ratio hints
+    if (bestMatch.confidence > 0.1) {
+      return bestMatch.category;
+    }
+
+    // Advanced image analysis
     const aspectRatio = imageElement.width / imageElement.height;
+    const imageAnalysis = this.analyzeImageShape(imageElement, aspectRatio);
 
-    // Shoes often have wider aspect ratios
-    if (aspectRatio > 1.3) {
-      return "shoes";
-    }
-
-    // Dresses often have taller aspect ratios
-    if (aspectRatio < 0.7) {
-      return "dresses";
-    }
-
-    // Default to tops as most common category
-    return "tops";
+    return imageAnalysis;
   }
 
   /**
-   * Smart style detection
+   * Analyze image shape and characteristics for category detection
+   */
+  private analyzeImageShape(
+    imageElement: HTMLImageElement,
+    aspectRatio: number,
+  ): string {
+    const width = imageElement.width;
+    const height = imageElement.height;
+
+    // Very wide images are likely shoes or accessories
+    if (aspectRatio > 1.5) {
+      return "shoes";
+    }
+
+    // Very tall images are likely dresses or full-body shots
+    if (aspectRatio < 0.6) {
+      return "dresses";
+    }
+
+    // Square-ish images with moderate size often accessories
+    if (
+      aspectRatio >= 0.8 &&
+      aspectRatio <= 1.2 &&
+      width < 800 &&
+      height < 800
+    ) {
+      return "accessories";
+    }
+
+    // Wider than tall but not extremely wide - likely tops or bottoms
+    if (aspectRatio > 1.0 && aspectRatio <= 1.5) {
+      // Use additional heuristics
+      return height > width * 0.8 ? "tops" : "bottoms";
+    }
+
+    // Taller than wide - likely tops, dresses, or outerwear
+    if (aspectRatio < 1.0) {
+      // Very tall suggests dresses
+      if (aspectRatio < 0.7) return "dresses";
+      // Moderately tall suggests tops or outerwear
+      return "tops";
+    }
+
+    // Default fallback with smarter logic
+    return "tops"; // Most common category
+  }
+
+  /**
+   * Enhanced smart style detection with comprehensive analysis
    */
   private smartStyleDetection(
     category: string,
@@ -519,66 +825,332 @@ export class AccurateClothingAnalyzer {
   ): string {
     const fname = filename.toLowerCase();
 
-    // Style keywords
+    // Enhanced style keyword mapping with confidence scoring
+    const styleKeywords = {
+      formal: [
+        "formal",
+        "business",
+        "professional",
+        "corporate",
+        "office",
+        "work",
+        "suit",
+        "blazer",
+        "dress shirt",
+        "tie",
+        "oxford",
+        "loafer",
+        "pump",
+        "professional",
+        "executive",
+        "boardroom",
+        "interview",
+      ],
+      elegant: [
+        "elegant",
+        "sophisticated",
+        "classy",
+        "luxury",
+        "designer",
+        "premium",
+        "evening",
+        "cocktail",
+        "party",
+        "gala",
+        "red carpet",
+        "glamorous",
+        "chic",
+        "refined",
+        "polished",
+        "upscale",
+        "high-end",
+      ],
+      casual: [
+        "casual",
+        "everyday",
+        "comfortable",
+        "relaxed",
+        "weekend",
+        "leisure",
+        "basic",
+        "simple",
+        "easy",
+        "effortless",
+        "laid-back",
+        "chill",
+      ],
+      sporty: [
+        "sport",
+        "athletic",
+        "gym",
+        "fitness",
+        "workout",
+        "running",
+        "training",
+        "active",
+        "performance",
+        "exercise",
+        "yoga",
+        "tennis",
+        "basketball",
+        "soccer",
+        "outdoor",
+        "hiking",
+        "jogging",
+        "cycling",
+      ],
+      streetwear: [
+        "street",
+        "urban",
+        "hip",
+        "trendy",
+        "cool",
+        "edgy",
+        "modern",
+        "contemporary",
+        "fashion-forward",
+        "avant-garde",
+        "youth",
+        "skate",
+        "grunge",
+        "punk",
+        "alternative",
+        "indie",
+      ],
+      bohemian: [
+        "bohemian",
+        "boho",
+        "hippie",
+        "free-spirit",
+        "artistic",
+        "creative",
+        "eclectic",
+        "unconventional",
+        "indie",
+        "festival",
+        "flowy",
+        "relaxed",
+        "earthy",
+        "natural",
+        "organic",
+        "handmade",
+      ],
+      minimalist: [
+        "minimalist",
+        "simple",
+        "clean",
+        "basic",
+        "essential",
+        "understated",
+        "sleek",
+        "modern",
+        "streamlined",
+        "classic",
+        "timeless",
+        "versatile",
+        "neutral",
+        "monochrome",
+      ],
+      vintage: [
+        "vintage",
+        "retro",
+        "classic",
+        "throwback",
+        "old-school",
+        "traditional",
+        "heritage",
+        "timeless",
+        "antique",
+        "period",
+        "nostalgic",
+        "historical",
+      ],
+      romantic: [
+        "romantic",
+        "feminine",
+        "soft",
+        "delicate",
+        "pretty",
+        "sweet",
+        "lovely",
+        "floral",
+        "lace",
+        "ruffle",
+        "bow",
+        "pastel",
+        "dreamy",
+        "whimsical",
+      ],
+      edgy: [
+        "edgy",
+        "bold",
+        "daring",
+        "fierce",
+        "tough",
+        "rebel",
+        "rock",
+        "goth",
+        "dark",
+        "dramatic",
+        "statement",
+        "powerful",
+        "confident",
+      ],
+    };
+
+    // Check filename for style keywords with weighted scoring
+    let styleScores = new Map<string, number>();
+
+    for (const [style, keywords] of Object.entries(styleKeywords)) {
+      let score = 0;
+      for (const keyword of keywords) {
+        if (fname.includes(keyword)) {
+          // Longer, more specific keywords get higher scores
+          score += keyword.length * 0.1 + 1;
+        }
+      }
+      if (score > 0) {
+        styleScores.set(style, score);
+      }
+    }
+
+    // Get highest scoring style from filename
+    const topFilenameStyle = Array.from(styleScores.entries()).sort(
+      ([, a], [, b]) => b - a,
+    )[0];
+
+    if (topFilenameStyle && topFilenameStyle[1] > 1) {
+      return topFilenameStyle[0];
+    }
+
+    // Advanced color-based style analysis
+    const colorBasedStyle = this.analyzeStyleFromColors(colors);
+    if (colorBasedStyle !== "unknown") {
+      return colorBasedStyle;
+    }
+
+    // Category-based style intelligence
+    const categoryBasedStyle = this.getCategoryStyleDefault(category, colors);
+
+    return categoryBasedStyle;
+  }
+
+  /**
+   * Analyze style based on color combinations and patterns
+   */
+  private analyzeStyleFromColors(colors: string[]): string {
+    const colorSet = new Set(colors);
+
+    // Minimalist: monochromatic or very limited palette
+    if (colors.length === 1) {
+      if (["black", "white", "gray", "charcoal"].includes(colors[0])) {
+        return "minimalist";
+      }
+    }
+
+    // Elegant: sophisticated color combinations
     if (
-      fname.includes("formal") ||
-      fname.includes("dress") ||
-      fname.includes("suit")
-    )
-      return "formal";
-    if (
-      fname.includes("sport") ||
-      fname.includes("gym") ||
-      fname.includes("athletic")
-    )
-      return "sporty";
-    if (fname.includes("casual") || fname.includes("everyday")) return "casual";
-    if (
-      fname.includes("elegant") ||
-      fname.includes("evening") ||
-      fname.includes("cocktail")
-    )
+      colorSet.has("black") &&
+      (colorSet.has("gold") || colorSet.has("silver"))
+    ) {
       return "elegant";
+    }
     if (
-      fname.includes("bohemian") ||
-      fname.includes("boho") ||
-      fname.includes("hippie")
-    )
+      ["navy", "burgundy", "emerald", "sapphire"].some((c) => colorSet.has(c))
+    ) {
+      return "elegant";
+    }
+
+    // Romantic: soft, feminine colors
+    if (
+      ["pink", "lavender", "peach", "cream", "rose"].some((c) =>
+        colorSet.has(c),
+      )
+    ) {
+      return "romantic";
+    }
+
+    // Bohemian: earthy, natural colors
+    if (
+      ["brown", "tan", "olive", "rust", "terracotta", "sage"].some((c) =>
+        colorSet.has(c),
+      )
+    ) {
       return "bohemian";
-    if (
-      fname.includes("minimalist") ||
-      fname.includes("simple") ||
-      fname.includes("clean")
-    )
-      return "minimalist";
-    if (
-      fname.includes("street") ||
-      fname.includes("urban") ||
-      fname.includes("hip")
-    )
-      return "streetwear";
-    if (
-      fname.includes("vintage") ||
-      fname.includes("retro") ||
-      fname.includes("classic")
-    )
-      return "vintage";
+    }
 
-    // Color-based style hints
-    if (colors.includes("black") && colors.length === 1) return "minimalist";
-    if (colors.includes("pink") || colors.includes("purple")) return "elegant";
-    if (colors.includes("neon") || colors.includes("bright"))
-      return "streetwear";
+    // Edgy: bold, dramatic colors
+    if (
+      colorSet.has("black") &&
+      ["red", "purple", "electric"].some((c) => colorSet.has(c))
+    ) {
+      return "edgy";
+    }
 
-    // Category-based defaults
+    // Sporty: bright, energetic colors
+    if (
+      ["neon", "bright", "electric", "lime", "orange"].some((c) =>
+        colorSet.has(c),
+      )
+    ) {
+      return "sporty";
+    }
+
+    // Streetwear: urban color combinations
+    if (
+      colorSet.has("black") &&
+      ["white", "gray"].some((c) => colorSet.has(c))
+    ) {
+      return "streetwear";
+    }
+
+    return "unknown";
+  }
+
+  /**
+   * Get smart category-based style defaults
+   */
+  private getCategoryStyleDefault(category: string, colors: string[]): string {
     switch (category) {
       case "dresses":
+        // Dresses default to elegant unless colors suggest otherwise
+        if (colors.includes("black") || colors.includes("navy"))
+          return "elegant";
+        if (colors.includes("pink") || colors.includes("floral"))
+          return "romantic";
         return "elegant";
+
       case "outerwear":
-        return "formal";
+        // Outerwear style depends on formality
+        if (colors.includes("black") || colors.includes("navy"))
+          return "formal";
+        if (colors.includes("brown") || colors.includes("olive"))
+          return "casual";
+        return "casual";
+
       case "shoes":
-        return "sporty";
+        // Shoes default based on color and likely use
+        if (colors.includes("black") || colors.includes("brown"))
+          return "formal";
+        if (colors.includes("white") || colors.includes("colorful"))
+          return "sporty";
+        return "casual";
+
+      case "accessories":
+        // Accessories are usually elegant unless very casual
+        return "elegant";
+
+      case "bottoms":
+        // Bottoms are versatile - default to casual
+        if (colors.includes("black") && colors.length === 1) return "formal";
+        return "casual";
+
+      case "tops":
       default:
+        // Tops default to casual but can be upgraded based on colors
+        if (colors.includes("white") && colors.length === 1) return "formal";
+        if (colors.includes("black") && colors.length === 1)
+          return "minimalist";
         return "casual";
     }
   }
@@ -611,14 +1183,24 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
-   * Advanced color analysis
+   * Advanced color analysis with background detection
    */
   private analyzeImageColors(imageData: ImageData): string[] {
     const data = imageData.data;
     const colorCounts = new Map<string, number>();
+    const edgeColors = new Map<string, number>();
+    const centerColors = new Map<string, number>();
+
+    const width = imageData.width;
+    const height = imageData.height;
+    const edgeThreshold = Math.min(width, height) * 0.1; // 10% of image edge
 
     // Sample every 4th pixel for performance
     for (let i = 0; i < data.length; i += 16) {
+      const pixelIndex = i / 4;
+      const x = pixelIndex % width;
+      const y = Math.floor(pixelIndex / width);
+
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
@@ -629,16 +1211,125 @@ export class AccurateClothingAnalyzer {
 
       const colorName = this.rgbToColorName(r, g, b);
       colorCounts.set(colorName, (colorCounts.get(colorName) || 0) + 1);
+
+      // Detect edge pixels (likely background)
+      const isEdge =
+        x < edgeThreshold ||
+        x > width - edgeThreshold ||
+        y < edgeThreshold ||
+        y > height - edgeThreshold;
+
+      if (isEdge) {
+        edgeColors.set(colorName, (edgeColors.get(colorName) || 0) + 1);
+      } else {
+        centerColors.set(colorName, (centerColors.get(colorName) || 0) + 1);
+      }
     }
 
+    // Detect background colors (most frequent at edges)
+    const backgroundColors = this.detectBackgroundColors(
+      edgeColors,
+      centerColors,
+    );
+
+    // Filter out background colors from final result
+    const clothingColors = this.filterBackgroundColors(
+      colorCounts,
+      backgroundColors,
+    );
+
     // Sort colors by frequency and return top 3
-    const sortedColors = Array.from(colorCounts.entries())
+    const sortedColors = Array.from(clothingColors.entries())
       .sort(([, a], [, b]) => b - a)
       .slice(0, 3)
       .map(([color]) => color)
-      .filter((color) => color !== "neutral"); // Filter out neutral unless it's the only color
+      .filter((color) => color !== "neutral" && !backgroundColors.has(color));
 
     return sortedColors.length > 0 ? sortedColors : ["neutral"];
+  }
+
+  /**
+   * Detect background colors based on edge analysis
+   */
+  private detectBackgroundColors(
+    edgeColors: Map<string, number>,
+    centerColors: Map<string, number>,
+  ): Set<string> {
+    const backgroundColors = new Set<string>();
+    const totalEdgePixels = Array.from(edgeColors.values()).reduce(
+      (a, b) => a + b,
+      0,
+    );
+    const totalCenterPixels = Array.from(centerColors.values()).reduce(
+      (a, b) => a + b,
+      0,
+    );
+
+    for (const [color, edgeCount] of edgeColors.entries()) {
+      const centerCount = centerColors.get(color) || 0;
+      const edgeRatio = edgeCount / totalEdgePixels;
+      const centerRatio =
+        totalCenterPixels > 0 ? centerCount / totalCenterPixels : 0;
+
+      // If color is much more frequent at edges than center, it's likely background
+      if (edgeRatio > 0.15 && edgeRatio > centerRatio * 2) {
+        backgroundColors.add(color);
+      }
+
+      // Very common edge colors are likely background
+      if (edgeRatio > 0.3) {
+        backgroundColors.add(color);
+      }
+    }
+
+    // Common background colors
+    const commonBackgrounds = [
+      "white",
+      "light-gray",
+      "gray",
+      "black",
+      "neutral",
+    ];
+    commonBackgrounds.forEach((color) => {
+      const edgeRatio = (edgeColors.get(color) || 0) / totalEdgePixels;
+      if (edgeRatio > 0.2) {
+        backgroundColors.add(color);
+      }
+    });
+
+    return backgroundColors;
+  }
+
+  /**
+   * Filter out background colors from clothing colors
+   */
+  private filterBackgroundColors(
+    allColors: Map<string, number>,
+    backgroundColors: Set<string>,
+  ): Map<string, number> {
+    const filteredColors = new Map<string, number>();
+
+    for (const [color, count] of allColors.entries()) {
+      if (!backgroundColors.has(color)) {
+        filteredColors.set(color, count);
+      }
+    }
+
+    // If no colors remain after filtering, keep the most common non-background color
+    if (filteredColors.size === 0 && allColors.size > 0) {
+      const sortedAll = Array.from(allColors.entries()).sort(
+        ([, a], [, b]) => b - a,
+      );
+
+      for (const [color] of sortedAll) {
+        if (!["white", "light-gray"].includes(color)) {
+          filteredColors.set(color, allColors.get(color)!);
+          break;
+        }
+      }
+    }
+
+    return filteredColors.size > 0 ? filteredColors : allColors;
   }
 
   /**
@@ -1051,12 +1742,183 @@ export class AccurateClothingAnalyzer {
       tags.push(style);
     }
 
-    // Add color tags
-    if (colors.length === 1 && colors[0] !== "neutral") {
-      tags.push(`${colors[0]}-piece`);
+    // Add color tags (only non-background colors)
+    const clothingColors = this.filterBackgroundFromColorList(colors);
+    if (clothingColors.length === 1 && clothingColors[0] !== "neutral") {
+      tags.push(`${clothingColors[0]}-piece`);
     }
 
-    return tags.slice(0, 3);
+    // Add pattern detection tags
+    const patterns = this.detectClothingPatterns(colors, category);
+    tags.push(...patterns);
+
+    return tags.slice(0, 5);
+  }
+
+  /**
+   * Filter background colors from a color list
+   */
+  private filterBackgroundFromColorList(colors: string[]): string[] {
+    const commonBackgrounds = ["white", "light-gray", "neutral"];
+    return colors.filter(
+      (color) => !commonBackgrounds.includes(color) || colors.length === 1,
+    );
+  }
+
+  /**
+   * Detect clothing patterns and characteristics
+   */
+  private detectClothingPatterns(colors: string[], category: string): string[] {
+    const patterns = [];
+
+    // Multi-color analysis
+    if (colors.length > 2) {
+      patterns.push("multicolor");
+    } else if (colors.length === 2) {
+      patterns.push("two-tone");
+    }
+
+    // Color temperature analysis
+    const warmColors = ["red", "orange", "yellow", "pink", "coral"];
+    const coolColors = ["blue", "green", "purple", "teal", "navy"];
+
+    const hasWarm = colors.some((c) => warmColors.includes(c));
+    const hasCool = colors.some((c) => coolColors.includes(c));
+
+    if (hasWarm && !hasCool) {
+      patterns.push("warm-tones");
+    } else if (hasCool && !hasWarm) {
+      patterns.push("cool-tones");
+    }
+
+    // Category-specific pattern detection
+    switch (category) {
+      case "dresses":
+        if (colors.includes("floral") || colors.includes("print")) {
+          patterns.push("printed");
+        }
+        break;
+      case "shoes":
+        if (colors.includes("metallic") || colors.includes("shiny")) {
+          patterns.push("metallic-finish");
+        }
+        break;
+      case "accessories":
+        patterns.push("accent-piece");
+        break;
+    }
+
+    return patterns.slice(0, 2);
+  }
+
+  /**
+   * Enhanced background detection for better color accuracy
+   */
+  private isLikelyBackgroundColor(
+    colorName: string,
+    frequency: number,
+    totalPixels: number,
+  ): boolean {
+    const frequencyRatio = frequency / totalPixels;
+
+    // Very common colors are likely background
+    if (frequencyRatio > 0.4) {
+      return ["white", "light-gray", "gray", "neutral"].includes(colorName);
+    }
+
+    // Photography background indicators
+    const photographyBackgrounds = [
+      "white",
+      "light-gray",
+      "cream",
+      "off-white",
+      "neutral",
+      "beige",
+    ];
+
+    return photographyBackgrounds.includes(colorName) && frequencyRatio > 0.2;
+  }
+
+  /**
+   * Infer likely materials based on category, style, and colors
+   */
+  private inferMaterials(
+    category: string,
+    style: string,
+    colors: string[],
+  ): string[] {
+    const materials = [];
+
+    // Category-based material inference
+    switch (category) {
+      case "dresses":
+        if (style === "elegant" || style === "formal") {
+          materials.push("silk", "chiffon", "satin");
+        } else if (style === "casual") {
+          materials.push("cotton", "jersey", "polyester");
+        }
+        break;
+
+      case "tops":
+        if (style === "formal") {
+          materials.push("cotton", "silk", "polyester-blend");
+        } else if (style === "sporty") {
+          materials.push("polyester", "spandex", "moisture-wicking");
+        } else {
+          materials.push("cotton", "jersey", "blend");
+        }
+        break;
+
+      case "bottoms":
+        if (
+          colors.includes("blue") &&
+          (style === "casual" || style === "streetwear")
+        ) {
+          materials.push("denim", "cotton");
+        } else if (style === "formal") {
+          materials.push("wool", "polyester", "cotton-blend");
+        } else {
+          materials.push("cotton", "stretch", "polyester");
+        }
+        break;
+
+      case "outerwear":
+        if (style === "formal") {
+          materials.push("wool", "cashmere", "polyester");
+        } else {
+          materials.push("cotton", "polyester", "nylon");
+        }
+        break;
+
+      case "shoes":
+        if (style === "formal") {
+          materials.push("leather", "suede");
+        } else if (style === "sporty") {
+          materials.push("synthetic", "mesh", "rubber");
+        } else {
+          materials.push("canvas", "leather", "synthetic");
+        }
+        break;
+
+      case "accessories":
+        materials.push("varied", "metal", "fabric");
+        break;
+    }
+
+    // Color-based material hints
+    if (
+      colors.includes("metallic") ||
+      colors.includes("silver") ||
+      colors.includes("gold")
+    ) {
+      materials.push("metallic-finish");
+    }
+
+    if (colors.includes("black") && (style === "edgy" || style === "formal")) {
+      materials.push("leather", "synthetic-leather");
+    }
+
+    return materials.slice(0, 3);
   }
 
   /**
@@ -1065,17 +1927,37 @@ export class AccurateClothingAnalyzer {
   private async convertToBase64(input: File | string): Promise<string> {
     if (typeof input === "string") {
       // If it's a URL, fetch and convert
-      const response = await fetch(input);
-      const blob = await response.blob();
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64 = reader.result as string;
-          resolve(base64.split(",")[1]); // Remove data:image/...;base64, prefix
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
+      try {
+        const response = await fetch(input).catch((fetchError) => {
+          console.warn("Image fetch network error:", fetchError);
+          throw new Error(`Failed to fetch image: ${fetchError.message}`);
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch image: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        const blob = await response.blob();
+
+        if (!blob || blob.size === 0) {
+          throw new Error("Received empty or invalid image data");
+        }
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64 = reader.result as string;
+            resolve(base64.split(",")[1]); // Remove data:image/...;base64, prefix
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch (error) {
+        throw new Error(
+          `Image processing error: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
+      }
     } else {
       // If it's a File, convert directly
       return new Promise((resolve, reject) => {
@@ -1097,13 +1979,44 @@ export class AccurateClothingAnalyzer {
     imageElement.crossOrigin = "anonymous";
 
     return new Promise((resolve, reject) => {
-      imageElement.onload = () => resolve(imageElement);
-      imageElement.onerror = reject;
+      // Set up timeout to prevent hanging
+      const timeout = setTimeout(() => {
+        reject(new Error("Image loading timeout after 10 seconds"));
+      }, 10000);
 
-      if (typeof input === "string") {
-        imageElement.src = input;
-      } else {
-        imageElement.src = URL.createObjectURL(input);
+      imageElement.onload = () => {
+        clearTimeout(timeout);
+        resolve(imageElement);
+      };
+
+      imageElement.onerror = (error) => {
+        clearTimeout(timeout);
+        reject(new Error(`Image loading failed: ${error}`));
+      };
+
+      try {
+        if (typeof input === "string") {
+          // Validate URL format
+          if (
+            !input.startsWith("http") &&
+            !input.startsWith("data:") &&
+            !input.startsWith("blob:")
+          ) {
+            reject(new Error("Invalid image URL format"));
+            return;
+          }
+          imageElement.src = input;
+        } else {
+          // Validate file type
+          if (!input.type.startsWith("image/")) {
+            reject(new Error("Invalid file type - must be an image"));
+            return;
+          }
+          imageElement.src = URL.createObjectURL(input);
+        }
+      } catch (error) {
+        clearTimeout(timeout);
+        reject(new Error(`Error setting image source: ${error}`));
       }
     });
   }

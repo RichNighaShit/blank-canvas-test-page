@@ -1,36 +1,70 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Sparkles, Heart, Eye, ShoppingBag, Loader2, RefreshCw, Settings, AlertCircle } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
-import { supabase } from '@/integrations/supabase/client';
-import { simpleStyleAI, OutfitRecommendation, WardrobeItem, StyleProfile } from '@/lib/simpleStyleAI';
-import AdvancedVirtualTryOn from './AdvancedVirtualTryOn';
-import { useWeather } from '@/hooks/useWeather';
-import { usePerformance } from '@/hooks/usePerformance';
-import { PerformanceCache, CACHE_NAMESPACES } from '@/lib/performanceCache';
-import { OptimizedImage } from './OptimizedImage';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Sparkles,
+  Heart,
+  Eye,
+  ShoppingBag,
+  Loader2,
+  RefreshCw,
+  Settings,
+  AlertCircle,
+} from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  simpleStyleAI,
+  OutfitRecommendation,
+  WardrobeItem,
+  StyleProfile,
+} from "@/lib/simpleStyleAI";
+import AdvancedVirtualTryOn from "./AdvancedVirtualTryOn";
+import { useWeather } from "@/hooks/useWeather";
+import { usePerformance } from "@/hooks/usePerformance";
+import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
+import { OptimizedImage } from "./OptimizedImage";
 
 export const StyleRecommendations = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
-  const { weather, loading: weatherLoading, fetchWeather, getWeatherAdvice, getWeatherStatus } = useWeather();
-  const [recommendations, setRecommendations] = useState<OutfitRecommendation[]>([]);
+  const {
+    weather,
+    loading: weatherLoading,
+    fetchWeather,
+    getWeatherAdvice,
+    getWeatherStatus,
+  } = useWeather();
+  const [recommendations, setRecommendations] = useState<
+    OutfitRecommendation[]
+  >([]);
   const [wardrobeItems, setWardrobeItems] = useState<WardrobeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedOutfit, setSelectedOutfit] = useState<OutfitRecommendation | null>(null);
+  const [selectedOutfit, setSelectedOutfit] =
+    useState<OutfitRecommendation | null>(null);
   const [showTryOn, setShowTryOn] = useState(false);
-  
+
   // User preferences state
-  const [selectedOccasion, setSelectedOccasion] = useState<string>('casual');
+  const [selectedOccasion, setSelectedOccasion] = useState<string>("casual");
   const [includeAccessories, setIncludeAccessories] = useState<boolean>(false);
   const [showPreferences, setShowPreferences] = useState<boolean>(true);
 
@@ -41,7 +75,7 @@ export const StyleRecommendations = () => {
   const { executeWithCache, debounce } = usePerformance({
     cacheNamespace: CACHE_NAMESPACES.RECOMMENDATIONS,
     enableCaching: true,
-    enableMonitoring: true
+    enableMonitoring: true,
   });
 
   useEffect(() => {
@@ -54,10 +88,10 @@ export const StyleRecommendations = () => {
         fetchWeather(); // Use default location
       }
     } else if (user && !profile) {
-      setError('Profile not found. Please complete your profile setup.');
+      setError("Profile not found. Please complete your profile setup.");
       setLoading(false);
     } else {
-      setError('Please sign in to get style recommendations.');
+      setError("Please sign in to get style recommendations.");
       setLoading(false);
     }
   }, [user, profile]);
@@ -68,56 +102,92 @@ export const StyleRecommendations = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Loading wardrobe items for user:', user.id);
+      console.log("Loading wardrobe items for user:", user.id);
 
       // Use cached wardrobe items if available
       const cacheKey = `wardrobe_items_${user.id}`;
-      const cachedItems = PerformanceCache.get<WardrobeItem[]>(cacheKey, CACHE_NAMESPACES.WARDROBE_ITEMS);
-      
-      if (cachedItems) {
-        setWardrobeItems(cachedItems);
-        extractOccasions(cachedItems);
-        setLoading(false);
-        return;
+      const cachedItems = PerformanceCache.get<WardrobeItem[]>(
+        cacheKey,
+        CACHE_NAMESPACES.WARDROBE_ITEMS,
+      );
+
+      if (cachedItems && Array.isArray(cachedItems) && cachedItems.length > 0) {
+        try {
+          setWardrobeItems(cachedItems);
+          extractOccasions(cachedItems);
+          setLoading(false);
+          return;
+        } catch (cacheError) {
+          console.warn("Error using cached items:", cacheError);
+          // Continue with fresh fetch
+        }
       }
 
       const { data: items, error: fetchError } = await supabase
-        .from('wardrobe_items')
-        .select('*')
-        .eq('user_id', user.id);
+        .from("wardrobe_items")
+        .select("*")
+        .eq("user_id", user.id);
 
       if (fetchError) {
-        console.error('Error fetching wardrobe items:', fetchError);
-        throw new Error('Failed to load your wardrobe items');
+        console.error("Error fetching wardrobe items:", fetchError);
+        throw new Error(
+          `Failed to load your wardrobe items: ${fetchError.message}`,
+        );
       }
 
-      console.log('Fetched wardrobe items:', items);
+      console.log("Fetched wardrobe items:", items);
 
-      let mappedItems: WardrobeItem[] = (items || []).map(item => ({
-        id: item.id,
-        name: item.name,
-        photo_url: item.photo_url || '',
-        category: item.category,
-        color: item.color || [],
-        style: item.style || 'casual',
-        occasion: item.occasion || ['casual'],
-        season: item.season || ['all'],
-        tags: item.tags || []
-      }));
+      if (!items || !Array.isArray(items)) {
+        console.warn("No wardrobe items found or invalid response:", items);
+        setWardrobeItems([]);
+        setAvailableOccasions(["casual"]);
+        return;
+      }
+
+      // Validate and sanitize items
+      const mappedItems: WardrobeItem[] = items
+        .filter((item) => {
+          if (!item || !item.id || !item.name || !item.category) {
+            console.warn("Invalid wardrobe item:", item);
+            return false;
+          }
+          return true;
+        })
+        .map((item) => ({
+          id: item.id,
+          name: item.name || "Unnamed Item",
+          photo_url: item.photo_url || "",
+          category: item.category || "other",
+          color: Array.isArray(item.color) ? item.color : [],
+          style: item.style || "casual",
+          occasion: Array.isArray(item.occasion) ? item.occasion : ["casual"],
+          season: Array.isArray(item.season) ? item.season : ["all"],
+          tags: Array.isArray(item.tags) ? item.tags : [],
+        }));
 
       setWardrobeItems(mappedItems);
       extractOccasions(mappedItems);
 
       // Cache wardrobe items for 10 minutes
-      PerformanceCache.set(cacheKey, mappedItems, {
-        ttl: 10 * 60 * 1000,
-        namespace: CACHE_NAMESPACES.WARDROBE_ITEMS
-      });
-
+      if (mappedItems.length > 0) {
+        try {
+          PerformanceCache.set(cacheKey, mappedItems, {
+            ttl: 10 * 60 * 1000,
+            namespace: CACHE_NAMESPACES.WARDROBE_ITEMS,
+          });
+        } catch (cacheError) {
+          console.warn("Error caching wardrobe items:", cacheError);
+        }
+      }
     } catch (error) {
-      console.error('Error loading wardrobe items:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load wardrobe items');
+      console.error("Error loading wardrobe items:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to load wardrobe items";
+      setError(errorMessage);
       setWardrobeItems([]);
+      setAvailableOccasions(["casual"]);
     } finally {
       setLoading(false);
     }
@@ -125,8 +195,8 @@ export const StyleRecommendations = () => {
 
   const extractOccasions = (items: WardrobeItem[]) => {
     const occasions = new Set<string>();
-    items.forEach(item => {
-      item.occasion.forEach(occ => occasions.add(occ));
+    items.forEach((item) => {
+      item.occasion.forEach((occ) => occasions.add(occ));
     });
     setAvailableOccasions(Array.from(occasions).sort());
 
@@ -136,79 +206,181 @@ export const StyleRecommendations = () => {
     }
   };
 
-  const loadRecommendations = async () => {
-    if (!user || !profile || wardrobeItems.length === 0) return;
+  const loadRecommendations = useCallback(async () => {
+    if (!user || !profile || wardrobeItems.length === 0) {
+      console.info(
+        "Cannot generate recommendations: missing user, profile, or wardrobe items",
+      );
+      return;
+    }
 
     try {
       setLoading(true);
       setError(null);
-      console.log('Generating recommendations for occasion:', selectedOccasion, 'with accessories:', includeAccessories);
+      console.log(
+        "Generating recommendations for occasion:",
+        selectedOccasion,
+        "with accessories:",
+        includeAccessories,
+      );
+
+      // Validate inputs
+      if (!selectedOccasion || typeof selectedOccasion !== "string") {
+        throw new Error("Invalid occasion selected");
+      }
+
+      if (!Array.isArray(wardrobeItems) || wardrobeItems.length === 0) {
+        throw new Error("No wardrobe items available for recommendations");
+      }
 
       // Filter items based on user preferences
-      let filteredItems = wardrobeItems.filter(item => 
-        item.occasion.includes(selectedOccasion) || 
-        item.occasion.includes('casual') // Always include casual items as they're versatile
+      let filteredItems = wardrobeItems.filter(
+        (item) =>
+          item.occasion.includes(selectedOccasion) ||
+          item.occasion.includes("casual"), // Always include casual items as they're versatile
       );
 
       // Handle accessories based on user preference
       if (!includeAccessories) {
-        filteredItems = filteredItems.filter(item => 
-          !['accessories', 'jewelry', 'bags', 'hats', 'belts', 'scarves'].includes(item.category.toLowerCase())
+        filteredItems = filteredItems.filter(
+          (item) =>
+            ![
+              "accessories",
+              "jewelry",
+              "bags",
+              "hats",
+              "belts",
+              "scarves",
+            ].includes(item.category.toLowerCase()),
         );
       }
 
-      console.log('Filtered items for recommendations:', filteredItems);
+      console.log("Filtered items for recommendations:", filteredItems);
 
       if (filteredItems.length === 0) {
-        console.log('No items found for selected preferences');
+        console.info("No items found for selected preferences");
         setRecommendations([]);
+        setError(
+          "No suitable items found for the selected occasion. Try adjusting your preferences or adding more items to your wardrobe.",
+        );
         setLoading(false);
         return;
       }
 
-      // Create style profile
+      if (filteredItems.length < 2) {
+        console.warn("Limited items available for outfit generation");
+        setError(
+          "Limited wardrobe items available. Add more items for better recommendations.",
+        );
+      }
+
+      // Create and validate style profile
+      if (!profile.id || !profile.preferred_style) {
+        throw new Error(
+          "Invalid user profile. Please complete your profile setup.",
+        );
+      }
+
       const styleProfile: StyleProfile = {
         id: profile.id,
-        preferred_style: profile.preferred_style || 'casual',
-        favorite_colors: profile.favorite_colors || [],
-        goals: profile.goals || []
+        preferred_style: profile.preferred_style || "casual",
+        favorite_colors: Array.isArray(profile.favorite_colors)
+          ? profile.favorite_colors
+          : [],
+        goals: Array.isArray(profile.goals) ? profile.goals : [],
       };
 
-      console.log('Generating recommendations with profile:', styleProfile, 'occasion:', selectedOccasion);
+      console.log(
+        "Generating recommendations with profile:",
+        styleProfile,
+        "occasion:",
+        selectedOccasion,
+      );
 
       // Use cached execution for recommendations
       const recs = await executeWithCache(
         `recommendations_${selectedOccasion}_${includeAccessories}_${user.id}`,
-        async () => simpleStyleAI.generateRecommendations(
-          filteredItems,
-          styleProfile,
-          {
-            occasion: selectedOccasion,
-            timeOfDay: 'day',
-            weather: weather || undefined
-          },
-          includeAccessories
-        ),
-        5 * 60 * 1000 // 5 minutes cache
+        async () =>
+          simpleStyleAI.generateRecommendations(
+            filteredItems,
+            styleProfile,
+            {
+              occasion: selectedOccasion,
+              timeOfDay: "day",
+              weather: weather || undefined,
+            },
+            includeAccessories,
+          ),
+        5 * 60 * 1000, // 5 minutes cache
       );
 
-      console.log('Generated recommendations:', recs);
+      console.log("Generated recommendations:", recs);
+
+      if (!Array.isArray(recs)) {
+        throw new Error("Invalid recommendation response format");
+      }
+
+      if (recs.length === 0) {
+        setError(
+          "No outfit recommendations could be generated with your current wardrobe. Try adding more items or adjusting your preferences.",
+        );
+      }
+
       setRecommendations(recs);
     } catch (error) {
-      console.error('Error loading recommendations:', error);
-      setError(error instanceof Error ? error.message : 'Failed to generate recommendations');
+      console.error("Error loading recommendations:", error);
+      let errorMessage = "Failed to generate recommendations";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+
+      setError(errorMessage);
       setRecommendations([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    user,
+    profile,
+    wardrobeItems,
+    selectedOccasion,
+    includeAccessories,
+    weather,
+    executeWithCache,
+  ]);
 
-  // Debounced recommendation loading
-  const debouncedLoadRecommendations = debounce(loadRecommendations, 500);
+  // Debounced recommendation loading with stable reference
+  const debouncedLoadRecommendationsRef = useRef<
+    ((() => void) & { cancel?: () => void }) | null
+  >(null);
 
   useEffect(() => {
-    if (wardrobeItems.length > 0) {
-      debouncedLoadRecommendations();
+    debouncedLoadRecommendationsRef.current = debounce(
+      loadRecommendations,
+      500,
+    );
+
+    // Cleanup function
+    return () => {
+      if (
+        debouncedLoadRecommendationsRef.current &&
+        typeof debouncedLoadRecommendationsRef.current.cancel === "function"
+      ) {
+        debouncedLoadRecommendationsRef.current.cancel();
+      }
+    };
+  }, [debounce, loadRecommendations]);
+
+  useEffect(() => {
+    if (wardrobeItems.length > 0 && debouncedLoadRecommendationsRef.current) {
+      try {
+        debouncedLoadRecommendationsRef.current();
+      } catch (error) {
+        console.error("Error calling debounced function:", error);
+      }
     }
   }, [wardrobeItems, selectedOccasion, includeAccessories, weather]);
 
@@ -221,24 +393,22 @@ export const StyleRecommendations = () => {
     if (!user) return;
 
     try {
-      const outfit = recommendations.find(r => r.id === outfitId);
+      const outfit = recommendations.find((r) => r.id === outfitId);
       if (!outfit) return;
 
-      const { error } = await supabase
-        .from('outfit_feedback')
-        .insert({
-          user_id: user.id,
-          feedback: 'like',
-          outfit_item_ids: outfit.items.map(i => i.id)
-        });
+      const { error } = await supabase.from("outfit_feedback").insert({
+        user_id: user.id,
+        feedback: "like",
+        outfit_item_ids: outfit.items.map((i) => i.id),
+      });
 
       if (error) {
-        console.error('Error saving feedback:', error);
+        console.error("Error saving feedback:", error);
       } else {
-        console.log('Outfit feedback saved successfully');
+        console.log("Outfit feedback saved successfully");
       }
     } catch (error) {
-      console.error('Error saving feedback:', error);
+      console.error("Error saving feedback:", error);
     }
   };
 
@@ -248,8 +418,12 @@ export const StyleRecommendations = () => {
         <div className="flex items-center space-x-4">
           <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
           <div>
-            <h3 className="text-lg font-semibold">Loading your style assistant...</h3>
-            <p className="text-muted-foreground">Analyzing your wardrobe and preferences</p>
+            <h3 className="text-lg font-semibold">
+              Loading your style assistant...
+            </h3>
+            <p className="text-muted-foreground">
+              Analyzing your wardrobe and preferences
+            </p>
           </div>
         </div>
       </div>
@@ -264,7 +438,9 @@ export const StyleRecommendations = () => {
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Sparkles className="h-8 w-8 text-red-600" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Unable to Load Recommendations</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              Unable to Load Recommendations
+            </h3>
             <p className="text-muted-foreground mb-4">{error}</p>
             <Button onClick={loadWardrobeItems} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -300,12 +476,15 @@ export const StyleRecommendations = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="occasion">Occasion</Label>
-                <Select value={selectedOccasion} onValueChange={setSelectedOccasion}>
+                <Select
+                  value={selectedOccasion}
+                  onValueChange={setSelectedOccasion}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select occasion" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableOccasions.map(occasion => (
+                    {availableOccasions.map((occasion) => (
                       <SelectItem key={occasion} value={occasion}>
                         {occasion.charAt(0).toUpperCase() + occasion.slice(1)}
                       </SelectItem>
@@ -313,7 +492,7 @@ export const StyleRecommendations = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Switch
                   id="accessories"
@@ -349,9 +528,7 @@ export const StyleRecommendations = () => {
               </div>
             </div>
             {weather ? (
-              <Badge variant="secondary">
-                {getWeatherAdvice(weather)}
-              </Badge>
+              <Badge variant="secondary">{getWeatherAdvice(weather)}</Badge>
             ) : (
               <Badge variant="outline" className="text-xs">
                 Weather unavailable
@@ -380,7 +557,9 @@ export const StyleRecommendations = () => {
               onClick={loadRecommendations}
               disabled={loading}
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+              />
               Refresh
             </Button>
           </div>
@@ -400,7 +579,9 @@ export const StyleRecommendations = () => {
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Sparkles className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No Recommendations Available</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              No Recommendations Available
+            </h3>
             <p className="text-muted-foreground mb-4">
               Try adjusting your preferences or add more items to your wardrobe.
             </p>
@@ -412,10 +593,15 @@ export const StyleRecommendations = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {recommendations.map((outfit, index) => (
-            <Card key={outfit.id} className="group hover:shadow-lg transition-all duration-300">
+            <Card
+              key={outfit.id}
+              className="group hover:shadow-lg transition-all duration-300"
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{outfit.description}</CardTitle>
+                  <CardTitle className="text-lg">
+                    {outfit.description}
+                  </CardTitle>
                   <Badge variant="secondary" className="text-xs">
                     {Math.round(outfit.confidence * 100)}% match
                   </Badge>
@@ -424,7 +610,7 @@ export const StyleRecommendations = () => {
                   Perfect for {outfit.occasion} occasions
                 </p>
               </CardHeader>
-              
+
               <CardContent className="space-y-4">
                 {/* Outfit Items Grid */}
                 <div className="grid grid-cols-2 gap-2">
@@ -467,10 +653,14 @@ export const StyleRecommendations = () => {
                       <Eye className="h-4 w-4" />
                     </Button>
                   </div>
-                  
+
                   <div className="flex items-center space-x-1">
                     {outfit.reasoning.slice(0, 2).map((reason, reasonIndex) => (
-                      <Badge key={reasonIndex} variant="outline" className="text-xs">
+                      <Badge
+                        key={reasonIndex}
+                        variant="outline"
+                        className="text-xs"
+                      >
                         {reason}
                       </Badge>
                     ))}
@@ -500,12 +690,14 @@ export const StyleRecommendations = () => {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Upload your full body photo to see how this outfit looks on you. The clothing items are already selected from your recommendations.
+                  Upload your full body photo to see how this outfit looks on
+                  you. The clothing items are already selected from your
+                  recommendations.
                 </AlertDescription>
               </Alert>
             </div>
             <AdvancedVirtualTryOn
-              clothingImg={selectedOutfit.items[0]?.photo_url || ''}
+              clothingImg={selectedOutfit.items[0]?.photo_url || ""}
               clothingType="auto"
             />
           </div>

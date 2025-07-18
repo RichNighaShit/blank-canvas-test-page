@@ -40,24 +40,42 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
     fn: () => Promise<T>,
     ttl?: number,
   ): Promise<T> {
-    if (!enableCaching) {
-      return PerformanceMonitor.measureExecutionTime(key, fn);
+    try {
+      if (!enableCaching) {
+        return PerformanceMonitor.measureExecutionTime(key, fn);
+      }
+
+      const cacheKey = generateCacheKey({ key, namespace: cacheNamespace });
+
+      try {
+        const cached = PerformanceCache.get<T>(cacheKey, cacheNamespace);
+        if (cached) {
+          return Promise.resolve(cached);
+        }
+      } catch (cacheError) {
+        console.warn("Cache retrieval error:", cacheError);
+      }
+
+      return PerformanceMonitor.measureExecutionTime(key, fn)
+        .then((result) => {
+          try {
+            PerformanceCache.set(cacheKey, result, {
+              ttl,
+              namespace: cacheNamespace,
+            });
+          } catch (cacheError) {
+            console.warn("Cache storage error:", cacheError);
+          }
+          return result;
+        })
+        .catch((error) => {
+          console.error("Function execution error:", error);
+          throw error;
+        });
+    } catch (error) {
+      console.error("executeWithCache error:", error);
+      return Promise.reject(error);
     }
-
-    const cacheKey = generateCacheKey({ key, namespace: cacheNamespace });
-    const cached = PerformanceCache.get<T>(cacheKey, cacheNamespace);
-
-    if (cached) {
-      return Promise.resolve(cached);
-    }
-
-    return PerformanceMonitor.measureExecutionTime(key, fn).then((result) => {
-      PerformanceCache.set(cacheKey, result, {
-        ttl,
-        namespace: cacheNamespace,
-      });
-      return result;
-    });
   }
 
   // Optimized image loading
@@ -81,12 +99,43 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
   // Debounced function execution
   const debounce = useCallback(
     <T extends (...args: any[]) => any>(func: T, delay: number): T => {
-      let timeoutId: NodeJS.Timeout;
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-      return ((...args: Parameters<T>) => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => func(...args), delay);
-      }) as T;
+      const debouncedFn = (...args: Parameters<T>) => {
+        try {
+          if (timeoutId !== null) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+
+          timeoutId = setTimeout(() => {
+            timeoutId = null;
+            try {
+              const result = func(...args);
+              // Handle async functions properly
+              if (result && typeof result.catch === "function") {
+                result.catch((error: any) => {
+                  console.error("Error in async debounced function:", error);
+                });
+              }
+            } catch (error) {
+              console.error("Error in debounced function:", error);
+            }
+          }, delay);
+        } catch (error) {
+          console.error("Error setting up debounced function:", error);
+        }
+      };
+
+      // Add cleanup method to the debounced function
+      (debouncedFn as any).cancel = () => {
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+      };
+
+      return debouncedFn as T;
     },
     [],
   );
@@ -102,6 +151,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
           lastCall = now;
           return func(...args);
         }
+        return undefined;
       }) as T;
     },
     [],
