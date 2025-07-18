@@ -618,10 +618,10 @@ export class SimpleStyleAI {
       // Weather intelligence
       if (context.weather) {
         const weatherScore = this.calculateAdvancedWeatherScore(
-          outfit,
+          validItems,
           context.weather,
         );
-        confidence += weatherScore * 0.2;
+        confidence += weatherScore * scoringWeights.weather;
 
         if (weatherScore > 0.8) {
           reasoning.push(
