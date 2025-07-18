@@ -2,24 +2,72 @@ import React, { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import { PerformanceDashboard } from "./components/PerformanceDashboard";
 
-// Lazy load components for better bundle splitting
-const Dashboard = React.lazy(() => import("./pages/Dashboard"));
-const Wardrobe = React.lazy(() => import("./pages/Wardrobe"));
-const WardrobeSetup = React.lazy(() => import("./pages/WardrobeSetup"));
-const EditProfile = React.lazy(() => import("./pages/EditProfile"));
-const StyleRecommendations = React.lazy(
-  () => import("./pages/StyleRecommendations"),
+// Lazy load components with better error handling
+const Dashboard = React.lazy(() =>
+  import("./pages/Dashboard").catch(() => ({
+    default: () => <div>Error loading Dashboard</div>,
+  })),
 );
-const Analytics = React.lazy(() => import("./pages/Analytics"));
-const VirtualTryOn = React.lazy(() => import("./pages/VirtualTryOn"));
-const Auth = React.lazy(() => import("./pages/Auth"));
-const StyleMeImproved = React.lazy(() => import("./pages/StyleMeImproved"));
-const WardrobeAnalyticsPage = React.lazy(
-  () => import("./pages/WardrobeAnalyticsPage"),
+const Wardrobe = React.lazy(() =>
+  import("./pages/Wardrobe").catch(() => ({
+    default: () => <div>Error loading Wardrobe</div>,
+  })),
 );
-const Onboarding = React.lazy(() => import("./pages/Onboarding"));
-const Index = React.lazy(() => import("./pages/Index"));
-const NotFound = React.lazy(() => import("./pages/NotFound"));
+const WardrobeSetup = React.lazy(() =>
+  import("./pages/WardrobeSetup").catch(() => ({
+    default: () => <div>Error loading WardrobeSetup</div>,
+  })),
+);
+const EditProfile = React.lazy(() =>
+  import("./pages/EditProfile").catch(() => ({
+    default: () => <div>Error loading EditProfile</div>,
+  })),
+);
+const StyleRecommendations = React.lazy(() =>
+  import("./pages/StyleRecommendations").catch(() => ({
+    default: () => <div>Error loading StyleRecommendations</div>,
+  })),
+);
+const Analytics = React.lazy(() =>
+  import("./pages/Analytics").catch(() => ({
+    default: () => <div>Error loading Analytics</div>,
+  })),
+);
+const VirtualTryOn = React.lazy(() =>
+  import("./pages/VirtualTryOn").catch(() => ({
+    default: () => <div>Error loading VirtualTryOn</div>,
+  })),
+);
+const Auth = React.lazy(() =>
+  import("./pages/Auth").catch(() => ({
+    default: () => <div>Error loading Auth</div>,
+  })),
+);
+const StyleMeImproved = React.lazy(() =>
+  import("./pages/StyleMeImproved").catch(() => ({
+    default: () => <div>Error loading StyleMeImproved</div>,
+  })),
+);
+const WardrobeAnalyticsPage = React.lazy(() =>
+  import("./pages/WardrobeAnalyticsPage").catch(() => ({
+    default: () => <div>Error loading WardrobeAnalyticsPage</div>,
+  })),
+);
+const Onboarding = React.lazy(() =>
+  import("./pages/Onboarding").catch(() => ({
+    default: () => <div>Error loading Onboarding</div>,
+  })),
+);
+const Index = React.lazy(() =>
+  import("./pages/Index").catch(() => ({
+    default: () => <div>Error loading Index</div>,
+  })),
+);
+const NotFound = React.lazy(() =>
+  import("./pages/NotFound").catch(() => ({
+    default: () => <div>Error loading NotFound</div>,
+  })),
+);
 
 // Loading component for Suspense fallback
 const PageLoader = () => (
