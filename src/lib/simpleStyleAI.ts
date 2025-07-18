@@ -471,6 +471,18 @@ export class SimpleStyleAI {
     const fashionScore = this.calculateFashionScore(outfit, context);
     confidence += fashionScore * 0.1;
 
+    // Pattern and texture analysis
+    const patternAnalysis = this.checkPatternHarmony(outfit);
+    const textureAnalysis = this.checkTextureBalance(outfit);
+
+    if (patternAnalysis.score > 0.8) {
+      reasoning.push(patternAnalysis.reasoning);
+    }
+
+    if (textureAnalysis.score > 0.8) {
+      reasoning.push(textureAnalysis.reasoning);
+    }
+
     if (fashionScore > 0.7) {
       reasoning.push("Follows contemporary fashion principles");
     }
@@ -1407,7 +1419,7 @@ export class SimpleStyleAI {
       return `Winter-ready ensemble with appropriate coverage for snowy weather`;
     }
 
-    return `Perfectly suited for today's weather (${temp}°C, ${weather.condition})`;
+    return `Perfectly suited for today's weather (${temp}��C, ${weather.condition})`;
   }
 
   private areAnalogous(colors1: string[], colors2: string[]): boolean {
