@@ -48,61 +48,132 @@ export class SimpleStyleAI {
     context: { occasion: string; timeOfDay?: string; weather?: WeatherData },
     includeAccessories: boolean = true,
   ): OutfitRecommendation[] {
-    const currentTime = Date.now();
+    try {
+      // Input validation
+      if (!wardrobeItems || !Array.isArray(wardrobeItems)) {
+        console.warn("Invalid wardrobeItems provided:", wardrobeItems);
+        return [];
+      }
 
-    // Reset usage history if it's been more than 5 minutes since last generation
-    if (currentTime - this.lastGenerationTime > 300000) {
-      this.usedItemsHistory = {};
-    }
-    this.lastGenerationTime = currentTime;
+      if (wardrobeItems.length === 0) {
+        console.info("No wardrobe items provided for recommendations");
+        return [];
+      }
 
-    const recommendations: OutfitRecommendation[] = [];
+      if (!profile || !profile.preferred_style) {
+        console.warn("Invalid profile provided:", profile);
+        return [];
+      }
 
-    // Filter items by weather appropriateness first
-    const weatherFilteredItems = context.weather
-      ? this.filterByWeather(wardrobeItems, context.weather)
-      : wardrobeItems;
+      if (!context || !context.occasion) {
+        console.warn("Invalid context provided:", context);
+        return [];
+      }
 
-    // Group items by category
-    const itemsByCategory = this.groupByCategory(weatherFilteredItems);
-
-    // Generate diverse outfit combinations with weather context
-    const combinations = this.generateDiverseCombinations(
-      itemsByCategory,
-      context.occasion,
-      profile.preferred_style,
-      includeAccessories,
-      context.weather,
-    );
-
-    // Score and filter combinations
-    const scoredOutfits = combinations
-      .map((outfit) => this.scoreOutfit(outfit, profile, context))
-      .filter((outfit) => outfit.confidence > 0.4); // Lower threshold for more variety
-
-    // Sort by diversity score (prioritize unused items) then confidence
-    const diverseOutfits = scoredOutfits
-      .sort((a, b) => {
-        const diversityScoreA = this.calculateDiversityScore(a.items);
-        const diversityScoreB = this.calculateDiversityScore(b.items);
-
-        // If diversity scores are similar, sort by confidence
-        if (Math.abs(diversityScoreA - diversityScoreB) < 0.1) {
-          return b.confidence - a.confidence;
+      // Validate wardrobe items
+      const validItems = wardrobeItems.filter((item) => {
+        if (!item || !item.id || !item.category || !item.color) {
+          console.warn("Invalid wardrobe item:", item);
+          return false;
         }
-        return diversityScoreB - diversityScoreA;
-      })
-      .slice(0, 8); // Generate more options
-
-    // Update usage history
-    diverseOutfits.forEach((outfit) => {
-      outfit.items.forEach((item) => {
-        this.usedItemsHistory[item.id] =
-          (this.usedItemsHistory[item.id] || 0) + 1;
+        return true;
       });
-    });
 
-    return diverseOutfits.slice(0, 6); // Return top 6 diverse outfits
+      if (validItems.length === 0) {
+        console.warn("No valid wardrobe items found");
+        return [];
+      }
+
+      const currentTime = Date.now();
+
+      // Reset usage history if it's been more than 5 minutes since last generation
+      if (currentTime - this.lastGenerationTime > 300000) {
+        this.usedItemsHistory = {};
+      }
+      this.lastGenerationTime = currentTime;
+
+      const recommendations: OutfitRecommendation[] = [];
+
+      // Filter items by weather appropriateness first
+      const weatherFilteredItems = context.weather
+        ? this.filterByWeather(validItems, context.weather)
+        : validItems;
+
+      if (weatherFilteredItems.length === 0) {
+        console.info("No items suitable for current weather conditions");
+        return [];
+      }
+
+      // Group items by category
+      const itemsByCategory = this.groupByCategory(weatherFilteredItems);
+
+      // Generate diverse outfit combinations with weather context
+      const combinations = this.generateDiverseCombinations(
+        itemsByCategory,
+        context.occasion,
+        profile.preferred_style,
+        includeAccessories,
+        context.weather,
+      );
+
+      if (combinations.length === 0) {
+        console.info("No outfit combinations could be generated");
+        return [];
+      }
+
+      // Score and filter combinations
+      const scoredOutfits = combinations
+        .map((outfit) => {
+          try {
+            return this.scoreOutfit(outfit, profile, context);
+          } catch (error) {
+            console.warn("Error scoring outfit:", error, outfit);
+            return null;
+          }
+        })
+        .filter((outfit) => outfit !== null && outfit.confidence > 0.4); // Lower threshold for more variety
+
+      if (scoredOutfits.length === 0) {
+        console.info("No outfits met minimum confidence threshold");
+        return [];
+      }
+
+      // Sort by diversity score (prioritize unused items) then confidence
+      const diverseOutfits = scoredOutfits
+        .sort((a, b) => {
+          try {
+            const diversityScoreA = this.calculateDiversityScore(a.items);
+            const diversityScoreB = this.calculateDiversityScore(b.items);
+
+            // If diversity scores are similar, sort by confidence
+            if (Math.abs(diversityScoreA - diversityScoreB) < 0.1) {
+              return b.confidence - a.confidence;
+            }
+            return diversityScoreB - diversityScoreA;
+          } catch (error) {
+            console.warn("Error sorting outfits:", error);
+            return 0;
+          }
+        })
+        .slice(0, 8); // Generate more options
+
+      // Update usage history
+      try {
+        diverseOutfits.forEach((outfit) => {
+          outfit.items.forEach((item) => {
+            this.usedItemsHistory[item.id] =
+              (this.usedItemsHistory[item.id] || 0) + 1;
+          });
+        });
+      } catch (error) {
+        console.warn("Error updating usage history:", error);
+      }
+
+      return diverseOutfits.slice(0, 6); // Return top 6 diverse outfits
+    } catch (error) {
+      console.error("Unexpected error in generateRecommendations:", error);
+      return [];
+    }
   }
 
   private calculateDiversityScore(items: WardrobeItem[]): number {
@@ -1419,7 +1490,7 @@ export class SimpleStyleAI {
       return `Winter-ready ensemble with appropriate coverage for snowy weather`;
     }
 
-    return `Perfectly suited for today's weather (${temp}��C, ${weather.condition})`;
+    return `Perfectly suited for today's weather (${temp}°C, ${weather.condition})`;
   }
 
   private areAnalogous(colors1: string[], colors2: string[]): boolean {
