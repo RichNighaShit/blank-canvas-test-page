@@ -2038,6 +2038,247 @@ export class SimpleStyleAI {
       return "heavy";
     return "medium";
   }
+
+  private validateWardrobeItem(item: WardrobeItem): boolean {
+    try {
+      if (!item || typeof item !== "object") {
+        return false;
+      }
+
+      // Required fields
+      if (!item.id || typeof item.id !== "string" || item.id.trim() === "") {
+        console.warn("Invalid item ID:", item.id);
+        return false;
+      }
+
+      if (
+        !item.name ||
+        typeof item.name !== "string" ||
+        item.name.trim() === ""
+      ) {
+        console.warn("Invalid item name:", item.name);
+        return false;
+      }
+
+      if (
+        !item.category ||
+        typeof item.category !== "string" ||
+        item.category.trim() === ""
+      ) {
+        console.warn("Invalid item category:", item.category);
+        return false;
+      }
+
+      if (
+        !item.color ||
+        !Array.isArray(item.color) ||
+        item.color.length === 0
+      ) {
+        console.warn("Invalid item color:", item.color);
+        return false;
+      }
+
+      // Validate color array
+      if (
+        !item.color.every(
+          (color) => typeof color === "string" && color.trim() !== "",
+        )
+      ) {
+        console.warn("Invalid colors in item:", item.color);
+        return false;
+      }
+
+      // Optional fields validation
+      if (item.style && typeof item.style !== "string") {
+        console.warn("Invalid item style:", item.style);
+        return false;
+      }
+
+      if (
+        item.occasion &&
+        (!Array.isArray(item.occasion) ||
+          !item.occasion.every((occ) => typeof occ === "string"))
+      ) {
+        console.warn("Invalid item occasion:", item.occasion);
+        return false;
+      }
+
+      if (
+        item.season &&
+        (!Array.isArray(item.season) ||
+          !item.season.every((season) => typeof season === "string"))
+      ) {
+        console.warn("Invalid item season:", item.season);
+        return false;
+      }
+
+      if (
+        item.tags &&
+        (!Array.isArray(item.tags) ||
+          !item.tags.every((tag) => typeof tag === "string"))
+      ) {
+        console.warn("Invalid item tags:", item.tags);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error validating wardrobe item:", error);
+      return false;
+    }
+  }
+
+  private validateStyleProfile(profile: StyleProfile): boolean {
+    try {
+      if (!profile || typeof profile !== "object") {
+        return false;
+      }
+
+      if (
+        !profile.id ||
+        typeof profile.id !== "string" ||
+        profile.id.trim() === ""
+      ) {
+        console.warn("Invalid profile ID:", profile.id);
+        return false;
+      }
+
+      if (
+        !profile.preferred_style ||
+        typeof profile.preferred_style !== "string" ||
+        profile.preferred_style.trim() === ""
+      ) {
+        console.warn("Invalid preferred style:", profile.preferred_style);
+        return false;
+      }
+
+      if (
+        profile.favorite_colors &&
+        (!Array.isArray(profile.favorite_colors) ||
+          !profile.favorite_colors.every((color) => typeof color === "string"))
+      ) {
+        console.warn("Invalid favorite colors:", profile.favorite_colors);
+        return false;
+      }
+
+      if (
+        profile.goals &&
+        (!Array.isArray(profile.goals) ||
+          !profile.goals.every((goal) => typeof goal === "string"))
+      ) {
+        console.warn("Invalid goals:", profile.goals);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error validating style profile:", error);
+      return false;
+    }
+  }
+
+  private validateGenerationContext(context: {
+    occasion: string;
+    timeOfDay?: string;
+    weather?: WeatherData;
+  }): boolean {
+    try {
+      if (!context || typeof context !== "object") {
+        return false;
+      }
+
+      if (
+        !context.occasion ||
+        typeof context.occasion !== "string" ||
+        context.occasion.trim() === ""
+      ) {
+        console.warn("Invalid occasion:", context.occasion);
+        return false;
+      }
+
+      if (context.timeOfDay && typeof context.timeOfDay !== "string") {
+        console.warn("Invalid time of day:", context.timeOfDay);
+        return false;
+      }
+
+      if (context.weather && !this.validateWeatherData(context.weather)) {
+        console.warn("Invalid weather data:", context.weather);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error validating generation context:", error);
+      return false;
+    }
+  }
+
+  private validateWeatherData(weather: WeatherData): boolean {
+    try {
+      if (!weather || typeof weather !== "object") {
+        return false;
+      }
+
+      if (
+        weather.temperature === undefined ||
+        typeof weather.temperature !== "number"
+      ) {
+        console.warn("Invalid temperature:", weather.temperature);
+        return false;
+      }
+
+      if (!weather.condition || typeof weather.condition !== "string") {
+        console.warn("Invalid weather condition:", weather.condition);
+        return false;
+      }
+
+      if (
+        weather.humidity !== undefined &&
+        typeof weather.humidity !== "number"
+      ) {
+        console.warn("Invalid humidity:", weather.humidity);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error validating weather data:", error);
+      return false;
+    }
+  }
+
+  private sanitizeWardrobeItems(items: WardrobeItem[]): WardrobeItem[] {
+    try {
+      if (!Array.isArray(items)) {
+        return [];
+      }
+
+      return items
+        .filter((item) => this.validateWardrobeItem(item))
+        .map((item) => ({
+          ...item,
+          name: item.name.trim(),
+          category: item.category.trim().toLowerCase(),
+          color: item.color
+            .map((c) => c.trim().toLowerCase())
+            .filter((c) => c !== ""),
+          style: item.style?.trim().toLowerCase() || "casual",
+          occasion: item.occasion
+            ?.map((o) => o.trim().toLowerCase())
+            .filter((o) => o !== "") || ["casual"],
+          season: item.season
+            ?.map((s) => s.trim().toLowerCase())
+            .filter((s) => s !== "") || ["all"],
+          tags:
+            item.tags
+              ?.map((t) => t.trim().toLowerCase())
+              .filter((t) => t !== "") || [],
+        }));
+    } catch (error) {
+      console.error("Error sanitizing wardrobe items:", error);
+      return [];
+    }
+  }
 }
 
 // Export a singleton instance
