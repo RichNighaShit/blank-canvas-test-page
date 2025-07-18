@@ -541,28 +541,47 @@ export class SimpleStyleAI {
       let confidence = 0;
       const reasoning: string[] = [];
 
-      // Base confidence for having items
-      confidence += 0.2;
+      // Enhanced scoring system with weighted factors
+      const scoringWeights = {
+        base: 0.1,
+        diversity: 0.12,
+        style: 0.22,
+        colorHarmony: 0.18,
+        occasion: 0.2,
+        weather: 0.15,
+        completeness: 0.1,
+        fashion: 0.08,
+        goals: 0.05,
+      };
+
+      // Base confidence for having valid items
+      confidence += scoringWeights.base;
 
       // Diversity bonus - reward outfits with less-used items
-      const diversityBonus = this.calculateDiversityScore(outfit) * 0.15;
-      confidence += diversityBonus;
+      const diversityBonus = this.calculateDiversityScore(validItems);
+      confidence += diversityBonus * scoringWeights.diversity;
 
-      if (diversityBonus > 0.1) {
-        reasoning.push("Features fresh combinations from your wardrobe");
+      if (diversityBonus > 0.8) {
+        reasoning.push("Features fresh, rarely-used pieces from your wardrobe");
+      } else if (diversityBonus > 0.5) {
+        reasoning.push("Good variety from your wardrobe collection");
       }
 
       // Advanced style matching with cross-style compatibility
-      const styleScore = this.calculateAdvancedStyleScore(outfit, profile);
-      confidence += styleScore * 0.25;
+      const styleScore = this.calculateAdvancedStyleScore(validItems, profile);
+      confidence += styleScore * scoringWeights.style;
 
-      if (styleScore > 0.8) {
+      if (styleScore > 0.9) {
         reasoning.push(
-          `Expertly matches your ${profile.preferred_style} aesthetic`,
+          `Perfectly embodies your ${profile.preferred_style} aesthetic`,
         );
-      } else if (styleScore > 0.6) {
+      } else if (styleScore > 0.7) {
         reasoning.push(
-          `Complements your ${profile.preferred_style} style preference`,
+          `Expertly matches your ${profile.preferred_style} style`,
+        );
+      } else if (styleScore > 0.5) {
+        reasoning.push(
+          `Complements your ${profile.preferred_style} preference`,
         );
       }
 
