@@ -203,11 +203,20 @@ export class AccurateClothingAnalyzer {
           },
           body: JSON.stringify(requestBody),
         },
-      );
+      ).catch((fetchError) => {
+        console.warn("Vision API network error:", fetchError);
+        throw new Error(`Network error: ${fetchError.message}`);
+      });
 
       if (!response.ok) {
-        console.warn("Vision API request failed:", response.status);
-        return null;
+        console.warn(
+          "Vision API request failed:",
+          response.status,
+          response.statusText,
+        );
+        throw new Error(
+          `Vision API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: VisionAPIResponse = await response.json();
