@@ -54,7 +54,6 @@ function App() {
           <Route path="/style-me-improved" element={<StyleMeImproved />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/index" element={<Index />} />
-          <Route path="/test-analyzer" element={<ClothingAnalyzerTestPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
