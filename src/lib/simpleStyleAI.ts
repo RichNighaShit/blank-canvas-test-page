@@ -413,12 +413,27 @@ export class SimpleStyleAI {
         }
       });
 
-      // Generate top + bottom combinations with more variety
-      const maxCombinations = Math.min(tops.length, bottoms.length, 25); // More combinations for diversity
+      // Generate top + bottom combinations with enhanced variety
+      const maxCombinations = Math.min(tops.length * bottoms.length, 30); // Even more combinations
+      const usedPairs = new Set<string>();
 
       for (let i = 0; i < maxCombinations; i++) {
-        const top = tops[i % tops.length];
-        const bottom = bottoms[Math.floor(i / tops.length) % bottoms.length];
+        // Use different pairing strategies for variety
+        let top: WardrobeItem, bottom: WardrobeItem;
+
+        if (i < (tops.length * bottoms.length) / 2) {
+          // First half: systematic pairing
+          top = tops[i % tops.length];
+          bottom = bottoms[Math.floor(i / tops.length) % bottoms.length];
+        } else {
+          // Second half: random pairing for unexpected combinations
+          top = tops[Math.floor(Math.random() * tops.length)];
+          bottom = bottoms[Math.floor(Math.random() * bottoms.length)];
+        }
+
+        const pairKey = `${top.id}-${bottom.id}`;
+        if (usedPairs.has(pairKey)) continue;
+        usedPairs.add(pairKey);
 
         if (
           !this.isAppropriateForOccasion(top, occasion, preferredStyle) ||
