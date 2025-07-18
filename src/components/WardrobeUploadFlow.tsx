@@ -330,7 +330,17 @@ export const WardrobeUploadFlow = ({
         };
       }
 
-      throw new Error("AI analysis detected no clothing");
+      // Handle non-clothing items with proper user feedback
+      updateStage("ai-analysis", {
+        status: "failed",
+        progress: 100,
+        details: "❌ This doesn't appear to be a clothing item",
+        error: "Non-clothing item detected",
+      });
+
+      throw new Error(
+        `This image doesn't appear to be a clothing item. ${analysisResult.reasoning}. Please upload an image of clothing, shoes, or accessories.`,
+      );
     } catch (error) {
       console.warn("Advanced AI analysis failed, using smart fallback:", error);
 
