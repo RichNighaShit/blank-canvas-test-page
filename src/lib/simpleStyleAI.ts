@@ -224,7 +224,25 @@ export class SimpleStyleAI {
           console.warn("Error updating usage history:", error);
         }
 
-        return diverseOutfits.slice(0, 10); // Return top 10 diverse outfits
+        const finalRecommendations = diverseOutfits.slice(0, 10);
+
+        // Debug logging for failed generations
+        if (finalRecommendations.length === 0) {
+          console.error("RECOMMENDATION DEBUG:", {
+            totalItems: wardrobeItems.length,
+            validItems: validItems.length,
+            weatherFiltered: weatherFilteredItems.length,
+            combinations: combinations.length,
+            scoredOutfits: scoredOutfits.length,
+            occasion: context.occasion,
+            weather: context.weather,
+            itemsByCategory: Object.keys(itemsByCategory).map(
+              (cat) => `${cat}: ${itemsByCategory[cat].length}`,
+            ),
+          });
+        }
+
+        return finalRecommendations; // Return top 10 diverse outfits
       } catch (error) {
         console.error("Unexpected error in generateRecommendations:", error);
         this.log("Error in generateRecommendations", error);
