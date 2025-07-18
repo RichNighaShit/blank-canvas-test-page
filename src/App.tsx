@@ -39,38 +39,111 @@ function App() {
   return (
     <div className="min-h-screen bg-background">
       <Routes>
-        {/* Auth route without Suspense wrapper since it's not lazy loaded */}
+        {/* Auth route loads immediately without lazy loading */}
         <Route path="/auth" element={<Auth />} />
 
-        {/* Other routes with Suspense wrapper */}
+        {/* All other routes with Suspense for lazy loading */}
         <Route
-          path="/*"
+          path="/"
           element={
             <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/wardrobe" element={<Wardrobe />} />
-                <Route path="/wardrobe-setup" element={<WardrobeSetup />} />
-                <Route path="/edit-profile" element={<EditProfile />} />
-                <Route
-                  path="/recommendations"
-                  element={<StyleRecommendations />}
-                />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route
-                  path="/wardrobe-analytics"
-                  element={<WardrobeAnalyticsPage />}
-                />
-                <Route path="/virtual-try-on" element={<VirtualTryOn />} />
-                <Route
-                  path="/style-me-improved"
-                  element={<StyleMeImproved />}
-                />
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/index" element={<Index />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Dashboard />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Dashboard />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/wardrobe"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Wardrobe />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/wardrobe-setup"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <WardrobeSetup />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/edit-profile"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <EditProfile />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/recommendations"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <StyleRecommendations />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Analytics />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/wardrobe-analytics"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <WardrobeAnalyticsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/virtual-try-on"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <VirtualTryOn />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/style-me-improved"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <StyleMeImproved />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/onboarding"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Onboarding />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/index"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Index />
+            </Suspense>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <NotFound />
             </Suspense>
           }
         />
