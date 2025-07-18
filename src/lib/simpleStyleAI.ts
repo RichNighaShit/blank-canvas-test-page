@@ -145,7 +145,7 @@ export class SimpleStyleAI {
               return null;
             }
           })
-          .filter((outfit) => outfit !== null && outfit.confidence > 0.4); // Lower threshold for more variety
+          .filter((outfit) => outfit !== null && outfit.confidence > 0.25); // Even lower threshold for maximum variety
 
         if (scoredOutfits.length === 0) {
           console.info("No outfits met minimum confidence threshold");
@@ -169,7 +169,7 @@ export class SimpleStyleAI {
               return 0;
             }
           })
-          .slice(0, 8); // Generate more options
+          .slice(0, 12); // Generate even more options
 
         // Update usage history
         try {
@@ -183,7 +183,7 @@ export class SimpleStyleAI {
           console.warn("Error updating usage history:", error);
         }
 
-        return diverseOutfits.slice(0, 6); // Return top 6 diverse outfits
+        return diverseOutfits.slice(0, 8); // Return top 8 diverse outfits for more variety
       } catch (error) {
         console.error("Unexpected error in generateRecommendations:", error);
         this.log("Error in generateRecommendations", error);
@@ -285,7 +285,7 @@ export class SimpleStyleAI {
             );
           }
 
-          return true; // Default: include all items for mild weather
+          return true; // Default: include all items for mild weather - be more inclusive
         } catch (itemError) {
           console.warn("Error filtering item:", itemError, item);
           return false;
@@ -396,7 +396,7 @@ export class SimpleStyleAI {
       });
 
       // Generate top + bottom combinations with more variety
-      const maxCombinations = Math.min(tops.length, bottoms.length, 15); // Limit combinations
+      const maxCombinations = Math.min(tops.length, bottoms.length, 25); // More combinations for diversity
 
       for (let i = 0; i < maxCombinations; i++) {
         const top = tops[i % tops.length];
@@ -416,10 +416,11 @@ export class SimpleStyleAI {
         )
           continue;
 
-        // Use more flexible color matching for variety
+        // Use much more flexible color matching for maximum variety
         if (
           this.colorsWork(top.color, bottom.color) ||
-          this.hasNeutralColors(top.color, bottom.color)
+          this.hasNeutralColors(top.color, bottom.color) ||
+          this.isFlexibleColorMatch(top.color, bottom.color)
         ) {
           const outfit = [top, bottom];
 
