@@ -418,7 +418,7 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
-   * Smart category detection using multiple signals
+   * Enhanced smart category detection using multiple signals
    */
   private smartCategoryDetection(
     filename: string,
@@ -426,7 +426,7 @@ export class AccurateClothingAnalyzer {
   ): string {
     const fname = filename.toLowerCase();
 
-    // Enhanced filename analysis
+    // Enhanced filename analysis with more specific keywords
     const categoryKeywords = {
       tops: [
         "shirt",
@@ -439,6 +439,18 @@ export class AccurateClothingAnalyzer {
         "tshirt",
         "t-shirt",
         "tank",
+        "polo",
+        "henley",
+        "crop",
+        "tube",
+        "halter",
+        "camisole",
+        "vest",
+        "turtleneck",
+        "sweatshirt",
+        "jersey",
+        "bodysuit",
+        "leotard",
       ],
       bottoms: [
         "pant",
@@ -449,8 +461,42 @@ export class AccurateClothingAnalyzer {
         "skirt",
         "chino",
         "slack",
+        "khaki",
+        "cargo",
+        "jogger",
+        "sweatpant",
+        "yoga",
+        "capri",
+        "bermuda",
+        "culottes",
+        "palazzo",
+        "wide-leg",
+        "skinny",
+        "bootcut",
+        "straight-leg",
+        "flare",
       ],
-      dresses: ["dress", "gown", "frock", "sundress", "maxi", "mini"],
+      dresses: [
+        "dress",
+        "gown",
+        "frock",
+        "sundress",
+        "maxi",
+        "mini",
+        "midi",
+        "cocktail",
+        "evening",
+        "wedding",
+        "prom",
+        "formal",
+        "shift",
+        "wrap",
+        "a-line",
+        "bodycon",
+        "slip",
+        "tunic",
+        "kaftan",
+      ],
       outerwear: [
         "jacket",
         "coat",
@@ -459,6 +505,19 @@ export class AccurateClothingAnalyzer {
         "windbreaker",
         "bomber",
         "denim jacket",
+        "leather jacket",
+        "trench",
+        "peacoat",
+        "puffer",
+        "anorak",
+        "vest",
+        "poncho",
+        "cape",
+        "shawl",
+        "wrap",
+        "cardigan",
+        "overcoat",
+        "raincoat",
       ],
       shoes: [
         "shoe",
@@ -470,6 +529,28 @@ export class AccurateClothingAnalyzer {
         "loafer",
         "oxford",
         "runner",
+        "trainer",
+        "athletic",
+        "tennis",
+        "basketball",
+        "running",
+        "walking",
+        "hiking",
+        "combat",
+        "ankle",
+        "knee-high",
+        "platform",
+        "wedge",
+        "stiletto",
+        "flat",
+        "ballet",
+        "slip-on",
+        "lace-up",
+        "moccasin",
+        "clog",
+        "flip-flop",
+        "thong",
+        "slide",
       ],
       accessories: [
         "bag",
@@ -482,31 +563,104 @@ export class AccurateClothingAnalyzer {
         "watch",
         "necklace",
         "bracelet",
+        "earring",
+        "ring",
+        "brooch",
+        "pin",
+        "tie",
+        "bowtie",
+        "cufflink",
+        "glasses",
+        "sunglasses",
+        "glove",
+        "mitten",
+        "wallet",
+        "clutch",
+        "tote",
+        "crossbody",
+        "messenger",
+        "satchel",
+        "duffel",
+        "fanny",
+        "headband",
+        "hair",
+        "beanie",
+        "fedora",
+        "visor",
       ],
     };
 
-    // Check filename for category keywords
+    // Check filename for category keywords with confidence scoring
+    let bestMatch = { category: "", confidence: 0 };
+
     for (const [category, keywords] of Object.entries(categoryKeywords)) {
-      if (keywords.some((keyword) => fname.includes(keyword))) {
-        return category;
+      for (const keyword of keywords) {
+        if (fname.includes(keyword)) {
+          const confidence = keyword.length / fname.length; // Longer matches get higher confidence
+          if (confidence > bestMatch.confidence) {
+            bestMatch = { category, confidence };
+          }
+        }
       }
     }
 
-    // Image analysis for aspect ratio hints
-    const aspectRatio = imageElement.width / imageElement.height;
+    if (bestMatch.confidence > 0.1) {
+      return bestMatch.category;
+    }
 
-    // Shoes often have wider aspect ratios
-    if (aspectRatio > 1.3) {
+    // Advanced image analysis
+    const aspectRatio = imageElement.width / imageElement.height;
+    const imageAnalysis = this.analyzeImageShape(imageElement, aspectRatio);
+
+    return imageAnalysis;
+  }
+
+  /**
+   * Analyze image shape and characteristics for category detection
+   */
+  private analyzeImageShape(
+    imageElement: HTMLImageElement,
+    aspectRatio: number,
+  ): string {
+    const width = imageElement.width;
+    const height = imageElement.height;
+
+    // Very wide images are likely shoes or accessories
+    if (aspectRatio > 1.5) {
       return "shoes";
     }
 
-    // Dresses often have taller aspect ratios
-    if (aspectRatio < 0.7) {
+    // Very tall images are likely dresses or full-body shots
+    if (aspectRatio < 0.6) {
       return "dresses";
     }
 
-    // Default to tops as most common category
-    return "tops";
+    // Square-ish images with moderate size often accessories
+    if (
+      aspectRatio >= 0.8 &&
+      aspectRatio <= 1.2 &&
+      width < 800 &&
+      height < 800
+    ) {
+      return "accessories";
+    }
+
+    // Wider than tall but not extremely wide - likely tops or bottoms
+    if (aspectRatio > 1.0 && aspectRatio <= 1.5) {
+      // Use additional heuristics
+      return height > width * 0.8 ? "tops" : "bottoms";
+    }
+
+    // Taller than wide - likely tops, dresses, or outerwear
+    if (aspectRatio < 1.0) {
+      // Very tall suggests dresses
+      if (aspectRatio < 0.7) return "dresses";
+      // Moderately tall suggests tops or outerwear
+      return "tops";
+    }
+
+    // Default fallback with smarter logic
+    return "tops"; // Most common category
   }
 
   /**
