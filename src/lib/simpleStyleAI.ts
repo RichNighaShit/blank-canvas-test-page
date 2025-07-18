@@ -764,14 +764,35 @@ export class SimpleStyleAI {
       // Base confidence for having valid items
       confidence += scoringWeights.base;
 
-      // Diversity bonus - reward outfits with less-used items
+      // Enhanced diversity bonus with better explanations
       const diversityBonus = this.calculateDiversityScore(validItems);
       confidence += diversityBonus * scoringWeights.diversity;
 
-      if (diversityBonus > 0.8) {
+      if (diversityBonus > 1.0) {
+        reasoning.push(
+          "Exceptional variety - showcases different pieces beautifully",
+        );
+      } else if (diversityBonus > 0.8) {
         reasoning.push("Features fresh, rarely-used pieces from your wardrobe");
       } else if (diversityBonus > 0.5) {
         reasoning.push("Good variety from your wardrobe collection");
+      }
+
+      // Add specific diversity insights
+      const uniqueCategories = new Set(validItems.map((item) => item.category))
+        .size;
+      const uniqueStyles = new Set(validItems.map((item) => item.style)).size;
+      const uniqueColors = new Set(validItems.flatMap((item) => item.color))
+        .size;
+
+      if (uniqueCategories >= 4) {
+        reasoning.push("Great mix of clothing categories");
+      }
+      if (uniqueStyles > 1) {
+        reasoning.push("Interesting style blend");
+      }
+      if (uniqueColors >= 3 && uniqueColors <= 4) {
+        reasoning.push("Perfect color variety");
       }
 
       // Advanced style matching with cross-style compatibility
