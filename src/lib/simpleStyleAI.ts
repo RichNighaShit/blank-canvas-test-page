@@ -2156,8 +2156,8 @@ export class SimpleStyleAI {
       }
     }
 
-    // If no specific match, be more permissive (was too restrictive before)
-    return Math.random() > 0.3; // 70% chance colors work together
+    // If no specific match, be very permissive to ensure combinations
+    return Math.random() > 0.1; // 90% chance colors work together
   }
 
   private getSeasonalColorPalette(season: string): string[] {
