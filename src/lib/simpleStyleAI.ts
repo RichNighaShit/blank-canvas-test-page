@@ -350,23 +350,24 @@ export class SimpleStyleAI {
       dresses.sort(sortByUsage);
       shoes.sort(sortByUsage);
 
-      // Generate dress-based outfits with variety
+      // Generate dress-based outfits with more variety
       dresses.forEach((dress, index) => {
-        if (index > 4) return; // Limit to prevent too many combinations
+        if (index > 8) return; // Allow more dress combinations for diversity
 
         if (
           this.isAppropriateForOccasion(dress, occasion, preferredStyle) &&
           (this.usedItemsHistory[dress.id] || 0) <
-            this.MAX_ITEM_USAGE_PER_SESSION
+            this.MAX_ITEM_USAGE_PER_SESSION * 1.5 // Allow more usage for diversity
         ) {
           const outfit = [dress];
 
-          // Add varied shoes
+          // Add varied shoes with more flexible matching
           const suitableShoes = shoes.filter(
             (shoe) =>
-              this.colorsWork(dress.color, shoe.color) &&
+              (this.colorsWork(dress.color, shoe.color) ||
+                this.isFlexibleColorMatch(dress.color, shoe.color)) &&
               (this.usedItemsHistory[shoe.id] || 0) <
-                this.MAX_ITEM_USAGE_PER_SESSION,
+                this.MAX_ITEM_USAGE_PER_SESSION * 1.5,
           );
 
           if (suitableShoes.length > 0) {
