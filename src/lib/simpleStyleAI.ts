@@ -636,39 +636,48 @@ export class SimpleStyleAI {
       }
 
       // Outfit completeness and balance
-      const completenessScore = this.calculateCompletenessScore(outfit);
-      confidence += completenessScore * 0.15;
+      const completenessScore = this.calculateCompletenessScore(validItems);
+      confidence += completenessScore * scoringWeights.completeness;
 
-      if (completenessScore > 0.8) {
+      if (completenessScore > 0.9) {
+        reasoning.push("Perfectly complete and well-balanced outfit");
+      } else if (completenessScore > 0.7) {
         reasoning.push("Complete, well-balanced outfit");
       }
 
       // Trend relevance and fashion rules
-      const fashionScore = this.calculateFashionScore(outfit, context);
-      confidence += fashionScore * 0.1;
+      const fashionScore = this.calculateFashionScore(validItems, context);
+      confidence += fashionScore * scoringWeights.fashion;
 
       // Pattern and texture analysis
-      const patternAnalysis = this.checkPatternHarmony(outfit);
-      const textureAnalysis = this.checkTextureBalance(outfit);
+      const patternAnalysis = this.checkPatternHarmony(validItems);
+      const textureAnalysis = this.checkTextureBalance(validItems);
 
-      if (patternAnalysis.score > 0.8) {
+      if (patternAnalysis.score > 0.9) {
         reasoning.push(patternAnalysis.reasoning);
       }
 
-      if (textureAnalysis.score > 0.8) {
+      if (textureAnalysis.score > 0.9) {
         reasoning.push(textureAnalysis.reasoning);
       }
 
-      if (fashionScore > 0.7) {
-        reasoning.push("Follows contemporary fashion principles");
+      if (fashionScore > 0.8) {
+        reasoning.push("Expertly follows contemporary fashion principles");
+      } else if (fashionScore > 0.6) {
+        reasoning.push("Follows current fashion trends");
       }
 
       // Goal alignment (if user has specific goals)
       if (profile.goals && profile.goals.length > 0) {
-        const goalScore = this.calculateGoalAlignment(outfit, profile.goals);
-        confidence += goalScore * 0.1;
+        const goalScore = this.calculateGoalAlignment(
+          validItems,
+          profile.goals,
+        );
+        confidence += goalScore * scoringWeights.goals;
 
-        if (goalScore > 0.6) {
+        if (goalScore > 0.8) {
+          reasoning.push("Perfectly aligns with your style goals");
+        } else if (goalScore > 0.6) {
           reasoning.push("Aligns with your style goals");
         }
       }
