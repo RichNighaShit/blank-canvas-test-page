@@ -813,21 +813,19 @@ export class SimpleStyleAI {
         );
       }
 
-      // Enhanced color harmony analysis
-      const colorHarmonyScore = this.calculateColorHarmonyScore(
+      // Simplified color harmony analysis
+      const colorHarmonyScore = this.calculateSimplifiedColorHarmony(
         validItems,
         profile,
       );
       confidence += colorHarmonyScore * scoringWeights.colorHarmony;
 
-      if (colorHarmonyScore > 0.9) {
-        reasoning.push(
-          "Masterful color coordination creates stunning visual impact",
-        );
-      } else if (colorHarmonyScore > 0.7) {
-        reasoning.push("Exceptional color harmony creates visual flow");
-      } else if (colorHarmonyScore > 0.5) {
-        reasoning.push("Well-balanced color palette");
+      if (colorHarmonyScore > 0.8) {
+        reasoning.push("Beautiful color coordination");
+      } else if (colorHarmonyScore > 0.6) {
+        reasoning.push("Great color harmony");
+      } else if (colorHarmonyScore > 0.4) {
+        reasoning.push("Nice color balance");
       }
 
       // Occasion appropriateness with formality levels
