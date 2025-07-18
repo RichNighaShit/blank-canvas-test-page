@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-const Auth = () => {
+const Auth: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -373,4 +373,6 @@ const Auth = () => {
   );
 };
 
+// Ensure proper export for dynamic imports
+export { Auth };
 export default Auth;

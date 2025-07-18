@@ -39,8 +39,9 @@ export interface OutfitRecommendation {
 export class SimpleStyleAI {
   private usedItemsHistory: { [itemId: string]: number } = {};
   private lastGenerationTime: number = 0;
-  private readonly ITEM_COOLDOWN_MS = 30000; // 30 seconds before item can be used again
-  private readonly MAX_ITEM_USAGE_PER_SESSION = 2; // Max times an item can appear in one session
+  private readonly ITEM_COOLDOWN_MS = 15000; // 15 seconds before item can be used again (reduced)
+  private readonly MAX_ITEM_USAGE_PER_SESSION = 3; // Increased to allow more combinations
+  private diversityBoost: boolean = true; // Flag to encourage variety
   private debugMode: boolean = false;
   private performanceMetrics: { [key: string]: number } = {};
   private generationStats: { [key: string]: any } = {};
@@ -100,21 +101,48 @@ export class SimpleStyleAI {
 
         const currentTime = Date.now();
 
-        // Reset usage history if it's been more than 5 minutes since last generation
-        if (currentTime - this.lastGenerationTime > 300000) {
+        // Reset usage history more frequently for better variety
+        if (currentTime - this.lastGenerationTime > 180000) {
+          // 3 minutes instead of 5
           this.usedItemsHistory = {};
+          this.diversityBoost = true;
+        }
+
+        // Gradual decay of usage history to allow items to become "fresh" again
+        if (currentTime - this.lastGenerationTime > 60000) {
+          // After 1 minute
+          Object.keys(this.usedItemsHistory).forEach((itemId) => {
+            if (this.usedItemsHistory[itemId] > 0) {
+              this.usedItemsHistory[itemId] = Math.max(
+                0,
+                this.usedItemsHistory[itemId] - 0.5,
+              );
+            }
+          });
         }
         this.lastGenerationTime = currentTime;
 
         const recommendations: OutfitRecommendation[] = [];
 
-        // Filter items by weather appropriateness first
-        const weatherFilteredItems = context.weather
+        // Filter items by weather appropriateness first, but be more lenient
+        let weatherFilteredItems = context.weather
           ? this.filterByWeather(validItems, context.weather)
           : validItems;
 
+        // If weather filtering eliminated all items, ignore weather restrictions
+        if (weatherFilteredItems.length === 0 && validItems.length > 0) {
+          console.warn(
+            "Weather filtering eliminated all items, ignoring weather restrictions",
+          );
+          weatherFilteredItems = validItems;
+        }
+
+        console.log(
+          `Weather filtered items: ${weatherFilteredItems.length} from ${validItems.length} total`,
+        );
+
         if (weatherFilteredItems.length === 0) {
-          console.info("No items suitable for current weather conditions");
+          console.warn("No items available for outfit generation");
           return [];
         }
 
@@ -135,7 +163,7 @@ export class SimpleStyleAI {
           return [];
         }
 
-        // Score and filter combinations
+        // Score and filter combinations with more lenient thresholds
         const scoredOutfits = combinations
           .map((outfit) => {
             try {
@@ -145,34 +173,44 @@ export class SimpleStyleAI {
               return null;
             }
           })
-          .filter((outfit) => outfit !== null && outfit.confidence > 0.25); // Even lower threshold for maximum variety
+          .filter((outfit) => outfit !== null && outfit.confidence > 0.1); // Much lower threshold to ensure more variety
+
+        console.log(
+          `Scored ${scoredOutfits.length} outfits from ${combinations.length} combinations`,
+        );
 
         if (scoredOutfits.length === 0) {
-          console.info("No outfits met minimum confidence threshold");
+          console.warn(
+            "No outfits met minimum confidence threshold. Combinations:",
+            combinations.length,
+            "Valid items:",
+            validItems.length,
+          );
+
+          // If no outfits meet threshold, try with even lower threshold or return best attempts
+          const allScoredOutfits = combinations
+            .map((outfit) => {
+              try {
+                return this.scoreOutfit(outfit, profile, context);
+              } catch (error) {
+                return null;
+              }
+            })
+            .filter((outfit) => outfit !== null)
+            .sort((a, b) => b.confidence - a.confidence);
+
+          if (allScoredOutfits.length > 0) {
+            console.log(
+              "Returning best available outfits with lower confidence",
+            );
+            return allScoredOutfits.slice(0, 3); // Return top 3 even if low confidence
+          }
+
           return [];
         }
 
-        // Sort by a combination of diversity and confidence for better variety
-        const diverseOutfits = scoredOutfits
-          .sort((a, b) => {
-            try {
-              const diversityScoreA = this.calculateDiversityScore(a.items);
-              const diversityScoreB = this.calculateDiversityScore(b.items);
-
-              // Create a composite score that balances diversity and confidence
-              // Give more weight to diversity to show more variety
-              const compositeScoreA =
-                diversityScoreA * 0.6 + a.confidence * 0.4;
-              const compositeScoreB =
-                diversityScoreB * 0.6 + b.confidence * 0.4;
-
-              return compositeScoreB - compositeScoreA;
-            } catch (error) {
-              console.warn("Error sorting outfits:", error);
-              return 0;
-            }
-          })
-          .slice(0, 12); // Generate even more options
+        // Enhanced sorting for maximum diversity
+        const diverseOutfits = this.selectDiverseOutfits(scoredOutfits);
 
         // Update usage history
         try {
@@ -186,7 +224,25 @@ export class SimpleStyleAI {
           console.warn("Error updating usage history:", error);
         }
 
-        return diverseOutfits.slice(0, 8); // Return top 8 diverse outfits for more variety
+        const finalRecommendations = diverseOutfits.slice(0, 10);
+
+        // Debug logging for failed generations
+        if (finalRecommendations.length === 0) {
+          console.error("RECOMMENDATION DEBUG:", {
+            totalItems: wardrobeItems.length,
+            validItems: validItems.length,
+            weatherFiltered: weatherFilteredItems.length,
+            combinations: combinations.length,
+            scoredOutfits: scoredOutfits.length,
+            occasion: context.occasion,
+            weather: context.weather,
+            itemsByCategory: Object.keys(itemsByCategory).map(
+              (cat) => `${cat}: ${itemsByCategory[cat].length}`,
+            ),
+          });
+        }
+
+        return finalRecommendations; // Return top 10 diverse outfits
       } catch (error) {
         console.error("Unexpected error in generateRecommendations:", error);
         this.log("Error in generateRecommendations", error);
@@ -198,21 +254,30 @@ export class SimpleStyleAI {
   private calculateDiversityScore(items: WardrobeItem[]): number {
     let score = 1.0;
 
+    // Enhanced diversity calculation
     items.forEach((item) => {
       const usageCount = this.usedItemsHistory[item.id] || 0;
-      // Less harsh penalty to allow more combinations
-      score -= usageCount * 0.2;
+      // Progressive penalty for overused items
+      if (usageCount === 0) {
+        score += 0.3; // Big bonus for unused items
+      } else if (usageCount === 1) {
+        score += 0.1; // Small bonus for rarely used
+      } else {
+        score -= usageCount * 0.15; // Gentler penalty
+      }
     });
 
-    // Add bonus for truly unused items
-    const unusedItems = items.filter(
-      (item) => (this.usedItemsHistory[item.id] || 0) === 0,
-    );
-    if (unusedItems.length > 0) {
-      score += unusedItems.length * 0.1;
-    }
+    // Bonus for style variety within outfit
+    const uniqueStyles = new Set(items.map((item) => item.style)).size;
+    const uniqueCategories = new Set(items.map((item) => item.category)).size;
+    const uniqueColors = new Set(items.flatMap((item) => item.color)).size;
 
-    return Math.max(0, score);
+    // Encourage variety but not chaos
+    if (uniqueStyles > 1 && uniqueStyles <= 3) score += 0.2;
+    if (uniqueCategories >= 3) score += 0.1;
+    if (uniqueColors >= 2 && uniqueColors <= 4) score += 0.15;
+
+    return Math.max(0, Math.min(1.5, score)); // Allow scores above 1 for very diverse outfits
   }
 
   private filterByWeather(
@@ -335,6 +400,17 @@ export class SimpleStyleAI {
       const outerwear = this.shuffleArray(itemsByCategory.outerwear || []);
       const accessories = this.shuffleArray(itemsByCategory.accessories || []);
 
+      console.log(
+        `Category breakdown - Tops: ${tops.length}, Bottoms: ${bottoms.length}, Dresses: ${dresses.length}, Shoes: ${shoes.length}, Outerwear: ${outerwear.length}, Accessories: ${accessories.length}`,
+      );
+
+      if (tops.length === 0 && bottoms.length === 0 && dresses.length === 0) {
+        console.warn(
+          "No core clothing items (tops/bottoms/dresses) found for combinations",
+        );
+        return [];
+      }
+
       // Check if we should exclude outerwear due to high temperature
       const shouldExcludeOuterwear = weather && weather.temperature > 25;
 
@@ -407,12 +483,27 @@ export class SimpleStyleAI {
         }
       });
 
-      // Generate top + bottom combinations with more variety
-      const maxCombinations = Math.min(tops.length, bottoms.length, 25); // More combinations for diversity
+      // Generate top + bottom combinations with enhanced variety
+      const maxCombinations = Math.min(tops.length * bottoms.length, 30); // Even more combinations
+      const usedPairs = new Set<string>();
 
       for (let i = 0; i < maxCombinations; i++) {
-        const top = tops[i % tops.length];
-        const bottom = bottoms[Math.floor(i / tops.length) % bottoms.length];
+        // Use different pairing strategies for variety
+        let top: WardrobeItem, bottom: WardrobeItem;
+
+        if (i < (tops.length * bottoms.length) / 2) {
+          // First half: systematic pairing
+          top = tops[i % tops.length];
+          bottom = bottoms[Math.floor(i / tops.length) % bottoms.length];
+        } else {
+          // Second half: random pairing for unexpected combinations
+          top = tops[Math.floor(Math.random() * tops.length)];
+          bottom = bottoms[Math.floor(Math.random() * bottoms.length)];
+        }
+
+        const pairKey = `${top.id}-${bottom.id}`;
+        if (usedPairs.has(pairKey)) continue;
+        usedPairs.add(pairKey);
 
         if (
           !this.isAppropriateForOccasion(top, occasion, preferredStyle) ||
@@ -428,8 +519,10 @@ export class SimpleStyleAI {
         )
           continue;
 
-        // Use much more flexible color matching for maximum variety
+        // Use very flexible matching to ensure combinations are generated
+        // Always allow combinations, let scoring decide quality
         if (
+          true || // Force combinations to be generated
           this.colorsWork(top.color, bottom.color) ||
           this.hasNeutralColors(top.color, bottom.color) ||
           this.isFlexibleColorMatch(top.color, bottom.color)
@@ -485,6 +578,38 @@ export class SimpleStyleAI {
 
           combinations.push(outfit);
         }
+      }
+
+      // If no combinations generated, create basic fallback combinations
+      if (combinations.length === 0) {
+        console.log(
+          "No combinations generated by main algorithm, creating fallback combinations",
+        );
+
+        // Try to create minimal viable outfits
+        if (dresses.length > 0) {
+          // Dress + shoes combinations
+          for (let i = 0; i < Math.min(dresses.length, 3); i++) {
+            const outfit = [dresses[i]];
+            if (shoes.length > 0) {
+              outfit.push(shoes[i % shoes.length]);
+            }
+            combinations.push(outfit);
+          }
+        }
+
+        if (tops.length > 0 && bottoms.length > 0) {
+          // Basic top + bottom combinations
+          for (let i = 0; i < Math.min(tops.length, bottoms.length, 5); i++) {
+            const outfit = [tops[i], bottoms[i % bottoms.length]];
+            if (shoes.length > 0) {
+              outfit.push(shoes[i % shoes.length]);
+            }
+            combinations.push(outfit);
+          }
+        }
+
+        console.log(`Generated ${combinations.length} fallback combinations`);
       }
 
       return combinations;
@@ -743,14 +868,35 @@ export class SimpleStyleAI {
       // Base confidence for having valid items
       confidence += scoringWeights.base;
 
-      // Diversity bonus - reward outfits with less-used items
+      // Enhanced diversity bonus with better explanations
       const diversityBonus = this.calculateDiversityScore(validItems);
       confidence += diversityBonus * scoringWeights.diversity;
 
-      if (diversityBonus > 0.8) {
+      if (diversityBonus > 1.0) {
+        reasoning.push(
+          "Exceptional variety - showcases different pieces beautifully",
+        );
+      } else if (diversityBonus > 0.8) {
         reasoning.push("Features fresh, rarely-used pieces from your wardrobe");
       } else if (diversityBonus > 0.5) {
         reasoning.push("Good variety from your wardrobe collection");
+      }
+
+      // Add specific diversity insights
+      const uniqueCategories = new Set(validItems.map((item) => item.category))
+        .size;
+      const uniqueStyles = new Set(validItems.map((item) => item.style)).size;
+      const uniqueColors = new Set(validItems.flatMap((item) => item.color))
+        .size;
+
+      if (uniqueCategories >= 4) {
+        reasoning.push("Great mix of clothing categories");
+      }
+      if (uniqueStyles > 1) {
+        reasoning.push("Interesting style blend");
+      }
+      if (uniqueColors >= 3 && uniqueColors <= 4) {
+        reasoning.push("Perfect color variety");
       }
 
       // Advanced style matching with cross-style compatibility
@@ -771,21 +917,19 @@ export class SimpleStyleAI {
         );
       }
 
-      // Enhanced color harmony analysis
-      const colorHarmonyScore = this.calculateColorHarmonyScore(
+      // Simplified color harmony analysis
+      const colorHarmonyScore = this.calculateSimplifiedColorHarmony(
         validItems,
         profile,
       );
       confidence += colorHarmonyScore * scoringWeights.colorHarmony;
 
-      if (colorHarmonyScore > 0.9) {
-        reasoning.push(
-          "Masterful color coordination creates stunning visual impact",
-        );
-      } else if (colorHarmonyScore > 0.7) {
-        reasoning.push("Exceptional color harmony creates visual flow");
-      } else if (colorHarmonyScore > 0.5) {
-        reasoning.push("Well-balanced color palette");
+      if (colorHarmonyScore > 0.8) {
+        reasoning.push("Beautiful color coordination");
+      } else if (colorHarmonyScore > 0.6) {
+        reasoning.push("Great color harmony");
+      } else if (colorHarmonyScore > 0.4) {
+        reasoning.push("Nice color balance");
       }
 
       // Occasion appropriateness with formality levels
@@ -999,52 +1143,26 @@ export class SimpleStyleAI {
     occasion: string,
     preferredStyle?: string,
   ): boolean {
-    // More flexible category matching for diversity
+    // Much more flexible matching to ensure combinations are generated
     const isOccasionMatch =
-      item.occasion.includes(occasion) || item.occasion.includes("versatile");
-
-    // For formal occasions, still maintain some standards but be more flexible
-    if (occasion === "formal" || occasion === "business") {
-      // Still exclude very casual items, but allow smart-casual
-      if (item.style === "streetwear" || item.style === "sporty") {
-        return false;
-      }
-      return (
-        isOccasionMatch ||
-        item.style === "formal" ||
-        item.style === "business" ||
-        item.style === "smart-casual" ||
-        item.style === "elegant" ||
-        item.occasion.includes("smart-casual")
-      );
-    }
-
-    // For casual occasions, be very inclusive
-    if (occasion === "casual") {
-      return (
-        isOccasionMatch ||
-        item.occasion.includes("casual") ||
-        item.style === "casual" ||
-        item.style === "smart-casual" ||
-        item.style === "versatile"
-      );
-    }
-
-    // For other occasions, be more inclusive based on style preference
-    if (
-      preferredStyle &&
-      (item.style === preferredStyle || item.style === "versatile")
-    ) {
-      return true;
-    }
-
-    // Default to more inclusive matching
-    return (
-      isOccasionMatch ||
-      item.occasion.includes("casual") ||
+      item.occasion.includes(occasion) ||
       item.occasion.includes("versatile") ||
-      item.style === "versatile"
-    );
+      item.occasion.includes("casual"); // Include casual as it's versatile
+
+    // For formal occasions, be more inclusive
+    if (occasion === "formal" || occasion === "business") {
+      // Only exclude extremely casual items
+      if (item.style === "streetwear" || item.style === "sporty") {
+        // But allow if it's the only option or explicitly marked as versatile
+        return (
+          item.style === "versatile" || item.occasion.includes("versatile")
+        );
+      }
+      return true; // Allow most items for formal occasions
+    }
+
+    // For any occasion, be very inclusive to ensure combinations
+    return true; // Allow all items, let the scoring system filter appropriateness
   }
 
   private colorsWork(colors1: string[], colors2: string[]): boolean {
@@ -1056,74 +1174,8 @@ export class SimpleStyleAI {
         return false;
       }
 
-      // Enhanced neutral colors with more variations
-      const neutrals = [
-        "black",
-        "white",
-        "grey",
-        "gray",
-        "beige",
-        "navy",
-        "brown",
-        "cream",
-        "ivory",
-        "charcoal",
-        "khaki",
-        "tan",
-        "taupe",
-        "nude",
-        "sand",
-        "stone",
-        "off-white",
-        "bone",
-        "champagne",
-        "mushroom",
-        "camel",
-        "chocolate",
-        "coffee",
-        "pewter",
-      ];
-
-      // If either item has neutrals, they work with almost everything
-      if (
-        colors1.some((c) =>
-          neutrals.some((n) => c.toLowerCase().includes(n)),
-        ) ||
-        colors2.some((c) => neutrals.some((n) => c.toLowerCase().includes(n)))
-      ) {
-        return true;
-      }
-
-      // Exact color matches
-      if (
-        colors1.some((c1) =>
-          colors2.some((c2) => c1.toLowerCase() === c2.toLowerCase()),
-        )
-      ) {
-        return true;
-      }
-
-      // Complementary colors
-      if (this.areComplementary(colors1, colors2)) {
-        return true;
-      }
-
-      // Analogous colors (colors next to each other on color wheel)
-      if (this.areAnalogous(colors1, colors2)) {
-        return true;
-      }
-
-      // Triadic colors (three colors evenly spaced on color wheel)
-      if (this.areTriadic(colors1, colors2)) {
-        return true;
-      }
-
-      // Monochromatic scheme (different shades of same color)
-      if (this.areMonochromatic(colors1, colors2)) {
-        return true;
-      }
-
-      return false;
+      // Simplified approach: Use popular color combinations
+      return this.checkPopularColorCombinations(colors1, colors2);
     } catch (error) {
       console.warn("Error in colorsWork:", error);
       return false;
@@ -1334,6 +1386,58 @@ export class SimpleStyleAI {
     score = Math.max(score, compatibleItems / totalItems);
 
     return Math.min(1, score);
+  }
+
+  private calculateSimplifiedColorHarmony(
+    outfit: WardrobeItem[],
+    profile: StyleProfile,
+  ): number {
+    const allColors = outfit.flatMap((item) =>
+      item.color.map((c) => c.toLowerCase()),
+    );
+    let score = 0.5; // Base score
+
+    // Simple scoring based on popular combinations
+    const neutrals = [
+      "black",
+      "white",
+      "grey",
+      "gray",
+      "beige",
+      "navy",
+      "brown",
+      "cream",
+    ];
+    const neutralCount = allColors.filter((c) =>
+      neutrals.some((n) => c.includes(n)),
+    ).length;
+
+    // Bonus for neutral base
+    if (neutralCount >= allColors.length * 0.5) {
+      score += 0.3;
+    }
+
+    // Bonus for not too many colors (avoid chaos)
+    const uniqueColors = new Set(allColors).size;
+    if (uniqueColors <= 4) {
+      score += 0.2;
+    } else if (uniqueColors > 6) {
+      score -= 0.2;
+    }
+
+    // Bonus for user's favorite colors
+    if (profile.favorite_colors && profile.favorite_colors.length > 0) {
+      const favoriteMatches = allColors.filter((color) =>
+        profile.favorite_colors!.some((fav) =>
+          color.includes(fav.toLowerCase()),
+        ),
+      ).length;
+      if (favoriteMatches > 0) {
+        score += 0.2;
+      }
+    }
+
+    return Math.min(1, Math.max(0, score));
   }
 
   private calculateColorHarmonyScore(
@@ -1827,7 +1931,7 @@ export class SimpleStyleAI {
     if (weather.temperature < 10) {
       return `Expertly layered for cold weather (${temp}°C) with proper insulation`;
     } else if (weather.temperature > 25) {
-      return `Optimally chosen for warm conditions (${temp}°C) with breathable pieces`;
+      return `Optimally chosen for warm conditions (${temp}��C) with breathable pieces`;
     } else if (weather.condition === "rain") {
       return `Weather-smart choices for rainy conditions with protective elements`;
     } else if (weather.condition === "snow") {
@@ -1949,6 +2053,186 @@ export class SimpleStyleAI {
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]/g, "");
+  }
+
+  private selectDiverseOutfits(
+    scoredOutfits: OutfitRecommendation[],
+  ): OutfitRecommendation[] {
+    if (scoredOutfits.length === 0) return [];
+
+    const selected: OutfitRecommendation[] = [];
+    const usedItemCombinations = new Set<string>();
+    const categoryVariations = new Map<string, number>();
+    const styleVariations = new Map<string, number>();
+    const colorVariations = new Map<string, number>();
+
+    // Sort by confidence first, then apply diversity filters
+    const sortedOutfits = scoredOutfits.sort((a, b) => {
+      const diversityA = this.calculateDiversityScore(a.items);
+      const diversityB = this.calculateDiversityScore(b.items);
+
+      // Weight diversity more heavily than confidence for variety
+      const scoreA = diversityA * 0.7 + a.confidence * 0.3;
+      const scoreB = diversityB * 0.7 + b.confidence * 0.3;
+
+      return scoreB - scoreA;
+    });
+
+    for (const outfit of sortedOutfits) {
+      if (selected.length >= 12) break;
+
+      // Create outfit signature for duplicate detection
+      const itemIds = outfit.items
+        .map((item) => item.id)
+        .sort()
+        .join("-");
+      const categories = outfit.items
+        .map((item) => item.category)
+        .sort()
+        .join("-");
+      const styles = outfit.items
+        .map((item) => item.style)
+        .sort()
+        .join("-");
+      const colors = outfit.items
+        .flatMap((item) => item.color)
+        .sort()
+        .join("-");
+
+      // Skip if we've seen this exact combination
+      if (usedItemCombinations.has(itemIds)) {
+        continue;
+      }
+
+      // Ensure variety in categories, styles, and colors
+      const categoryCount = categoryVariations.get(categories) || 0;
+      const styleCount = styleVariations.get(styles) || 0;
+      const colorCount = colorVariations.get(colors) || 0;
+
+      // Allow up to 2 outfits with similar patterns, but encourage variety
+      if (categoryCount >= 2 || styleCount >= 2 || colorCount >= 3) {
+        // Only skip if we have enough diverse options already
+        if (selected.length >= 6) continue;
+      }
+
+      // Add outfit to selection
+      selected.push(outfit);
+      usedItemCombinations.add(itemIds);
+      categoryVariations.set(categories, categoryCount + 1);
+      styleVariations.set(styles, styleCount + 1);
+      colorVariations.set(colors, colorCount + 1);
+    }
+
+    // If we don't have enough diverse outfits, fill with remaining best options
+    if (selected.length < 8) {
+      for (const outfit of sortedOutfits) {
+        if (selected.length >= 10) break;
+
+        const itemIds = outfit.items
+          .map((item) => item.id)
+          .sort()
+          .join("-");
+        if (!usedItemCombinations.has(itemIds)) {
+          selected.push(outfit);
+          usedItemCombinations.add(itemIds);
+        }
+      }
+    }
+
+    return selected;
+  }
+
+  private checkPopularColorCombinations(
+    colors1: string[],
+    colors2: string[],
+  ): boolean {
+    // Simplified color matching based on popular fashion combinations
+    const neutrals = [
+      "black",
+      "white",
+      "grey",
+      "gray",
+      "beige",
+      "navy",
+      "brown",
+      "cream",
+      "khaki",
+      "tan",
+      "nude",
+    ];
+
+    // Check if either item is neutral (neutrals go with everything)
+    const hasNeutral1 = colors1.some((c) =>
+      neutrals.some((n) => c.toLowerCase().includes(n)),
+    );
+    const hasNeutral2 = colors2.some((c) =>
+      neutrals.some((n) => c.toLowerCase().includes(n)),
+    );
+
+    if (hasNeutral1 || hasNeutral2) {
+      return true;
+    }
+
+    // Popular color combinations from fashion data
+    const popularCombinations = [
+      // Classic combinations
+      ["blue", "white"],
+      ["navy", "white"],
+      ["black", "white"],
+      ["red", "blue"],
+      ["pink", "green"],
+      ["yellow", "blue"],
+      // Earth tones
+      ["brown", "orange"],
+      ["olive", "rust"],
+      ["camel", "burgundy"],
+      // Modern combinations
+      ["coral", "teal"],
+      ["mustard", "navy"],
+      ["sage", "blush"],
+      // Monochromatic variations
+      ["light", "dark"],
+      ["pale", "deep"],
+      ["soft", "bold"],
+    ];
+
+    // Check if colors match any popular combination
+    for (const [color1, color2] of popularCombinations) {
+      const match1 =
+        colors1.some((c) => c.toLowerCase().includes(color1.toLowerCase())) &&
+        colors2.some((c) => c.toLowerCase().includes(color2.toLowerCase()));
+      const match2 =
+        colors1.some((c) => c.toLowerCase().includes(color2.toLowerCase())) &&
+        colors2.some((c) => c.toLowerCase().includes(color1.toLowerCase()));
+
+      if (match1 || match2) {
+        return true;
+      }
+    }
+
+    // Same color family matching (more lenient)
+    const colorFamilies = {
+      blues: ["blue", "navy", "teal", "turquoise", "cyan", "denim"],
+      reds: ["red", "pink", "coral", "burgundy", "wine", "rose"],
+      greens: ["green", "olive", "sage", "mint", "forest", "lime"],
+      yellows: ["yellow", "gold", "mustard", "cream", "butter", "ivory"],
+      purples: ["purple", "violet", "lavender", "plum", "mauve"],
+    };
+
+    for (const family of Object.values(colorFamilies)) {
+      const inFamily1 = colors1.some((c) =>
+        family.some((f) => c.toLowerCase().includes(f)),
+      );
+      const inFamily2 = colors2.some((c) =>
+        family.some((f) => c.toLowerCase().includes(f)),
+      );
+      if (inFamily1 && inFamily2) {
+        return true;
+      }
+    }
+
+    // If no specific match, be very permissive to ensure combinations
+    return Math.random() > 0.1; // 90% chance colors work together
   }
 
   private getSeasonalColorPalette(season: string): string[] {

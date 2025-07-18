@@ -149,6 +149,70 @@ export const useWeather = (location?: string) => {
     }
   };
 
+  const tryAlternativeLocations = async (originalLocation: string) => {
+    const alternatives = [];
+
+    // Handle Pakistan-specific location variants
+    if (originalLocation.toLowerCase().includes("pakistan")) {
+      const baseLocation = originalLocation.replace(/,\s*pakistan/i, "").trim();
+
+      // Common Pakistan city alternatives
+      if (baseLocation.toLowerCase().includes("wah")) {
+        alternatives.push(
+          "Wah",
+          "Wah Cantt",
+          "Rawalpindi, Pakistan",
+          "Islamabad, Pakistan",
+        );
+      }
+
+      // Add major Pakistan cities as fallbacks
+      alternatives.push(
+        "Lahore, Pakistan",
+        "Karachi, Pakistan",
+        "Islamabad, Pakistan",
+        "Rawalpindi, Pakistan",
+        "Faisalabad, Pakistan",
+      );
+    }
+
+    // Generic alternatives - try without country, then major cities
+    const locationParts = originalLocation.split(",");
+    if (locationParts.length > 1) {
+      alternatives.push(locationParts[0].trim()); // Just the city name
+      alternatives.push(locationParts.slice(0, -1).join(",").trim()); // Without last part
+    }
+
+    // Try each alternative
+    for (const altLocation of alternatives) {
+      try {
+        console.log(`Trying alternative location: ${altLocation}`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const geoRes = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(altLocation)}&count=1&language=en&format=json`,
+          { signal: controller.signal },
+        );
+
+        clearTimeout(timeoutId);
+
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          if (geoData.results && geoData.results.length > 0) {
+            console.log(`Found alternative location: ${altLocation}`);
+            return geoData.results[0];
+          }
+        }
+      } catch (error) {
+        console.log(`Alternative ${altLocation} failed:`, error);
+        continue;
+      }
+    }
+
+    return null;
+  };
+
   const fetchWeather = async (userLocation?: string) => {
     setLoading(true);
     setError(null);
@@ -209,6 +273,28 @@ export const useWeather = (location?: string) => {
         const geoData = await geoRes.json();
 
         if (!geoData.results || geoData.results.length === 0) {
+          console.warn(
+            `Location "${locationToUse}" not found, trying alternatives...`,
+          );
+
+          // Try alternative location names for Pakistan locations
+          const alternativeLocations =
+            await tryAlternativeLocations(locationToUse);
+          if (alternativeLocations) {
+            const { latitude, longitude, name, country } = alternativeLocations;
+            await fetchWeatherByCoordinates(
+              latitude,
+              longitude,
+              `${name}, ${country}`,
+            );
+            setWeather((prev) =>
+              prev
+                ? { ...prev, source: userLocation ? "profile" : "default" }
+                : null,
+            );
+            return;
+          }
+
           throw new Error(`Location "${locationToUse}" not found`);
         }
 
@@ -241,50 +327,49 @@ export const useWeather = (location?: string) => {
         }
       }
     } catch (err: any) {
-      setError(
-        "Weather information not available. Generating recommendations without weather data.",
-      );
       console.error(
         "Weather fetch error:",
         err instanceof Error ? err.message : String(err),
       );
-      setWeather(null);
+
+      // Provide default weather data as final fallback
+      const defaultWeather: WeatherData = {
+        temperature: 22, // Comfortable default temperature
+        condition: "clear",
+        humidity: 60,
+        windSpeed: 5,
+        description: "Weather data unavailable - using default conditions",
+        location: userLocation || location || "Unknown location",
+        source: "default",
+      };
+
+      setWeather(defaultWeather);
+      setError(
+        "Using default weather conditions. Location-specific weather not available.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const getWeatherAdvice = (weatherData: WeatherData): string[] => {
-    const advice: string[] = [];
+  const getWeatherAdvice = (weatherData: WeatherData): string => {
+    // For default weather or when location is unavailable, provide general advice
+    if (
+      weatherData.source === "default" ||
+      weatherData.description.includes("unavailable")
+    ) {
+      return "Comfortable conditions";
+    }
 
     if (weatherData.temperature < 10) {
-      advice.push("Wear warm layers and a coat");
-      advice.push("Consider gloves and a scarf");
+      return "Cold - wear warm layers";
     } else if (weatherData.temperature < 20) {
-      advice.push("Layer with a light jacket or sweater");
-      advice.push("Long sleeves recommended");
+      return "Cool - light jacket recommended";
     } else if (weatherData.temperature > 25) {
-      advice.push("Light, breathable fabrics recommended");
-      advice.push("Short sleeves and light colors");
+      return "Warm - light fabrics recommended";
+    } else {
+      return "Comfortable temperature";
     }
-
-    if (weatherData.condition === "rain") {
-      advice.push("Waterproof jacket or umbrella needed");
-      advice.push("Closed-toe shoes recommended");
-    } else if (weatherData.condition === "snow") {
-      advice.push("Warm, waterproof outerwear essential");
-      advice.push("Insulated boots recommended");
-    }
-
-    if (weatherData.humidity > 70) {
-      advice.push("Breathable fabrics to stay comfortable");
-    }
-
-    if (weatherData.windSpeed > 15) {
-      advice.push("Consider wind-resistant outerwear");
-    }
-
-    return advice;
   };
 
   const getWeatherStatus = () => {
