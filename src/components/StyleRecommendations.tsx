@@ -268,12 +268,20 @@ export const StyleRecommendations = () => {
         );
       }
 
-      // Create style profile
+      // Create and validate style profile
+      if (!profile.id || !profile.preferred_style) {
+        throw new Error(
+          "Invalid user profile. Please complete your profile setup.",
+        );
+      }
+
       const styleProfile: StyleProfile = {
         id: profile.id,
         preferred_style: profile.preferred_style || "casual",
-        favorite_colors: profile.favorite_colors || [],
-        goals: profile.goals || [],
+        favorite_colors: Array.isArray(profile.favorite_colors)
+          ? profile.favorite_colors
+          : [],
+        goals: Array.isArray(profile.goals) ? profile.goals : [],
       };
 
       console.log(
