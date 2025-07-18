@@ -903,8 +903,12 @@ export const WardrobeUploadFlow = ({
         });
       }
 
+      const isNonClothingError =
+        error instanceof Error &&
+        error.message.includes("doesn't appear to be a clothing item");
+
       toast({
-        title: "Upload Failed",
+        title: isNonClothingError ? "Not a Clothing Item" : "Upload Failed",
         description:
           error instanceof Error ? error.message : "Please try again",
         variant: "destructive",
