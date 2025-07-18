@@ -124,22 +124,40 @@ export const StyleRecommendations = () => {
 
       if (fetchError) {
         console.error("Error fetching wardrobe items:", fetchError);
-        throw new Error("Failed to load your wardrobe items");
+        throw new Error(
+          `Failed to load your wardrobe items: ${fetchError.message}`,
+        );
       }
 
       console.log("Fetched wardrobe items:", items);
 
-      let mappedItems: WardrobeItem[] = (items || []).map((item) => ({
-        id: item.id,
-        name: item.name,
-        photo_url: item.photo_url || "",
-        category: item.category,
-        color: item.color || [],
-        style: item.style || "casual",
-        occasion: item.occasion || ["casual"],
-        season: item.season || ["all"],
-        tags: item.tags || [],
-      }));
+      if (!items || !Array.isArray(items)) {
+        console.warn("No wardrobe items found or invalid response:", items);
+        setWardrobeItems([]);
+        setAvailableOccasions(["casual"]);
+        return;
+      }
+
+      // Validate and sanitize items
+      const mappedItems: WardrobeItem[] = items
+        .filter((item) => {
+          if (!item || !item.id || !item.name || !item.category) {
+            console.warn("Invalid wardrobe item:", item);
+            return false;
+          }
+          return true;
+        })
+        .map((item) => ({
+          id: item.id,
+          name: item.name || "Unnamed Item",
+          photo_url: item.photo_url || "",
+          category: item.category || "other",
+          color: Array.isArray(item.color) ? item.color : [],
+          style: item.style || "casual",
+          occasion: Array.isArray(item.occasion) ? item.occasion : ["casual"],
+          season: Array.isArray(item.season) ? item.season : ["all"],
+          tags: Array.isArray(item.tags) ? item.tags : [],
+        }));
 
       setWardrobeItems(mappedItems);
       extractOccasions(mappedItems);
