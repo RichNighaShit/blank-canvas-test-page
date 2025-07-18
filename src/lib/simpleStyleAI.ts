@@ -151,7 +151,7 @@ export class SimpleStyleAI {
           return [];
         }
 
-        // Score and filter combinations
+        // Score and filter combinations with more lenient thresholds
         const scoredOutfits = combinations
           .map((outfit) => {
             try {
@@ -161,10 +161,39 @@ export class SimpleStyleAI {
               return null;
             }
           })
-          .filter((outfit) => outfit !== null && outfit.confidence > 0.25); // Even lower threshold for maximum variety
+          .filter((outfit) => outfit !== null && outfit.confidence > 0.1); // Much lower threshold to ensure more variety
+
+        console.log(
+          `Scored ${scoredOutfits.length} outfits from ${combinations.length} combinations`,
+        );
 
         if (scoredOutfits.length === 0) {
-          console.info("No outfits met minimum confidence threshold");
+          console.warn(
+            "No outfits met minimum confidence threshold. Combinations:",
+            combinations.length,
+            "Valid items:",
+            validItems.length,
+          );
+
+          // If no outfits meet threshold, try with even lower threshold or return best attempts
+          const allScoredOutfits = combinations
+            .map((outfit) => {
+              try {
+                return this.scoreOutfit(outfit, profile, context);
+              } catch (error) {
+                return null;
+              }
+            })
+            .filter((outfit) => outfit !== null)
+            .sort((a, b) => b.confidence - a.confidence);
+
+          if (allScoredOutfits.length > 0) {
+            console.log(
+              "Returning best available outfits with lower confidence",
+            );
+            return allScoredOutfits.slice(0, 3); // Return top 3 even if low confidence
+          }
+
           return [];
         }
 
