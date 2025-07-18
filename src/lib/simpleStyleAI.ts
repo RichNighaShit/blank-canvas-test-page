@@ -478,8 +478,10 @@ export class SimpleStyleAI {
         )
           continue;
 
-        // Use much more flexible color matching for maximum variety
+        // Use very flexible matching to ensure combinations are generated
+        // Always allow combinations, let scoring decide quality
         if (
+          true || // Force combinations to be generated
           this.colorsWork(top.color, bottom.color) ||
           this.hasNeutralColors(top.color, bottom.color) ||
           this.isFlexibleColorMatch(top.color, bottom.color)
