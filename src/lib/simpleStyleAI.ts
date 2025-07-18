@@ -1894,6 +1894,99 @@ export class SimpleStyleAI {
       .replace(/[^a-z0-9]/g, "");
   }
 
+  private checkPopularColorCombinations(
+    colors1: string[],
+    colors2: string[],
+  ): boolean {
+    // Simplified color matching based on popular fashion combinations
+    const neutrals = [
+      "black",
+      "white",
+      "grey",
+      "gray",
+      "beige",
+      "navy",
+      "brown",
+      "cream",
+      "khaki",
+      "tan",
+      "nude",
+    ];
+
+    // Check if either item is neutral (neutrals go with everything)
+    const hasNeutral1 = colors1.some((c) =>
+      neutrals.some((n) => c.toLowerCase().includes(n)),
+    );
+    const hasNeutral2 = colors2.some((c) =>
+      neutrals.some((n) => c.toLowerCase().includes(n)),
+    );
+
+    if (hasNeutral1 || hasNeutral2) {
+      return true;
+    }
+
+    // Popular color combinations from fashion data
+    const popularCombinations = [
+      // Classic combinations
+      ["blue", "white"],
+      ["navy", "white"],
+      ["black", "white"],
+      ["red", "blue"],
+      ["pink", "green"],
+      ["yellow", "blue"],
+      // Earth tones
+      ["brown", "orange"],
+      ["olive", "rust"],
+      ["camel", "burgundy"],
+      // Modern combinations
+      ["coral", "teal"],
+      ["mustard", "navy"],
+      ["sage", "blush"],
+      // Monochromatic variations
+      ["light", "dark"],
+      ["pale", "deep"],
+      ["soft", "bold"],
+    ];
+
+    // Check if colors match any popular combination
+    for (const [color1, color2] of popularCombinations) {
+      const match1 =
+        colors1.some((c) => c.toLowerCase().includes(color1.toLowerCase())) &&
+        colors2.some((c) => c.toLowerCase().includes(color2.toLowerCase()));
+      const match2 =
+        colors1.some((c) => c.toLowerCase().includes(color2.toLowerCase())) &&
+        colors2.some((c) => c.toLowerCase().includes(color1.toLowerCase()));
+
+      if (match1 || match2) {
+        return true;
+      }
+    }
+
+    // Same color family matching (more lenient)
+    const colorFamilies = {
+      blues: ["blue", "navy", "teal", "turquoise", "cyan", "denim"],
+      reds: ["red", "pink", "coral", "burgundy", "wine", "rose"],
+      greens: ["green", "olive", "sage", "mint", "forest", "lime"],
+      yellows: ["yellow", "gold", "mustard", "cream", "butter", "ivory"],
+      purples: ["purple", "violet", "lavender", "plum", "mauve"],
+    };
+
+    for (const family of Object.values(colorFamilies)) {
+      const inFamily1 = colors1.some((c) =>
+        family.some((f) => c.toLowerCase().includes(f)),
+      );
+      const inFamily2 = colors2.some((c) =>
+        family.some((f) => c.toLowerCase().includes(f)),
+      );
+      if (inFamily1 && inFamily2) {
+        return true;
+      }
+    }
+
+    // If no specific match, be more permissive (was too restrictive before)
+    return Math.random() > 0.3; // 70% chance colors work together
+  }
+
   private getSeasonalColorPalette(season: string): string[] {
     const seasonalPalettes = {
       spring: [
