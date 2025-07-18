@@ -111,6 +111,11 @@ const WardrobeSetup = () => {
             season: analysisResult.seasons,
             tags: analysisResult.tags,
           };
+        } else if (!analysisResult.isClothing) {
+          // Reject non-clothing items
+          throw new Error(
+            `This image doesn't appear to be a clothing item. ${analysisResult.reasoning}. Please upload an image of clothing, shoes, or accessories.`,
+          );
         }
       } catch (aiError) {
         console.warn("Advanced AI analysis failed, using fallback:", aiError);
