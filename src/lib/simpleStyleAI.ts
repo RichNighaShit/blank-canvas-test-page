@@ -42,7 +42,7 @@ export class SimpleStyleAI {
   private readonly ITEM_COOLDOWN_MS = 30000; // 30 seconds before item can be used again
   private readonly MAX_ITEM_USAGE_PER_SESSION = 2; // Max times an item can appear in one session
 
-  generateRecommendations(
+    generateRecommendations(
     wardrobeItems: WardrobeItem[],
     profile: StyleProfile,
     context: { occasion: string; timeOfDay?: string; weather?: WeatherData },
@@ -188,11 +188,28 @@ export class SimpleStyleAI {
     return Math.max(0, score);
   }
 
-  private filterByWeather(
+    private filterByWeather(
     items: WardrobeItem[],
     weather: WeatherData,
   ): WardrobeItem[] {
-    return items.filter((item) => {
+    try {
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        console.warn("Invalid items provided to filterByWeather");
+        return [];
+      }
+
+      if (!weather || weather.temperature === undefined) {
+        console.warn("Invalid weather data provided, returning all items");
+        return items;
+      }
+
+      return items.filter((item) => {
+        if (!item || !item.category) {
+          console.warn("Invalid item in filterByWeather:", item);
+          return false;
+        }
+
+        try {
       // Temperature-based filtering
       if (weather.temperature < 10) {
         // Cold weather - prefer warm items
@@ -457,7 +474,7 @@ export class SimpleStyleAI {
     return groups;
   }
 
-  private scoreOutfit(
+    private scoreOutfit(
     outfit: WardrobeItem[],
     profile: StyleProfile,
     context: { occasion: string; timeOfDay?: string; weather?: WeatherData },
@@ -495,140 +512,134 @@ export class SimpleStyleAI {
       // Base confidence for having items
       confidence += 0.2;
 
-      // Diversity bonus - reward outfits with less-used items
-      const diversityBonus = this.calculateDiversityScore(outfit) * 0.15;
-      confidence += diversityBonus;
+    // Diversity bonus - reward outfits with less-used items
+    const diversityBonus = this.calculateDiversityScore(outfit) * 0.15;
+    confidence += diversityBonus;
 
-      if (diversityBonus > 0.1) {
-        reasoning.push("Features fresh combinations from your wardrobe");
-      }
+    if (diversityBonus > 0.1) {
+      reasoning.push("Features fresh combinations from your wardrobe");
+    }
 
-      // Advanced style matching with cross-style compatibility
-      const styleScore = this.calculateAdvancedStyleScore(outfit, profile);
-      confidence += styleScore * 0.25;
+    // Advanced style matching with cross-style compatibility
+    const styleScore = this.calculateAdvancedStyleScore(outfit, profile);
+    confidence += styleScore * 0.25;
 
-      if (styleScore > 0.8) {
-        reasoning.push(
-          `Expertly matches your ${profile.preferred_style} aesthetic`,
-        );
-      } else if (styleScore > 0.6) {
-        reasoning.push(
-          `Complements your ${profile.preferred_style} style preference`,
-        );
-      }
-
-      // Enhanced color harmony analysis
-      const colorHarmonyScore = this.calculateColorHarmonyScore(
-        outfit,
-        profile,
+    if (styleScore > 0.8) {
+      reasoning.push(
+        `Expertly matches your ${profile.preferred_style} aesthetic`,
       );
-      confidence += colorHarmonyScore * 0.2;
-
-      if (colorHarmonyScore > 0.8) {
-        reasoning.push("Exceptional color harmony creates visual flow");
-      } else if (colorHarmonyScore > 0.6) {
-        reasoning.push("Well-balanced color palette");
-      }
-
-      // Occasion appropriateness with formality levels
-      const occasionScore = this.calculateOccasionScore(
-        outfit,
-        context.occasion,
+    } else if (styleScore > 0.6) {
+      reasoning.push(
+        `Complements your ${profile.preferred_style} style preference`,
       );
-      confidence += occasionScore * 0.25;
+    }
 
-      if (occasionScore > 0.9) {
-        reasoning.push(`Perfectly tailored for ${context.occasion} occasions`);
-      } else if (occasionScore > 0.7) {
-        reasoning.push(`Appropriate for ${context.occasion} settings`);
-      }
+    // Enhanced color harmony analysis
+    const colorHarmonyScore = this.calculateColorHarmonyScore(outfit, profile);
+    confidence += colorHarmonyScore * 0.2;
 
-      // Weather intelligence
-      if (context.weather) {
-        const weatherScore = this.calculateAdvancedWeatherScore(
-          outfit,
-          context.weather,
+    if (colorHarmonyScore > 0.8) {
+      reasoning.push("Exceptional color harmony creates visual flow");
+    } else if (colorHarmonyScore > 0.6) {
+      reasoning.push("Well-balanced color palette");
+    }
+
+    // Occasion appropriateness with formality levels
+    const occasionScore = this.calculateOccasionScore(outfit, context.occasion);
+    confidence += occasionScore * 0.25;
+
+    if (occasionScore > 0.9) {
+      reasoning.push(`Perfectly tailored for ${context.occasion} occasions`);
+    } else if (occasionScore > 0.7) {
+      reasoning.push(`Appropriate for ${context.occasion} settings`);
+    }
+
+    // Weather intelligence
+    if (context.weather) {
+      const weatherScore = this.calculateAdvancedWeatherScore(
+        outfit,
+        context.weather,
+      );
+      confidence += weatherScore * 0.2;
+
+      if (weatherScore > 0.8) {
+        reasoning.push(
+          this.getAdvancedWeatherReasoning(outfit, context.weather),
         );
-        confidence += weatherScore * 0.2;
-
-        if (weatherScore > 0.8) {
-          reasoning.push(
-            this.getAdvancedWeatherReasoning(outfit, context.weather),
-          );
-        } else if (weatherScore < 0.3) {
-          confidence -= 0.1; // Penalty for poor weather matching
-          reasoning.push(
-            `Consider weather conditions (${Math.round(context.weather.temperature)}°C)`,
-          );
-        }
+      } else if (weatherScore < 0.3) {
+        confidence -= 0.1; // Penalty for poor weather matching
+        reasoning.push(
+          `Consider weather conditions (${Math.round(context.weather.temperature)}°C)`,
+        );
       }
+    }
 
-      // Outfit completeness and balance
-      const completenessScore = this.calculateCompletenessScore(outfit);
-      confidence += completenessScore * 0.15;
+    // Outfit completeness and balance
+    const completenessScore = this.calculateCompletenessScore(outfit);
+    confidence += completenessScore * 0.15;
 
-      if (completenessScore > 0.8) {
-        reasoning.push("Complete, well-balanced outfit");
+    if (completenessScore > 0.8) {
+      reasoning.push("Complete, well-balanced outfit");
+    }
+
+        // Trend relevance and fashion rules
+    const fashionScore = this.calculateFashionScore(outfit, context);
+    confidence += fashionScore * 0.1;
+
+    // Pattern and texture analysis
+    const patternAnalysis = this.checkPatternHarmony(outfit);
+    const textureAnalysis = this.checkTextureBalance(outfit);
+
+    if (patternAnalysis.score > 0.8) {
+      reasoning.push(patternAnalysis.reasoning);
+    }
+
+    if (textureAnalysis.score > 0.8) {
+      reasoning.push(textureAnalysis.reasoning);
+    }
+
+    if (fashionScore > 0.7) {
+      reasoning.push("Follows contemporary fashion principles");
+    }
+
+    // Goal alignment (if user has specific goals)
+    if (profile.goals && profile.goals.length > 0) {
+      const goalScore = this.calculateGoalAlignment(outfit, profile.goals);
+      confidence += goalScore * 0.1;
+
+      if (goalScore > 0.6) {
+        reasoning.push("Aligns with your style goals");
       }
+    }
 
-      // Trend relevance and fashion rules
-      const fashionScore = this.calculateFashionScore(outfit, context);
-      confidence += fashionScore * 0.1;
+        // Ensure confidence is between 0 and 1
+    confidence = Math.min(1, Math.max(0, confidence));
 
-      // Pattern and texture analysis
-      const patternAnalysis = this.checkPatternHarmony(outfit);
-      const textureAnalysis = this.checkTextureBalance(outfit);
+    const outfitId = validItems
+      .map((item) => item.id)
+      .sort()
+      .join("-");
+    const style = this.determineOverallStyle(validItems);
 
-      if (patternAnalysis.score > 0.8) {
-        reasoning.push(patternAnalysis.reasoning);
-      }
-
-      if (textureAnalysis.score > 0.8) {
-        reasoning.push(textureAnalysis.reasoning);
-      }
-
-      if (fashionScore > 0.7) {
-        reasoning.push("Follows contemporary fashion principles");
-      }
-
-      // Goal alignment (if user has specific goals)
-      if (profile.goals && profile.goals.length > 0) {
-        const goalScore = this.calculateGoalAlignment(outfit, profile.goals);
-        confidence += goalScore * 0.1;
-
-        if (goalScore > 0.6) {
-          reasoning.push("Aligns with your style goals");
-        }
-      }
-
-      // Ensure confidence is between 0 and 1
-      confidence = Math.min(1, Math.max(0, confidence));
-
-      const outfitId = validItems
-        .map((item) => item.id)
-        .sort()
-        .join("-");
-      const style = this.determineOverallStyle(validItems);
-
-      return {
-        id: outfitId,
-        items: validItems,
-        occasion: context.occasion,
-        style,
+    return {
+      id: outfitId,
+      items: validItems,
+      occasion: context.occasion,
+      style,
+      confidence,
+      description: this.generateAdvancedDescription(
+        validItems,
+        context,
         confidence,
-        description: this.generateAdvancedDescription(
-          validItems,
-          context,
-          confidence,
-        ),
-        reasoning,
-      };
+      ),
+      reasoning,
+    };
     } catch (error) {
       console.error("Error in scoreOutfit:", error);
       // Return a minimal valid outfit recommendation
       return {
         id: "error-" + Date.now(),
-        items: outfit.filter((item) => item && item.id) || [],
+        items: outfit.filter(item => item && item.id) || [],
         occasion: context?.occasion || "unknown",
         style: "casual",
         confidence: 0.1,
@@ -1364,7 +1375,7 @@ export class SimpleStyleAI {
     return Math.min(1, score);
   }
 
-  private calculateFashionScore(
+    private calculateFashionScore(
     outfit: WardrobeItem[],
     context: { occasion: string; timeOfDay?: string },
   ): number {
@@ -1393,9 +1404,7 @@ export class SimpleStyleAI {
     }
 
     // Fabric weight balance
-    const fabricWeights = outfit.map((item) =>
-      this.calculateFabricWeight(item),
-    );
+    const fabricWeights = outfit.map((item) => this.calculateFabricWeight(item));
     const uniqueWeights = [...new Set(fabricWeights)];
     if (uniqueWeights.length >= 2 && uniqueWeights.length <= 3) {
       score += 0.1; // Good weight variety
@@ -1700,7 +1709,7 @@ export class SimpleStyleAI {
     return seasonalPalettes[season as keyof typeof seasonalPalettes] || [];
   }
 
-  private calculateColorTemperature(
+    private calculateColorTemperature(
     colors: string[],
   ): "warm" | "cool" | "neutral" {
     const warmColors = [
@@ -1808,10 +1817,9 @@ export class SimpleStyleAI {
     );
   }
 
-  private checkPatternHarmony(outfit: WardrobeItem[]): {
-    score: number;
-    reasoning: string;
-  } {
+  private checkPatternHarmony(
+    outfit: WardrobeItem[],
+  ): { score: number; reasoning: string } {
     try {
       const patternedItems = outfit.filter(
         (item) => this.getPatternsFromItem(item).length > 0,
@@ -1842,12 +1850,8 @@ export class SimpleStyleAI {
           patterns1.some((p) => p.includes("dots") || p.includes("small")) ||
           patterns2.some((p) => p.includes("dots") || p.includes("small"));
         const hasLargePattern =
-          patterns1.some(
-            (p) => p.includes("floral") || p.includes("geometric"),
-          ) ||
-          patterns2.some(
-            (p) => p.includes("floral") || p.includes("geometric"),
-          );
+          patterns1.some((p) => p.includes("floral") || p.includes("geometric")) ||
+          patterns2.some((p) => p.includes("floral") || p.includes("geometric"));
 
         if (hasSmallPattern && hasLargePattern) {
           return {
@@ -1903,10 +1907,9 @@ export class SimpleStyleAI {
     }
   }
 
-  private checkTextureBalance(outfit: WardrobeItem[]): {
-    score: number;
-    reasoning: string;
-  } {
+  private checkTextureBalance(
+    outfit: WardrobeItem[],
+  ): { score: number; reasoning: string } {
     try {
       const textures = outfit.flatMap((item) => this.getTexturesFromItem(item));
       const uniqueTextures = [...new Set(textures)];
@@ -1916,10 +1919,7 @@ export class SimpleStyleAI {
       }
 
       if (uniqueTextures.length === 1) {
-        return {
-          score: 0.7,
-          reasoning: "Uniform texture creates cohesive look",
-        };
+        return { score: 0.7, reasoning: "Uniform texture creates cohesive look" };
       }
 
       if (uniqueTextures.length === 2 || uniqueTextures.length === 3) {
@@ -1960,9 +1960,7 @@ export class SimpleStyleAI {
     }
   }
 
-  private calculateFabricWeight(
-    item: WardrobeItem,
-  ): "light" | "medium" | "heavy" {
+  private calculateFabricWeight(item: WardrobeItem): "light" | "medium" | "heavy" {
     const lightFabrics = [
       "silk",
       "chiffon",
