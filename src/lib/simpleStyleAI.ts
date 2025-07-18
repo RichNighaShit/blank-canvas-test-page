@@ -621,28 +621,86 @@ export class SimpleStyleAI {
   }
 
   private colorsWork(colors1: string[], colors2: string[]): boolean {
-    const neutrals = ["black", "white", "grey", "gray", "beige", "navy"];
+    try {
+      if (
+        !this.validateColorInput(colors1) ||
+        !this.validateColorInput(colors2)
+      ) {
+        return false;
+      }
 
-    if (
-      colors1.some((c) => neutrals.includes(c.toLowerCase())) ||
-      colors2.some((c) => neutrals.includes(c.toLowerCase()))
-    ) {
-      return true;
+      // Enhanced neutral colors with more variations
+      const neutrals = [
+        "black",
+        "white",
+        "grey",
+        "gray",
+        "beige",
+        "navy",
+        "brown",
+        "cream",
+        "ivory",
+        "charcoal",
+        "khaki",
+        "tan",
+        "taupe",
+        "nude",
+        "sand",
+        "stone",
+        "off-white",
+        "bone",
+        "champagne",
+        "mushroom",
+        "camel",
+        "chocolate",
+        "coffee",
+        "pewter",
+      ];
+
+      // If either item has neutrals, they work with almost everything
+      if (
+        colors1.some((c) =>
+          neutrals.some((n) => c.toLowerCase().includes(n)),
+        ) ||
+        colors2.some((c) => neutrals.some((n) => c.toLowerCase().includes(n)))
+      ) {
+        return true;
+      }
+
+      // Exact color matches
+      if (
+        colors1.some((c1) =>
+          colors2.some((c2) => c1.toLowerCase() === c2.toLowerCase()),
+        )
+      ) {
+        return true;
+      }
+
+      // Complementary colors
+      if (this.areComplementary(colors1, colors2)) {
+        return true;
+      }
+
+      // Analogous colors (colors next to each other on color wheel)
+      if (this.areAnalogous(colors1, colors2)) {
+        return true;
+      }
+
+      // Triadic colors (three colors evenly spaced on color wheel)
+      if (this.areTriadic(colors1, colors2)) {
+        return true;
+      }
+
+      // Monochromatic scheme (different shades of same color)
+      if (this.areMonochromatic(colors1, colors2)) {
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.warn("Error in colorsWork:", error);
+      return false;
     }
-
-    if (
-      colors1.some((c1) =>
-        colors2.some((c2) => c1.toLowerCase() === c2.toLowerCase()),
-      )
-    ) {
-      return true;
-    }
-
-    if (this.areComplementary(colors1, colors2)) {
-      return true;
-    }
-
-    return false;
   }
 
   private colorsMatch(colors1: string[], colors2: string[]): boolean {
