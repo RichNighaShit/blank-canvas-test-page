@@ -152,18 +152,21 @@ export class SimpleStyleAI {
           return [];
         }
 
-        // Sort by diversity score (prioritize unused items) then confidence
+        // Sort by a combination of diversity and confidence for better variety
         const diverseOutfits = scoredOutfits
           .sort((a, b) => {
             try {
               const diversityScoreA = this.calculateDiversityScore(a.items);
               const diversityScoreB = this.calculateDiversityScore(b.items);
 
-              // If diversity scores are similar, sort by confidence
-              if (Math.abs(diversityScoreA - diversityScoreB) < 0.1) {
-                return b.confidence - a.confidence;
-              }
-              return diversityScoreB - diversityScoreA;
+              // Create a composite score that balances diversity and confidence
+              // Give more weight to diversity to show more variety
+              const compositeScoreA =
+                diversityScoreA * 0.6 + a.confidence * 0.4;
+              const compositeScoreB =
+                diversityScoreB * 0.6 + b.confidence * 0.4;
+
+              return compositeScoreB - compositeScoreA;
             } catch (error) {
               console.warn("Error sorting outfits:", error);
               return 0;
