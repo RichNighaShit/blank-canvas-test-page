@@ -92,15 +92,16 @@ const WardrobeSetup = () => {
 
   const analyzeImage = async (file: File): Promise<Partial<ClothingItem>> => {
     try {
-      console.log("Starting TensorFlow.js analysis for uploaded file...");
+      console.log("Starting advanced AI analysis for uploaded file...");
 
-      // Try TensorFlow.js analysis first
+      // Try advanced AI analysis first
       try {
+        await accurateClothingAnalyzer.initialize();
         const analysisResult =
-          await tensorflowClothingAnalyzer.analyzeClothing(file);
+          await accurateClothingAnalyzer.analyzeClothing(file);
 
         if (analysisResult.isClothing && analysisResult.confidence > 0.3) {
-          console.log("TensorFlow.js analysis successful:", analysisResult);
+          console.log("Advanced AI analysis successful:", analysisResult);
 
           return {
             category: analysisResult.category,
@@ -108,11 +109,11 @@ const WardrobeSetup = () => {
             color: analysisResult.colors,
             occasion: analysisResult.occasions,
             season: analysisResult.seasons,
-            tags: [],
+            tags: analysisResult.tags,
           };
         }
-      } catch (tfError) {
-        console.warn("TensorFlow.js analysis failed, using fallback:", tfError);
+      } catch (aiError) {
+        console.warn("Advanced AI analysis failed, using fallback:", aiError);
       }
 
       // Fallback to filename-based analysis
