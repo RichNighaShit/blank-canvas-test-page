@@ -19,9 +19,6 @@ const WardrobeAnalyticsPage = React.lazy(
 );
 const Onboarding = React.lazy(() => import("./pages/Onboarding"));
 const Index = React.lazy(() => import("./pages/Index"));
-const ClothingAnalyzerTestPage = React.lazy(
-  () => import("./pages/ClothingAnalyzerTestPage"),
-);
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 // Loading component for Suspense fallback
