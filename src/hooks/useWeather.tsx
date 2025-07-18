@@ -352,37 +352,24 @@ export const useWeather = (location?: string) => {
     }
   };
 
-  const getWeatherAdvice = (weatherData: WeatherData): string[] => {
-    const advice: string[] = [];
+  const getWeatherAdvice = (weatherData: WeatherData): string => {
+    // For default weather or when location is unavailable, provide general advice
+    if (
+      weatherData.source === "default" ||
+      weatherData.description.includes("unavailable")
+    ) {
+      return "Comfortable conditions";
+    }
 
     if (weatherData.temperature < 10) {
-      advice.push("Wear warm layers and a coat");
-      advice.push("Consider gloves and a scarf");
+      return "Cold - wear warm layers";
     } else if (weatherData.temperature < 20) {
-      advice.push("Layer with a light jacket or sweater");
-      advice.push("Long sleeves recommended");
+      return "Cool - light jacket recommended";
     } else if (weatherData.temperature > 25) {
-      advice.push("Light, breathable fabrics recommended");
-      advice.push("Short sleeves and light colors");
+      return "Warm - light fabrics recommended";
+    } else {
+      return "Comfortable temperature";
     }
-
-    if (weatherData.condition === "rain") {
-      advice.push("Waterproof jacket or umbrella needed");
-      advice.push("Closed-toe shoes recommended");
-    } else if (weatherData.condition === "snow") {
-      advice.push("Warm, waterproof outerwear essential");
-      advice.push("Insulated boots recommended");
-    }
-
-    if (weatherData.humidity > 70) {
-      advice.push("Breathable fabrics to stay comfortable");
-    }
-
-    if (weatherData.windSpeed > 15) {
-      advice.push("Consider wind-resistant outerwear");
-    }
-
-    return advice;
   };
 
   const getWeatherStatus = () => {
