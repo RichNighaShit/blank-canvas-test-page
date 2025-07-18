@@ -198,21 +198,30 @@ export class SimpleStyleAI {
   private calculateDiversityScore(items: WardrobeItem[]): number {
     let score = 1.0;
 
+    // Enhanced diversity calculation
     items.forEach((item) => {
       const usageCount = this.usedItemsHistory[item.id] || 0;
-      // Less harsh penalty to allow more combinations
-      score -= usageCount * 0.2;
+      // Progressive penalty for overused items
+      if (usageCount === 0) {
+        score += 0.3; // Big bonus for unused items
+      } else if (usageCount === 1) {
+        score += 0.1; // Small bonus for rarely used
+      } else {
+        score -= usageCount * 0.15; // Gentler penalty
+      }
     });
 
-    // Add bonus for truly unused items
-    const unusedItems = items.filter(
-      (item) => (this.usedItemsHistory[item.id] || 0) === 0,
-    );
-    if (unusedItems.length > 0) {
-      score += unusedItems.length * 0.1;
-    }
+    // Bonus for style variety within outfit
+    const uniqueStyles = new Set(items.map((item) => item.style)).size;
+    const uniqueCategories = new Set(items.map((item) => item.category)).size;
+    const uniqueColors = new Set(items.flatMap((item) => item.color)).size;
 
-    return Math.max(0, score);
+    // Encourage variety but not chaos
+    if (uniqueStyles > 1 && uniqueStyles <= 3) score += 0.2;
+    if (uniqueCategories >= 3) score += 0.1;
+    if (uniqueColors >= 2 && uniqueColors <= 4) score += 0.15;
+
+    return Math.max(0, Math.min(1.5, score)); // Allow scores above 1 for very diverse outfits
   }
 
   private filterByWeather(
@@ -1056,74 +1065,8 @@ export class SimpleStyleAI {
         return false;
       }
 
-      // Enhanced neutral colors with more variations
-      const neutrals = [
-        "black",
-        "white",
-        "grey",
-        "gray",
-        "beige",
-        "navy",
-        "brown",
-        "cream",
-        "ivory",
-        "charcoal",
-        "khaki",
-        "tan",
-        "taupe",
-        "nude",
-        "sand",
-        "stone",
-        "off-white",
-        "bone",
-        "champagne",
-        "mushroom",
-        "camel",
-        "chocolate",
-        "coffee",
-        "pewter",
-      ];
-
-      // If either item has neutrals, they work with almost everything
-      if (
-        colors1.some((c) =>
-          neutrals.some((n) => c.toLowerCase().includes(n)),
-        ) ||
-        colors2.some((c) => neutrals.some((n) => c.toLowerCase().includes(n)))
-      ) {
-        return true;
-      }
-
-      // Exact color matches
-      if (
-        colors1.some((c1) =>
-          colors2.some((c2) => c1.toLowerCase() === c2.toLowerCase()),
-        )
-      ) {
-        return true;
-      }
-
-      // Complementary colors
-      if (this.areComplementary(colors1, colors2)) {
-        return true;
-      }
-
-      // Analogous colors (colors next to each other on color wheel)
-      if (this.areAnalogous(colors1, colors2)) {
-        return true;
-      }
-
-      // Triadic colors (three colors evenly spaced on color wheel)
-      if (this.areTriadic(colors1, colors2)) {
-        return true;
-      }
-
-      // Monochromatic scheme (different shades of same color)
-      if (this.areMonochromatic(colors1, colors2)) {
-        return true;
-      }
-
-      return false;
+      // Simplified approach: Use popular color combinations
+      return this.checkPopularColorCombinations(colors1, colors2);
     } catch (error) {
       console.warn("Error in colorsWork:", error);
       return false;
