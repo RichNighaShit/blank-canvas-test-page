@@ -107,6 +107,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
           lastCall = now;
           return func(...args);
         }
+        return undefined;
       }) as T;
     },
     [],
