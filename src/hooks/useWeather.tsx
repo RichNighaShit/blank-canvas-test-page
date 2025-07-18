@@ -149,6 +149,70 @@ export const useWeather = (location?: string) => {
     }
   };
 
+  const tryAlternativeLocations = async (originalLocation: string) => {
+    const alternatives = [];
+
+    // Handle Pakistan-specific location variants
+    if (originalLocation.toLowerCase().includes("pakistan")) {
+      const baseLocation = originalLocation.replace(/,\s*pakistan/i, "").trim();
+
+      // Common Pakistan city alternatives
+      if (baseLocation.toLowerCase().includes("wah")) {
+        alternatives.push(
+          "Wah",
+          "Wah Cantt",
+          "Rawalpindi, Pakistan",
+          "Islamabad, Pakistan",
+        );
+      }
+
+      // Add major Pakistan cities as fallbacks
+      alternatives.push(
+        "Lahore, Pakistan",
+        "Karachi, Pakistan",
+        "Islamabad, Pakistan",
+        "Rawalpindi, Pakistan",
+        "Faisalabad, Pakistan",
+      );
+    }
+
+    // Generic alternatives - try without country, then major cities
+    const locationParts = originalLocation.split(",");
+    if (locationParts.length > 1) {
+      alternatives.push(locationParts[0].trim()); // Just the city name
+      alternatives.push(locationParts.slice(0, -1).join(",").trim()); // Without last part
+    }
+
+    // Try each alternative
+    for (const altLocation of alternatives) {
+      try {
+        console.log(`Trying alternative location: ${altLocation}`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const geoRes = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(altLocation)}&count=1&language=en&format=json`,
+          { signal: controller.signal },
+        );
+
+        clearTimeout(timeoutId);
+
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          if (geoData.results && geoData.results.length > 0) {
+            console.log(`Found alternative location: ${altLocation}`);
+            return geoData.results[0];
+          }
+        }
+      } catch (error) {
+        console.log(`Alternative ${altLocation} failed:`, error);
+        continue;
+      }
+    }
+
+    return null;
+  };
+
   const fetchWeather = async (userLocation?: string) => {
     setLoading(true);
     setError(null);
