@@ -195,6 +195,25 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
+   * Provide a safe fallback result when all analysis methods fail
+   */
+  private getFallbackResult(errorReason: string): ClothingAnalysisResult {
+    return {
+      isClothing: true,
+      category: "tops", // Most common category
+      style: "casual", // Most common style
+      colors: ["neutral"],
+      occasions: ["casual"],
+      seasons: ["all"],
+      tags: ["basic"],
+      confidence: 0.3, // Low confidence due to analysis failure
+      reasoning: `Analysis failed (${errorReason}) - using safe defaults`,
+      patterns: [],
+      materials: ["unknown"],
+    };
+  }
+
+  /**
    * Google Vision API analysis
    */
   private async analyzeWithVisionAPI(
