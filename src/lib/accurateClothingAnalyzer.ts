@@ -70,10 +70,21 @@ export class AccurateClothingAnalyzer {
 
       // Try Google Vision API first if available
       if (this.apiKey) {
-        const visionResult = await this.analyzeWithVisionAPI(input);
-        if (visionResult) {
-          result = visionResult;
-        } else {
+        try {
+          const visionResult = await this.analyzeWithVisionAPI(input);
+          if (visionResult) {
+            result = visionResult;
+          } else {
+            console.info(
+              "Vision API returned null, falling back to heuristics",
+            );
+            result = await this.analyzeWithAdvancedHeuristics(input);
+          }
+        } catch (visionError) {
+          console.warn(
+            "Vision API failed, falling back to heuristics:",
+            visionError,
+          );
           result = await this.analyzeWithAdvancedHeuristics(input);
         }
       } else {
@@ -85,8 +96,23 @@ export class AccurateClothingAnalyzer {
       return this.validateAndCleanResult(result);
     } catch (error) {
       console.error("Clothing analysis failed:", error);
-      const fallbackResult = await this.analyzeWithAdvancedHeuristics(input);
-      return this.validateAndCleanResult(fallbackResult);
+
+      // Handle network errors specifically
+      if (
+        error instanceof TypeError &&
+        error.message.includes("NetworkError")
+      ) {
+        console.error("Network error detected, providing fallback result");
+        return this.getFallbackResult(error.message);
+      }
+
+      try {
+        const fallbackResult = await this.analyzeWithAdvancedHeuristics(input);
+        return this.validateAndCleanResult(fallbackResult);
+      } catch (fallbackError) {
+        console.error("Fallback analysis also failed:", fallbackError);
+        return this.getFallbackResult("Complete analysis failure");
+      }
     }
   }
 
