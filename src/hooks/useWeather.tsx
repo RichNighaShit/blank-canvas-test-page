@@ -279,7 +279,7 @@ export const useWeather = (location?: string) => {
 
           // Try alternative location names for Pakistan locations
           const alternativeLocations =
-            await this.tryAlternativeLocations(locationToUse);
+            await tryAlternativeLocations(locationToUse);
           if (alternativeLocations) {
             const { latitude, longitude, name, country } = alternativeLocations;
             await fetchWeatherByCoordinates(
