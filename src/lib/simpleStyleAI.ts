@@ -960,5 +960,113 @@ export class SimpleStyleAI {
   }
 }
 
+  private areAnalogous(colors1: string[], colors2: string[]): boolean {
+    try {
+      // Analogous colors are next to each other on the color wheel
+      const analogousGroups = [
+        ['red', 'orange', 'pink'],
+        ['orange', 'yellow', 'red'],
+        ['yellow', 'green', 'orange'],
+        ['green', 'blue', 'yellow'],
+        ['blue', 'purple', 'green'],
+        ['purple', 'red', 'blue'],
+        ['pink', 'red', 'purple'],
+        ['teal', 'blue', 'green'],
+        ['coral', 'orange', 'pink'],
+        ['lime', 'green', 'yellow']
+      ];
+
+      return analogousGroups.some(group =>
+        colors1.some(c1 => group.some(g => c1.toLowerCase().includes(g))) &&
+        colors2.some(c2 => group.some(g => c2.toLowerCase().includes(g)))
+      );
+    } catch (error) {
+      console.warn('Error in areAnalogous:', error);
+      return false;
+    }
+  }
+
+  private areTriadic(colors1: string[], colors2: string[]): boolean {
+    try {
+      // Triadic colors are evenly spaced on the color wheel
+      const triadicGroups = [
+        ['red', 'blue', 'yellow'],
+        ['orange', 'green', 'purple'],
+        ['pink', 'teal', 'lime'],
+        ['coral', 'navy', 'gold']
+      ];
+
+      return triadicGroups.some(group =>
+        colors1.some(c1 => group.some(g => c1.toLowerCase().includes(g))) &&
+        colors2.some(c2 => group.some(g => c2.toLowerCase().includes(g)))
+      );
+    } catch (error) {
+      console.warn('Error in areTriadic:', error);
+      return false;
+    }
+  }
+
+  private areMonochromatic(colors1: string[], colors2: string[]): boolean {
+    try {
+      // Monochromatic colors are different shades of the same color
+      const monochromaticGroups = [
+        ['red', 'crimson', 'burgundy', 'maroon', 'cherry', 'rose', 'pink', 'coral'],
+        ['blue', 'navy', 'royal', 'sky', 'powder', 'teal', 'turquoise', 'cyan'],
+        ['green', 'forest', 'olive', 'lime', 'mint', 'sage', 'emerald', 'jade'],
+        ['yellow', 'gold', 'mustard', 'lemon', 'cream', 'butter', 'champagne'],
+        ['purple', 'violet', 'lavender', 'plum', 'magenta', 'lilac', 'mauve'],
+        ['orange', 'peach', 'apricot', 'coral', 'rust', 'amber', 'bronze'],
+        ['brown', 'tan', 'beige', 'taupe', 'khaki', 'camel', 'coffee', 'chocolate']
+      ];
+
+      return monochromaticGroups.some(group =>
+        colors1.some(c1 => group.some(g => c1.toLowerCase().includes(g))) &&
+        colors2.some(c2 => group.some(g => c2.toLowerCase().includes(g)))
+      );
+    } catch (error) {
+      console.warn('Error in areMonochromatic:', error);
+      return false;
+    }
+  }
+
+  private validateColorInput(colors: string[]): boolean {
+    return colors && Array.isArray(colors) && colors.length > 0 &&
+           colors.every(color => typeof color === 'string' && color.trim().length > 0);
+  }
+
+  private normalizeColor(color: string): string {
+    return color.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+  }
+
+  private getSeasonalColorPalette(season: string): string[] {
+    const seasonalPalettes = {
+      spring: ['coral', 'peach', 'yellow', 'lime', 'turquoise', 'pink', 'orange', 'gold'],
+      summer: ['lavender', 'rose', 'sage', 'powder blue', 'mint', 'pearl', 'champagne', 'mauve'],
+      autumn: ['rust', 'burgundy', 'forest', 'gold', 'brown', 'orange', 'olive', 'bronze'],
+      winter: ['navy', 'black', 'white', 'crimson', 'royal blue', 'emerald', 'silver', 'purple']
+    };
+
+    return seasonalPalettes[season as keyof typeof seasonalPalettes] || [];
+  }
+
+  private calculateColorTemperature(colors: string[]): 'warm' | 'cool' | 'neutral' {
+    const warmColors = ['red', 'orange', 'yellow', 'pink', 'coral', 'gold', 'rust', 'burgundy'];
+    const coolColors = ['blue', 'green', 'purple', 'teal', 'mint', 'lavender', 'turquoise', 'cyan'];
+
+    let warmCount = 0;
+    let coolCount = 0;
+
+    colors.forEach(color => {
+      const normalizedColor = this.normalizeColor(color);
+      if (warmColors.some(w => normalizedColor.includes(w))) warmCount++;
+      if (coolColors.some(c => normalizedColor.includes(c))) coolCount++;
+    });
+
+    if (warmCount > coolCount) return 'warm';
+    if (coolCount > warmCount) return 'cool';
+    return 'neutral';
+  }
+}
+
 // Export a singleton instance
 export const simpleStyleAI = new SimpleStyleAI();
