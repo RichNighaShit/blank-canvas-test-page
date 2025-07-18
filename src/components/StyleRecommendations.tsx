@@ -200,7 +200,7 @@ export const StyleRecommendations = () => {
     }
   };
 
-  const loadRecommendations = async () => {
+    const loadRecommendations = useCallback(async () => {
     if (!user || !profile || wardrobeItems.length === 0) {
       console.info(
         "Cannot generate recommendations: missing user, profile, or wardrobe items",
