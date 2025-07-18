@@ -1,7 +1,8 @@
 import React, { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import { PerformanceDashboard } from "./components/PerformanceDashboard";
-import Auth from "./pages/Auth"; // Regular import for debugging
+import RouteErrorBoundary from "./components/RouteErrorBoundary";
+import Auth from "./pages/Auth"; // Regular import to avoid dynamic import issues
 
 // Lazy load components for better bundle splitting
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
@@ -38,116 +39,118 @@ const PageLoader = () => (
 function App() {
   return (
     <div className="min-h-screen bg-background">
-      <Routes>
-        {/* Auth route loads immediately without lazy loading */}
-        <Route path="/auth" element={<Auth />} />
+      <RouteErrorBoundary>
+        <Routes>
+          {/* Auth route loads immediately without lazy loading */}
+          <Route path="/auth" element={<Auth />} />
 
-        {/* All other routes with Suspense for lazy loading */}
-        <Route
-          path="/"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Dashboard />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Dashboard />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/wardrobe"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Wardrobe />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/wardrobe-setup"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <WardrobeSetup />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/edit-profile"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <EditProfile />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/recommendations"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <StyleRecommendations />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/analytics"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Analytics />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/wardrobe-analytics"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <WardrobeAnalyticsPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/virtual-try-on"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <VirtualTryOn />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/style-me-improved"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <StyleMeImproved />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/onboarding"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Onboarding />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/index"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Index />
-            </Suspense>
-          }
-        />
-        <Route
-          path="*"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <NotFound />
-            </Suspense>
-          }
-        />
-      </Routes>
+          {/* All other routes with Suspense for lazy loading */}
+          <Route
+            path="/"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <Dashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <Dashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/wardrobe"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <Wardrobe />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/wardrobe-setup"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <WardrobeSetup />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/edit-profile"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <EditProfile />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/recommendations"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <StyleRecommendations />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <Analytics />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/wardrobe-analytics"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <WardrobeAnalyticsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/virtual-try-on"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <VirtualTryOn />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/style-me-improved"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <StyleMeImproved />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/onboarding"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <Onboarding />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/index"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <Index />
+              </Suspense>
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <NotFound />
+              </Suspense>
+            }
+          />
+        </Routes>
+      </RouteErrorBoundary>
 
       {/* Performance Dashboard - Development Only */}
       {import.meta.env.DEV && <PerformanceDashboard />}
