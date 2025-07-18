@@ -998,31 +998,52 @@ export class SimpleStyleAI {
     occasion: string,
     preferredStyle?: string,
   ): boolean {
-    // Stricter category matching
+    // More flexible category matching for diversity
     const isOccasionMatch =
       item.occasion.includes(occasion) || item.occasion.includes("versatile");
 
-    // For formal occasions, be more strict
+    // For formal occasions, still maintain some standards but be more flexible
     if (occasion === "formal" || occasion === "business") {
-      if (item.style === "casual" || item.style === "streetwear") {
-        return false; // Don't allow casual/streetwear for formal occasions
+      // Still exclude very casual items, but allow smart-casual
+      if (item.style === "streetwear" || item.style === "sporty") {
+        return false;
       }
       return (
-        isOccasionMatch || item.style === "formal" || item.style === "business"
+        isOccasionMatch ||
+        item.style === "formal" ||
+        item.style === "business" ||
+        item.style === "smart-casual" ||
+        item.style === "elegant" ||
+        item.occasion.includes("smart-casual")
       );
     }
 
-    // For casual occasions, allow more flexibility but prefer matching style
+    // For casual occasions, be very inclusive
     if (occasion === "casual") {
-      return isOccasionMatch || item.occasion.includes("casual");
+      return (
+        isOccasionMatch ||
+        item.occasion.includes("casual") ||
+        item.style === "casual" ||
+        item.style === "smart-casual" ||
+        item.style === "versatile"
+      );
     }
 
-    // For other occasions, use original logic but consider style preference
-    if (preferredStyle && item.style === preferredStyle) {
+    // For other occasions, be more inclusive based on style preference
+    if (
+      preferredStyle &&
+      (item.style === preferredStyle || item.style === "versatile")
+    ) {
       return true;
     }
 
-    return isOccasionMatch || item.occasion.includes("casual");
+    // Default to more inclusive matching
+    return (
+      isOccasionMatch ||
+      item.occasion.includes("casual") ||
+      item.occasion.includes("versatile") ||
+      item.style === "versatile"
+    );
   }
 
   private colorsWork(colors1: string[], colors2: string[]): boolean {
