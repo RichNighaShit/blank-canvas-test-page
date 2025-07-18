@@ -428,7 +428,12 @@ export const WardrobeUploadFlow = ({
       name.includes("top") ||
       name.includes("blouse") ||
       name.includes("sweater") ||
-      name.includes("hoodie")
+      name.includes("hoodie") ||
+      name.includes("tshirt") ||
+      name.includes("t-shirt") ||
+      name.includes("tank") ||
+      name.includes("pullover") ||
+      name.includes("cardigan")
     )
       return "tops";
     if (
@@ -436,20 +441,27 @@ export const WardrobeUploadFlow = ({
       name.includes("jean") ||
       name.includes("trouser") ||
       name.includes("short") ||
-      name.includes("legging")
+      name.includes("legging") ||
+      name.includes("slack") ||
+      name.includes("chino")
     )
       return "bottoms";
     if (
       name.includes("dress") ||
       name.includes("gown") ||
-      name.includes("frock")
+      name.includes("frock") ||
+      name.includes("sundress") ||
+      name.includes("maxi") ||
+      name.includes("mini")
     )
       return "dresses";
     if (
       name.includes("jacket") ||
       name.includes("coat") ||
       name.includes("blazer") ||
-      name.includes("cardigan")
+      name.includes("parka") ||
+      name.includes("windbreaker") ||
+      name.includes("bomber")
     )
       return "outerwear";
     if (
@@ -457,7 +469,10 @@ export const WardrobeUploadFlow = ({
       name.includes("boot") ||
       name.includes("sneaker") ||
       name.includes("sandal") ||
-      name.includes("heel")
+      name.includes("heel") ||
+      name.includes("pump") ||
+      name.includes("loafer") ||
+      name.includes("oxford")
     )
       return "shoes";
     if (
@@ -465,10 +480,291 @@ export const WardrobeUploadFlow = ({
       name.includes("hat") ||
       name.includes("scarf") ||
       name.includes("belt") ||
-      name.includes("watch")
+      name.includes("watch") ||
+      name.includes("purse") ||
+      name.includes("backpack") ||
+      name.includes("cap")
     )
       return "accessories";
     return "tops";
+  };
+
+  const detectColorsFromFilename = (filename: string): string[] => {
+    const name = filename.toLowerCase();
+    const colors = [];
+
+    const colorMap = {
+      black: ["black", "charcoal", "ebony"],
+      white: ["white", "cream", "ivory", "off-white"],
+      red: ["red", "crimson", "cherry", "burgundy"],
+      blue: ["blue", "navy", "royal", "sapphire", "denim"],
+      green: ["green", "olive", "forest", "sage", "mint"],
+      yellow: ["yellow", "gold", "mustard", "lemon"],
+      orange: ["orange", "coral", "peach", "rust"],
+      purple: ["purple", "violet", "lavender", "plum"],
+      pink: ["pink", "rose", "blush", "fuchsia"],
+      brown: ["brown", "tan", "beige", "khaki", "camel"],
+      gray: ["gray", "grey", "silver", "slate"],
+    };
+
+    for (const [colorName, variations] of Object.entries(colorMap)) {
+      if (variations.some((variation) => name.includes(variation))) {
+        colors.push(colorName);
+      }
+    }
+
+    return colors.length > 0 ? colors.slice(0, 2) : ["blue"]; // Default to blue instead of neutral
+  };
+
+  const detectStyleFromFilename = (
+    filename: string,
+    category: string,
+  ): string => {
+    const name = filename.toLowerCase();
+
+    if (
+      name.includes("formal") ||
+      name.includes("dress") ||
+      name.includes("suit") ||
+      name.includes("business")
+    ) {
+      return "formal";
+    }
+    if (
+      name.includes("sport") ||
+      name.includes("gym") ||
+      name.includes("athletic") ||
+      name.includes("running")
+    ) {
+      return "sporty";
+    }
+    if (
+      name.includes("elegant") ||
+      name.includes("evening") ||
+      name.includes("cocktail") ||
+      name.includes("party")
+    ) {
+      return "elegant";
+    }
+    if (
+      name.includes("bohemian") ||
+      name.includes("boho") ||
+      name.includes("hippie") ||
+      name.includes("flowing")
+    ) {
+      return "bohemian";
+    }
+    if (
+      name.includes("minimalist") ||
+      name.includes("simple") ||
+      name.includes("clean") ||
+      name.includes("basic")
+    ) {
+      return "minimalist";
+    }
+    if (
+      name.includes("street") ||
+      name.includes("urban") ||
+      name.includes("hip") ||
+      name.includes("grunge")
+    ) {
+      return "streetwear";
+    }
+    if (
+      name.includes("vintage") ||
+      name.includes("retro") ||
+      name.includes("classic") ||
+      name.includes("old")
+    ) {
+      return "vintage";
+    }
+
+    // Category-based intelligent defaults
+    switch (category) {
+      case "dresses":
+        return "elegant";
+      case "outerwear":
+        return "formal";
+      case "shoes":
+        return "sporty";
+      default:
+        return "casual";
+    }
+  };
+
+  const generateEnhancedName = (
+    filename: string,
+    category: string,
+    colors: string[],
+    style: string,
+  ): string => {
+    const baseName = filename.split(".")[0].replace(/[-_]/g, " ");
+
+    // If filename has meaningful content, use it
+    if (
+      baseName &&
+      !baseName.match(/^\d+$/) &&
+      baseName.toLowerCase() !== "img" &&
+      baseName.toLowerCase() !== "image"
+    ) {
+      return baseName
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    }
+
+    // Generate intelligent name
+    const colorPrefix =
+      colors.length > 0 && colors[0] !== "neutral"
+        ? `${colors[0].charAt(0).toUpperCase() + colors[0].slice(1)} `
+        : "";
+
+    const stylePrefix =
+      style !== "casual"
+        ? `${style.charAt(0).toUpperCase() + style.slice(1)} `
+        : "";
+
+    const categoryNames = {
+      tops: "Top",
+      bottoms: "Pants",
+      dresses: "Dress",
+      outerwear: "Jacket",
+      shoes: "Shoes",
+      accessories: "Accessory",
+    };
+
+    return `${colorPrefix}${stylePrefix}${categoryNames[category] || "Item"}`;
+  };
+
+  const inferOccasionsFromStyle = (
+    style: string,
+    category: string,
+  ): string[] => {
+    const occasions = new Set<string>();
+
+    switch (style) {
+      case "formal":
+        occasions.add("work");
+        occasions.add("formal");
+        break;
+      case "sporty":
+        occasions.add("sport");
+        occasions.add("casual");
+        break;
+      case "elegant":
+        occasions.add("party");
+        occasions.add("date");
+        occasions.add("formal");
+        break;
+      case "bohemian":
+        occasions.add("casual");
+        occasions.add("travel");
+        break;
+      case "minimalist":
+        occasions.add("work");
+        occasions.add("casual");
+        break;
+      case "streetwear":
+        occasions.add("casual");
+        occasions.add("party");
+        break;
+      case "vintage":
+        occasions.add("casual");
+        occasions.add("party");
+        break;
+      default:
+        occasions.add("casual");
+    }
+
+    // Category-specific additions
+    if (category === "outerwear") occasions.add("travel");
+    if (category === "dresses") {
+      occasions.add("date");
+      occasions.add("party");
+    }
+
+    return Array.from(occasions).slice(0, 3);
+  };
+
+  const inferSeasonsFromColors = (
+    colors: string[],
+    category: string,
+  ): string[] => {
+    const seasons = new Set<string>();
+
+    const lightColors = [
+      "white",
+      "cream",
+      "light-gray",
+      "pink",
+      "coral",
+      "yellow",
+    ];
+    const darkColors = ["black", "navy", "charcoal", "purple", "brown"];
+    const warmColors = ["red", "orange", "yellow", "coral"];
+    const coolColors = ["blue", "cyan", "purple", "sage"];
+
+    colors.forEach((color) => {
+      if (lightColors.includes(color)) {
+        seasons.add("spring");
+        seasons.add("summer");
+      }
+      if (darkColors.includes(color)) {
+        seasons.add("fall");
+        seasons.add("winter");
+      }
+      if (warmColors.includes(color)) {
+        seasons.add("fall");
+      }
+      if (coolColors.includes(color)) {
+        seasons.add("summer");
+      }
+    });
+
+    // Category-based seasons
+    if (category === "outerwear") {
+      seasons.add("fall");
+      seasons.add("winter");
+    }
+
+    // Ensure at least 2 seasons
+    if (seasons.size < 2) {
+      seasons.add("spring");
+      seasons.add("fall");
+    }
+
+    return Array.from(seasons);
+  };
+
+  const generateSmartTags = (category: string, style: string): string[] => {
+    const tags = [];
+
+    switch (category) {
+      case "tops":
+        tags.push("versatile", "layerable");
+        break;
+      case "bottoms":
+        tags.push("essential", "wardrobe-staple");
+        break;
+      case "dresses":
+        tags.push("statement-piece", "feminine");
+        break;
+      case "outerwear":
+        tags.push("layering", "weather-protection");
+        break;
+      case "shoes":
+        tags.push("footwear", "comfort");
+        break;
+      case "accessories":
+        tags.push("accent", "finishing-touch");
+        break;
+    }
+
+    if (style !== "casual") {
+      tags.push(style);
+    }
+
+    return tags.slice(0, 3);
   };
 
   const saveToDatabase = async (
