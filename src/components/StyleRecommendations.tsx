@@ -201,7 +201,12 @@ export const StyleRecommendations = () => {
   };
 
   const loadRecommendations = async () => {
-    if (!user || !profile || wardrobeItems.length === 0) return;
+    if (!user || !profile || wardrobeItems.length === 0) {
+      console.info(
+        "Cannot generate recommendations: missing user, profile, or wardrobe items",
+      );
+      return;
+    }
 
     try {
       setLoading(true);
@@ -212,6 +217,15 @@ export const StyleRecommendations = () => {
         "with accessories:",
         includeAccessories,
       );
+
+      // Validate inputs
+      if (!selectedOccasion || typeof selectedOccasion !== "string") {
+        throw new Error("Invalid occasion selected");
+      }
+
+      if (!Array.isArray(wardrobeItems) || wardrobeItems.length === 0) {
+        throw new Error("No wardrobe items available for recommendations");
+      }
 
       // Filter items based on user preferences
       let filteredItems = wardrobeItems.filter(
