@@ -29,8 +29,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { pipeline } from "@huggingface/transformers";
-import { tensorflowClothingAnalyzer } from "@/lib/tensorflowClothingAnalysis";
+import { accurateClothingAnalyzer } from "@/lib/accurateClothingAnalyzer";
 
 interface ClothingItem {
   id: string;
