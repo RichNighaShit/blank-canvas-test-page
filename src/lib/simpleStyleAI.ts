@@ -1245,39 +1245,13 @@ export class SimpleStyleAI {
     const categories = outfit.map((item) => item.category.toLowerCase());
     const styles = outfit.map((item) => item.style.toLowerCase());
 
-    // Pattern mixing (avoid too many patterns)
-    const patternCount = outfit.filter((item) =>
-      item.tags?.some((tag) =>
-        ["striped", "polka-dot", "floral", "geometric", "plaid"].includes(tag),
-      ),
-    ).length;
+    // Advanced pattern analysis
+    const patternAnalysis = this.checkPatternHarmony(outfit);
+    score += patternAnalysis.score * 0.3;
 
-    if (patternCount <= 1) {
-      score += 0.2;
-    } else if (patternCount === 2) {
-      score += 0.1; // Can work if done well
-    } else {
-      score -= 0.1;
-    }
-
-    // Texture variety
-    const textures = outfit
-      .flatMap((item) => item.tags || [])
-      .filter((tag) =>
-        [
-          "silk",
-          "denim",
-          "leather",
-          "knit",
-          "cotton",
-          "linen",
-          "wool",
-        ].includes(tag),
-      );
-    const uniqueTextures = [...new Set(textures)];
-    if (uniqueTextures.length >= 2 && uniqueTextures.length <= 3) {
-      score += 0.1;
-    }
+    // Advanced texture analysis
+    const textureAnalysis = this.checkTextureBalance(outfit);
+    score += textureAnalysis.score * 0.2;
 
     // Fit and silhouette balance
     const fitted = outfit.filter((item) =>
@@ -1287,6 +1261,15 @@ export class SimpleStyleAI {
 
     if (fitted > 0 && loose > 0 && outfit.length > 2) {
       score += 0.1; // Good fit balance
+    }
+
+    // Fabric weight balance
+    const fabricWeights = outfit.map((item) =>
+      this.calculateFabricWeight(item),
+    );
+    const uniqueWeights = [...new Set(fabricWeights)];
+    if (uniqueWeights.length >= 2 && uniqueWeights.length <= 3) {
+      score += 0.1; // Good weight variety
     }
 
     // Time appropriateness
