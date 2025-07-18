@@ -173,8 +173,9 @@ export class AccurateClothingAnalyzer {
     // Analyze style
     const style = this.determineStyleFromVision(clothingLabels);
 
-    // Extract colors
-    const colors = this.extractColorsFromVision(imageProperties);
+    // Extract colors with background filtering
+    const allColors = this.extractColorsFromVision(imageProperties);
+    const colors = this.filterBackgroundFromColorList(allColors);
 
     // Determine occasions and seasons
     const occasions = this.determineOccasions(category, style, colors);
@@ -190,12 +191,14 @@ export class AccurateClothingAnalyzer {
       isClothing: true,
       category,
       style,
-      colors,
+      colors: colors.length > 0 ? colors : ["neutral"],
       occasions,
       seasons,
-      tags: this.extractTags(clothingLabels),
+      tags: this.generateSmartTags(category, style, colors),
       confidence,
-      reasoning: `Vision API detected ${clothingLabels.length} clothing labels and ${clothingObjects.length} clothing objects`,
+      reasoning: `Vision API detected ${clothingLabels.length} clothing labels and ${clothingObjects.length} clothing objects - enhanced with background filtering`,
+      patterns: this.detectClothingPatterns(colors, category),
+      materials: this.inferMaterials(category, style, colors),
     };
   }
 
