@@ -1875,6 +1875,93 @@ export class SimpleStyleAI {
       .replace(/[^a-z0-9]/g, "");
   }
 
+  private selectDiverseOutfits(
+    scoredOutfits: OutfitRecommendation[],
+  ): OutfitRecommendation[] {
+    if (scoredOutfits.length === 0) return [];
+
+    const selected: OutfitRecommendation[] = [];
+    const usedItemCombinations = new Set<string>();
+    const categoryVariations = new Map<string, number>();
+    const styleVariations = new Map<string, number>();
+    const colorVariations = new Map<string, number>();
+
+    // Sort by confidence first, then apply diversity filters
+    const sortedOutfits = scoredOutfits.sort((a, b) => {
+      const diversityA = this.calculateDiversityScore(a.items);
+      const diversityB = this.calculateDiversityScore(b.items);
+
+      // Weight diversity more heavily than confidence for variety
+      const scoreA = diversityA * 0.7 + a.confidence * 0.3;
+      const scoreB = diversityB * 0.7 + b.confidence * 0.3;
+
+      return scoreB - scoreA;
+    });
+
+    for (const outfit of sortedOutfits) {
+      if (selected.length >= 12) break;
+
+      // Create outfit signature for duplicate detection
+      const itemIds = outfit.items
+        .map((item) => item.id)
+        .sort()
+        .join("-");
+      const categories = outfit.items
+        .map((item) => item.category)
+        .sort()
+        .join("-");
+      const styles = outfit.items
+        .map((item) => item.style)
+        .sort()
+        .join("-");
+      const colors = outfit.items
+        .flatMap((item) => item.color)
+        .sort()
+        .join("-");
+
+      // Skip if we've seen this exact combination
+      if (usedItemCombinations.has(itemIds)) {
+        continue;
+      }
+
+      // Ensure variety in categories, styles, and colors
+      const categoryCount = categoryVariations.get(categories) || 0;
+      const styleCount = styleVariations.get(styles) || 0;
+      const colorCount = colorVariations.get(colors) || 0;
+
+      // Allow up to 2 outfits with similar patterns, but encourage variety
+      if (categoryCount >= 2 || styleCount >= 2 || colorCount >= 3) {
+        // Only skip if we have enough diverse options already
+        if (selected.length >= 6) continue;
+      }
+
+      // Add outfit to selection
+      selected.push(outfit);
+      usedItemCombinations.add(itemIds);
+      categoryVariations.set(categories, categoryCount + 1);
+      styleVariations.set(styles, styleCount + 1);
+      colorVariations.set(colors, colorCount + 1);
+    }
+
+    // If we don't have enough diverse outfits, fill with remaining best options
+    if (selected.length < 8) {
+      for (const outfit of sortedOutfits) {
+        if (selected.length >= 10) break;
+
+        const itemIds = outfit.items
+          .map((item) => item.id)
+          .sort()
+          .join("-");
+        if (!usedItemCombinations.has(itemIds)) {
+          selected.push(outfit);
+          usedItemCombinations.add(itemIds);
+        }
+      }
+    }
+
+    return selected;
+  }
+
   private checkPopularColorCombinations(
     colors1: string[],
     colors2: string[],
