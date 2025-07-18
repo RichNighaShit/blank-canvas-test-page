@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import { PerformanceDashboard } from "./components/PerformanceDashboard";
+import Auth from "./pages/Auth"; // Regular import for debugging
 
 // Lazy load components for better bundle splitting
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
@@ -12,7 +13,8 @@ const StyleRecommendations = React.lazy(
 );
 const Analytics = React.lazy(() => import("./pages/Analytics"));
 const VirtualTryOn = React.lazy(() => import("./pages/VirtualTryOn"));
-const Auth = React.lazy(() => import("./pages/Auth"));
+// Auth imported above as regular import for debugging
+// const Auth = React.lazy(() => import("./pages/Auth"));
 const StyleMeImproved = React.lazy(() => import("./pages/StyleMeImproved"));
 const WardrobeAnalyticsPage = React.lazy(
   () => import("./pages/WardrobeAnalyticsPage"),
