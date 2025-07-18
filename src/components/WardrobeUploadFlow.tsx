@@ -994,18 +994,49 @@ export const WardrobeUploadFlow = ({
       if (isProcessing) return;
 
       const file = files[0];
-      if (!file?.type.startsWith("image/")) {
+
+      // Validate file exists and is an image
+      if (!file) {
         toast({
-          title: "Invalid File",
+          title: "No File Selected",
+          description: "Please select a file to upload",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        toast({
+          title: "Invalid File Type",
           description: "Please upload an image file (JPG, PNG, WEBP)",
           variant: "destructive",
         });
         return;
       }
 
-      setCurrentFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      await processUpload(file);
+      // Check file size (15MB limit)
+      if (file.size > 15 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Please upload an image smaller than 15MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        setCurrentFile(file);
+        const previewUrl = URL.createObjectURL(file);
+        setPreviewUrl(previewUrl);
+        await processUpload(file);
+      } catch (error) {
+        console.error("Error handling file:", error);
+        toast({
+          title: "File Error",
+          description: "Failed to process the selected file. Please try again.",
+          variant: "destructive",
+        });
+      }
     },
     [isProcessing, user],
   );
