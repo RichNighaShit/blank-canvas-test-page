@@ -40,24 +40,42 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
     fn: () => Promise<T>,
     ttl?: number,
   ): Promise<T> {
-    if (!enableCaching) {
-      return PerformanceMonitor.measureExecutionTime(key, fn);
+    try {
+      if (!enableCaching) {
+        return PerformanceMonitor.measureExecutionTime(key, fn);
+      }
+
+      const cacheKey = generateCacheKey({ key, namespace: cacheNamespace });
+
+      try {
+        const cached = PerformanceCache.get<T>(cacheKey, cacheNamespace);
+        if (cached) {
+          return Promise.resolve(cached);
+        }
+      } catch (cacheError) {
+        console.warn("Cache retrieval error:", cacheError);
+      }
+
+      return PerformanceMonitor.measureExecutionTime(key, fn)
+        .then((result) => {
+          try {
+            PerformanceCache.set(cacheKey, result, {
+              ttl,
+              namespace: cacheNamespace,
+            });
+          } catch (cacheError) {
+            console.warn("Cache storage error:", cacheError);
+          }
+          return result;
+        })
+        .catch((error) => {
+          console.error("Function execution error:", error);
+          throw error;
+        });
+    } catch (error) {
+      console.error("executeWithCache error:", error);
+      return Promise.reject(error);
     }
-
-    const cacheKey = generateCacheKey({ key, namespace: cacheNamespace });
-    const cached = PerformanceCache.get<T>(cacheKey, cacheNamespace);
-
-    if (cached) {
-      return Promise.resolve(cached);
-    }
-
-    return PerformanceMonitor.measureExecutionTime(key, fn).then((result) => {
-      PerformanceCache.set(cacheKey, result, {
-        ttl,
-        namespace: cacheNamespace,
-      });
-      return result;
-    });
   }
 
   // Optimized image loading
