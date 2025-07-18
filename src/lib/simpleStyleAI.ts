@@ -45,21 +45,21 @@ export class SimpleStyleAI {
   private performanceMetrics: { [key: string]: number } = {};
   private generationStats: { [key: string]: any } = {};
 
-    generateRecommendations(
+  generateRecommendations(
     wardrobeItems: WardrobeItem[],
     profile: StyleProfile,
     context: { occasion: string; timeOfDay?: string; weather?: WeatherData },
     includeAccessories: boolean = true,
   ): OutfitRecommendation[] {
-    return this.measurePerformance('generateRecommendations', () => {
+    return this.measurePerformance("generateRecommendations", () => {
       try {
-        this.log('Starting recommendation generation', {
+        this.log("Starting recommendation generation", {
           itemCount: wardrobeItems?.length || 0,
           occasion: context?.occasion,
           weather: context?.weather?.condition,
           temperature: context?.weather?.temperature,
           includeAccessories,
-          profileStyle: profile?.preferred_style
+          profileStyle: profile?.preferred_style,
         });
 
         // Input validation
@@ -69,125 +69,127 @@ export class SimpleStyleAI {
           return [];
         }
 
-      if (wardrobeItems.length === 0) {
-        console.info("No wardrobe items provided for recommendations");
-        return [];
-      }
-
-      if (!profile || !profile.preferred_style) {
-        console.warn("Invalid profile provided:", profile);
-        return [];
-      }
-
-      if (!context || !context.occasion) {
-        console.warn("Invalid context provided:", context);
-        return [];
-      }
-
-      // Validate wardrobe items
-      const validItems = wardrobeItems.filter((item) => {
-        if (!item || !item.id || !item.category || !item.color) {
-          console.warn("Invalid wardrobe item:", item);
-          return false;
+        if (wardrobeItems.length === 0) {
+          console.info("No wardrobe items provided for recommendations");
+          return [];
         }
-        return true;
-      });
 
-      if (validItems.length === 0) {
-        console.warn("No valid wardrobe items found");
-        return [];
-      }
+        if (!profile || !profile.preferred_style) {
+          console.warn("Invalid profile provided:", profile);
+          return [];
+        }
 
-      const currentTime = Date.now();
+        if (!context || !context.occasion) {
+          console.warn("Invalid context provided:", context);
+          return [];
+        }
 
-      // Reset usage history if it's been more than 5 minutes since last generation
-      if (currentTime - this.lastGenerationTime > 300000) {
-        this.usedItemsHistory = {};
-      }
-      this.lastGenerationTime = currentTime;
-
-      const recommendations: OutfitRecommendation[] = [];
-
-      // Filter items by weather appropriateness first
-      const weatherFilteredItems = context.weather
-        ? this.filterByWeather(validItems, context.weather)
-        : validItems;
-
-      if (weatherFilteredItems.length === 0) {
-        console.info("No items suitable for current weather conditions");
-        return [];
-      }
-
-      // Group items by category
-      const itemsByCategory = this.groupByCategory(weatherFilteredItems);
-
-      // Generate diverse outfit combinations with weather context
-      const combinations = this.generateDiverseCombinations(
-        itemsByCategory,
-        context.occasion,
-        profile.preferred_style,
-        includeAccessories,
-        context.weather,
-      );
-
-      if (combinations.length === 0) {
-        console.info("No outfit combinations could be generated");
-        return [];
-      }
-
-      // Score and filter combinations
-      const scoredOutfits = combinations
-        .map((outfit) => {
-          try {
-            return this.scoreOutfit(outfit, profile, context);
-          } catch (error) {
-            console.warn("Error scoring outfit:", error, outfit);
-            return null;
+        // Validate wardrobe items
+        const validItems = wardrobeItems.filter((item) => {
+          if (!item || !item.id || !item.category || !item.color) {
+            console.warn("Invalid wardrobe item:", item);
+            return false;
           }
-        })
-        .filter((outfit) => outfit !== null && outfit.confidence > 0.4); // Lower threshold for more variety
-
-      if (scoredOutfits.length === 0) {
-        console.info("No outfits met minimum confidence threshold");
-        return [];
-      }
-
-      // Sort by diversity score (prioritize unused items) then confidence
-      const diverseOutfits = scoredOutfits
-        .sort((a, b) => {
-          try {
-            const diversityScoreA = this.calculateDiversityScore(a.items);
-            const diversityScoreB = this.calculateDiversityScore(b.items);
-
-            // If diversity scores are similar, sort by confidence
-            if (Math.abs(diversityScoreA - diversityScoreB) < 0.1) {
-              return b.confidence - a.confidence;
-            }
-            return diversityScoreB - diversityScoreA;
-          } catch (error) {
-            console.warn("Error sorting outfits:", error);
-            return 0;
-          }
-        })
-        .slice(0, 8); // Generate more options
-
-      // Update usage history
-      try {
-        diverseOutfits.forEach((outfit) => {
-          outfit.items.forEach((item) => {
-            this.usedItemsHistory[item.id] =
-              (this.usedItemsHistory[item.id] || 0) + 1;
-          });
+          return true;
         });
-      } catch (error) {
-        console.warn("Error updating usage history:", error);
-      }
 
-      return diverseOutfits.slice(0, 6); // Return top 6 diverse outfits
-    } catch (error) {
-      console.error("Unexpected error in generateRecommendations:", error);
-      return [];
-    }
+        if (validItems.length === 0) {
+          console.warn("No valid wardrobe items found");
+          return [];
+        }
+
+        const currentTime = Date.now();
+
+        // Reset usage history if it's been more than 5 minutes since last generation
+        if (currentTime - this.lastGenerationTime > 300000) {
+          this.usedItemsHistory = {};
+        }
+        this.lastGenerationTime = currentTime;
+
+        const recommendations: OutfitRecommendation[] = [];
+
+        // Filter items by weather appropriateness first
+        const weatherFilteredItems = context.weather
+          ? this.filterByWeather(validItems, context.weather)
+          : validItems;
+
+        if (weatherFilteredItems.length === 0) {
+          console.info("No items suitable for current weather conditions");
+          return [];
+        }
+
+        // Group items by category
+        const itemsByCategory = this.groupByCategory(weatherFilteredItems);
+
+        // Generate diverse outfit combinations with weather context
+        const combinations = this.generateDiverseCombinations(
+          itemsByCategory,
+          context.occasion,
+          profile.preferred_style,
+          includeAccessories,
+          context.weather,
+        );
+
+        if (combinations.length === 0) {
+          console.info("No outfit combinations could be generated");
+          return [];
+        }
+
+        // Score and filter combinations
+        const scoredOutfits = combinations
+          .map((outfit) => {
+            try {
+              return this.scoreOutfit(outfit, profile, context);
+            } catch (error) {
+              console.warn("Error scoring outfit:", error, outfit);
+              return null;
+            }
+          })
+          .filter((outfit) => outfit !== null && outfit.confidence > 0.4); // Lower threshold for more variety
+
+        if (scoredOutfits.length === 0) {
+          console.info("No outfits met minimum confidence threshold");
+          return [];
+        }
+
+        // Sort by diversity score (prioritize unused items) then confidence
+        const diverseOutfits = scoredOutfits
+          .sort((a, b) => {
+            try {
+              const diversityScoreA = this.calculateDiversityScore(a.items);
+              const diversityScoreB = this.calculateDiversityScore(b.items);
+
+              // If diversity scores are similar, sort by confidence
+              if (Math.abs(diversityScoreA - diversityScoreB) < 0.1) {
+                return b.confidence - a.confidence;
+              }
+              return diversityScoreB - diversityScoreA;
+            } catch (error) {
+              console.warn("Error sorting outfits:", error);
+              return 0;
+            }
+          })
+          .slice(0, 8); // Generate more options
+
+        // Update usage history
+        try {
+          diverseOutfits.forEach((outfit) => {
+            outfit.items.forEach((item) => {
+              this.usedItemsHistory[item.id] =
+                (this.usedItemsHistory[item.id] || 0) + 1;
+            });
+          });
+        } catch (error) {
+          console.warn("Error updating usage history:", error);
+        }
+
+        return diverseOutfits.slice(0, 6); // Return top 6 diverse outfits
+      } catch (error) {
+        console.error("Unexpected error in generateRecommendations:", error);
+        this.log("Error in generateRecommendations", error);
+        return [];
+      }
+    });
   }
 
   private calculateDiversityScore(items: WardrobeItem[]): number {
@@ -2330,7 +2332,7 @@ export class SimpleStyleAI {
               ?.map((t) => t.trim().toLowerCase())
               .filter((t) => t !== "") || [],
         }));
-        } catch (error) {
+    } catch (error) {
       console.error("Error sanitizing wardrobe items:", error);
       return [];
     }
@@ -2339,7 +2341,7 @@ export class SimpleStyleAI {
   private calculateSeasonalColorScore(outfit: WardrobeItem[]): number {
     try {
       const currentSeason = this.getCurrentSeason();
-      const allColors = outfit.flatMap(item => item.color);
+      const allColors = outfit.flatMap((item) => item.color);
 
       if (allColors.length === 0) {
         return 0.5;
@@ -2349,27 +2351,30 @@ export class SimpleStyleAI {
       let seasonalMatches = 0;
       let totalColors = allColors.length;
 
-      allColors.forEach(color => {
+      allColors.forEach((color) => {
         const normalizedColor = this.normalizeColor(color);
-        if (seasonalPalette.some(seasonalColor =>
-          normalizedColor.includes(seasonalColor) ||
-          seasonalColor.includes(normalizedColor)
-        )) {
+        if (
+          seasonalPalette.some(
+            (seasonalColor) =>
+              normalizedColor.includes(seasonalColor) ||
+              seasonalColor.includes(normalizedColor),
+          )
+        ) {
           seasonalMatches++;
         }
       });
 
       // Also give bonus for items that specify appropriate seasons
-      const seasonalItems = outfit.filter(item =>
-        item.season && (
-          item.season.includes(currentSeason) ||
-          item.season.includes('all') ||
-          item.season.includes('year-round')
-        )
+      const seasonalItems = outfit.filter(
+        (item) =>
+          item.season &&
+          (item.season.includes(currentSeason) ||
+            item.season.includes("all") ||
+            item.season.includes("year-round")),
       ).length;
 
-      const seasonalItemBonus = seasonalItems / outfit.length * 0.3;
-      const colorScore = seasonalMatches / totalColors * 0.7;
+      const seasonalItemBonus = (seasonalItems / outfit.length) * 0.3;
+      const colorScore = (seasonalMatches / totalColors) * 0.7;
 
       return Math.min(1, colorScore + seasonalItemBonus);
     } catch (error) {
@@ -2382,26 +2387,34 @@ export class SimpleStyleAI {
     const month = new Date().getMonth() + 1; // 1-12
 
     if (month >= 3 && month <= 5) {
-      return 'spring';
+      return "spring";
     } else if (month >= 6 && month <= 8) {
-      return 'summer';
+      return "summer";
     } else if (month >= 9 && month <= 11) {
-      return 'autumn';
+      return "autumn";
     } else {
-      return 'winter';
+      return "winter";
     }
   }
 
-  private enhanceColorMatchingWithSeason(colors1: string[], colors2: string[], season?: string): boolean {
+  private enhanceColorMatchingWithSeason(
+    colors1: string[],
+    colors2: string[],
+    season?: string,
+  ): boolean {
     const currentSeason = season || this.getCurrentSeason();
     const seasonalPalette = this.getSeasonalColorPalette(currentSeason);
 
     // Check if both color sets have seasonal colors
-    const colors1Seasonal = colors1.some(color =>
-      seasonalPalette.some(seasonal => color.toLowerCase().includes(seasonal))
+    const colors1Seasonal = colors1.some((color) =>
+      seasonalPalette.some((seasonal) =>
+        color.toLowerCase().includes(seasonal),
+      ),
     );
-    const colors2Seasonal = colors2.some(color =>
-      seasonalPalette.some(seasonal => color.toLowerCase().includes(seasonal))
+    const colors2Seasonal = colors2.some((color) =>
+      seasonalPalette.some((seasonal) =>
+        color.toLowerCase().includes(seasonal),
+      ),
     );
 
     // Bonus for seasonal color combinations
@@ -2409,13 +2422,13 @@ export class SimpleStyleAI {
       return true;
     }
 
-        return this.colorsWork(colors1, colors2);
+    return this.colorsWork(colors1, colors2);
   }
 
   // Debugging and Performance Monitoring Methods
   public enableDebugMode(enabled: boolean = true): void {
     this.debugMode = enabled;
-    this.log(`Debug mode ${enabled ? 'enabled' : 'disabled'}`);
+    this.log(`Debug mode ${enabled ? "enabled" : "disabled"}`);
   }
 
   public getPerformanceMetrics(): { [key: string]: number } {
@@ -2430,13 +2443,13 @@ export class SimpleStyleAI {
     this.performanceMetrics = {};
     this.generationStats = {};
     this.usedItemsHistory = {};
-    this.log('Statistics and history reset');
+    this.log("Statistics and history reset");
   }
 
   private log(message: string, data?: any): void {
     if (this.debugMode) {
       const timestamp = new Date().toISOString();
-      console.log(`[StyleAI ${timestamp}] ${message}`, data || '');
+      console.log(`[StyleAI ${timestamp}] ${message}`, data || "");
     }
   }
 
@@ -2447,37 +2460,50 @@ export class SimpleStyleAI {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      this.performanceMetrics[operation] = (this.performanceMetrics[operation] || 0) + duration;
+      this.performanceMetrics[operation] =
+        (this.performanceMetrics[operation] || 0) + duration;
       this.log(`Performance: ${operation} took ${duration.toFixed(2)}ms`);
 
       return result;
     } catch (error) {
       const endTime = performance.now();
       const duration = endTime - startTime;
-      this.log(`Performance: ${operation} failed after ${duration.toFixed(2)}ms`, error);
+      this.log(
+        `Performance: ${operation} failed after ${duration.toFixed(2)}ms`,
+        error,
+      );
       throw error;
     }
   }
 
   private updateGenerationStats(stats: { [key: string]: any }): void {
-    Object.keys(stats).forEach(key => {
-      if (typeof stats[key] === 'number') {
-        this.generationStats[key] = (this.generationStats[key] || 0) + stats[key];
+    Object.keys(stats).forEach((key) => {
+      if (typeof stats[key] === "number") {
+        this.generationStats[key] =
+          (this.generationStats[key] || 0) + stats[key];
       } else {
         this.generationStats[key] = stats[key];
       }
     });
   }
 
-  public getDetailedAnalysis(outfit: WardrobeItem[], profile: StyleProfile, context: { occasion: string; timeOfDay?: string; weather?: WeatherData }): any {
+  public getDetailedAnalysis(
+    outfit: WardrobeItem[],
+    profile: StyleProfile,
+    context: { occasion: string; timeOfDay?: string; weather?: WeatherData },
+  ): any {
     if (!this.debugMode) {
-      console.warn('Debug mode must be enabled to get detailed analysis');
+      console.warn("Debug mode must be enabled to get detailed analysis");
       return null;
     }
 
     try {
       const analysis = {
-        outfit: outfit.map(item => ({ id: item.id, name: item.name, category: item.category })),
+        outfit: outfit.map((item) => ({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+        })),
         scores: {
           diversity: this.calculateDiversityScore(outfit),
           style: this.calculateAdvancedStyleScore(outfit, profile),
@@ -2485,41 +2511,49 @@ export class SimpleStyleAI {
           occasion: this.calculateOccasionScore(outfit, context.occasion),
           completeness: this.calculateCompletenessScore(outfit),
           fashion: this.calculateFashionScore(outfit, context),
-          seasonal: this.calculateSeasonalColorScore(outfit)
+          seasonal: this.calculateSeasonalColorScore(outfit),
         },
         analysis: {
           patterns: this.checkPatternHarmony(outfit),
           textures: this.checkTextureBalance(outfit),
           colors: {
-            all: outfit.flatMap(item => item.color),
-            temperature: this.calculateColorTemperature(outfit.flatMap(item => item.color)),
-            seasonal: this.getCurrentSeason()
+            all: outfit.flatMap((item) => item.color),
+            temperature: this.calculateColorTemperature(
+              outfit.flatMap((item) => item.color),
+            ),
+            seasonal: this.getCurrentSeason(),
           },
-          items: outfit.map(item => ({
+          items: outfit.map((item) => ({
             ...item,
             fabricWeight: this.calculateFabricWeight(item),
             patterns: this.getPatternsFromItem(item),
-            textures: this.getTexturesFromItem(item)
-          }))
+            textures: this.getTexturesFromItem(item),
+          })),
         },
         metadata: {
           timestamp: new Date().toISOString(),
           usageHistory: { ...this.usedItemsHistory },
-          season: this.getCurrentSeason()
-        }
+          season: this.getCurrentSeason(),
+        },
       };
 
       if (context.weather) {
-        analysis.scores['weather'] = this.calculateAdvancedWeatherScore(outfit, context.weather);
+        analysis.scores["weather"] = this.calculateAdvancedWeatherScore(
+          outfit,
+          context.weather,
+        );
       }
 
       if (profile.goals && profile.goals.length > 0) {
-        analysis.scores['goals'] = this.calculateGoalAlignment(outfit, profile.goals);
+        analysis.scores["goals"] = this.calculateGoalAlignment(
+          outfit,
+          profile.goals,
+        );
       }
 
       return analysis;
     } catch (error) {
-      console.error('Error generating detailed analysis:', error);
+      console.error("Error generating detailed analysis:", error);
       return null;
     }
   }
