@@ -101,15 +101,23 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
     <T extends (...args: any[]) => any>(func: T, delay: number): T => {
       let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-      return ((...args: Parameters<T>) => {
+      const debouncedFn = (...args: Parameters<T>) => {
         try {
-          if (timeoutId) {
+          if (timeoutId !== null) {
             clearTimeout(timeoutId);
+            timeoutId = null;
           }
+
           timeoutId = setTimeout(() => {
             timeoutId = null;
             try {
-              func(...args);
+              const result = func(...args);
+              // Handle async functions properly
+              if (result && typeof result.catch === "function") {
+                result.catch((error: any) => {
+                  console.error("Error in async debounced function:", error);
+                });
+              }
             } catch (error) {
               console.error("Error in debounced function:", error);
             }
@@ -117,7 +125,17 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
         } catch (error) {
           console.error("Error setting up debounced function:", error);
         }
-      }) as T;
+      };
+
+      // Add cleanup method to the debounced function
+      (debouncedFn as any).cancel = () => {
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+      };
+
+      return debouncedFn as T;
     },
     [],
   );
