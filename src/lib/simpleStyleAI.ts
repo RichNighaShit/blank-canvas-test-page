@@ -2411,6 +2411,139 @@ export class SimpleStyleAI {
 
     return this.colorsWork(colors1, colors2);
   }
+
+  // Debugging and Performance Monitoring Methods
+  public enableDebugMode(enabled: boolean = true): void {
+    this.debugMode = enabled;
+    this.log(`Debug mode ${enabled ? "enabled" : "disabled"}`);
+  }
+
+  public getPerformanceMetrics(): { [key: string]: number } {
+    return { ...this.performanceMetrics };
+  }
+
+  public getGenerationStats(): { [key: string]: any } {
+    return { ...this.generationStats };
+  }
+
+  public resetStats(): void {
+    this.performanceMetrics = {};
+    this.generationStats = {};
+    this.usedItemsHistory = {};
+    this.log("Statistics and history reset");
+  }
+
+  private log(message: string, data?: any): void {
+    if (this.debugMode) {
+      const timestamp = new Date().toISOString();
+      console.log(`[StyleAI ${timestamp}] ${message}`, data || "");
+    }
+  }
+
+  private measurePerformance<T>(operation: string, fn: () => T): T {
+    const startTime = performance.now();
+    try {
+      const result = fn();
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      this.performanceMetrics[operation] =
+        (this.performanceMetrics[operation] || 0) + duration;
+      this.log(`Performance: ${operation} took ${duration.toFixed(2)}ms`);
+
+      return result;
+    } catch (error) {
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+      this.log(
+        `Performance: ${operation} failed after ${duration.toFixed(2)}ms`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  private updateGenerationStats(stats: { [key: string]: any }): void {
+    Object.keys(stats).forEach((key) => {
+      if (typeof stats[key] === "number") {
+        this.generationStats[key] =
+          (this.generationStats[key] || 0) + stats[key];
+      } else {
+        this.generationStats[key] = stats[key];
+      }
+    });
+  }
+
+  public getDetailedAnalysis(
+    outfit: WardrobeItem[],
+    profile: StyleProfile,
+    context: { occasion: string; timeOfDay?: string; weather?: WeatherData },
+  ): any {
+    if (!this.debugMode) {
+      console.warn("Debug mode must be enabled to get detailed analysis");
+      return null;
+    }
+
+    try {
+      const analysis = {
+        outfit: outfit.map((item) => ({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+        })),
+        scores: {
+          diversity: this.calculateDiversityScore(outfit),
+          style: this.calculateAdvancedStyleScore(outfit, profile),
+          colorHarmony: this.calculateColorHarmonyScore(outfit, profile),
+          occasion: this.calculateOccasionScore(outfit, context.occasion),
+          completeness: this.calculateCompletenessScore(outfit),
+          fashion: this.calculateFashionScore(outfit, context),
+          seasonal: this.calculateSeasonalColorScore(outfit),
+        },
+        analysis: {
+          patterns: this.checkPatternHarmony(outfit),
+          textures: this.checkTextureBalance(outfit),
+          colors: {
+            all: outfit.flatMap((item) => item.color),
+            temperature: this.calculateColorTemperature(
+              outfit.flatMap((item) => item.color),
+            ),
+            seasonal: this.getCurrentSeason(),
+          },
+          items: outfit.map((item) => ({
+            ...item,
+            fabricWeight: this.calculateFabricWeight(item),
+            patterns: this.getPatternsFromItem(item),
+            textures: this.getTexturesFromItem(item),
+          })),
+        },
+        metadata: {
+          timestamp: new Date().toISOString(),
+          usageHistory: { ...this.usedItemsHistory },
+          season: this.getCurrentSeason(),
+        },
+      };
+
+      if (context.weather) {
+        analysis.scores["weather"] = this.calculateAdvancedWeatherScore(
+          outfit,
+          context.weather,
+        );
+      }
+
+      if (profile.goals && profile.goals.length > 0) {
+        analysis.scores["goals"] = this.calculateGoalAlignment(
+          outfit,
+          profile.goals,
+        );
+      }
+
+      return analysis;
+    } catch (error) {
+      console.error("Error generating detailed analysis:", error);
+      return null;
+    }
+  }
 }
 
 // Export a singleton instance
