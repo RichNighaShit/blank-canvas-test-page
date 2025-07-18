@@ -353,18 +353,34 @@ export const StyleRecommendations = () => {
   ]);
 
   // Debounced recommendation loading with stable reference
-  const debouncedLoadRecommendationsRef = useRef<(() => void) | null>(null);
+  const debouncedLoadRecommendationsRef = useRef<
+    ((() => void) & { cancel?: () => void }) | null
+  >(null);
 
   useEffect(() => {
     debouncedLoadRecommendationsRef.current = debounce(
       loadRecommendations,
       500,
     );
+
+    // Cleanup function
+    return () => {
+      if (
+        debouncedLoadRecommendationsRef.current &&
+        typeof debouncedLoadRecommendationsRef.current.cancel === "function"
+      ) {
+        debouncedLoadRecommendationsRef.current.cancel();
+      }
+    };
   }, [debounce, loadRecommendations]);
 
   useEffect(() => {
     if (wardrobeItems.length > 0 && debouncedLoadRecommendationsRef.current) {
-      debouncedLoadRecommendationsRef.current();
+      try {
+        debouncedLoadRecommendationsRef.current();
+      } catch (error) {
+        console.error("Error calling debounced function:", error);
+      }
     }
   }, [wardrobeItems, selectedOccasion, includeAccessories, weather]);
 
