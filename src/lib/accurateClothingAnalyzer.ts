@@ -1590,12 +1590,101 @@ export class AccurateClothingAnalyzer {
       tags.push(style);
     }
 
-    // Add color tags
-    if (colors.length === 1 && colors[0] !== "neutral") {
-      tags.push(`${colors[0]}-piece`);
+    // Add color tags (only non-background colors)
+    const clothingColors = this.filterBackgroundFromColorList(colors);
+    if (clothingColors.length === 1 && clothingColors[0] !== "neutral") {
+      tags.push(`${clothingColors[0]}-piece`);
     }
 
-    return tags.slice(0, 3);
+    // Add pattern detection tags
+    const patterns = this.detectClothingPatterns(colors, category);
+    tags.push(...patterns);
+
+    return tags.slice(0, 5);
+  }
+
+  /**
+   * Filter background colors from a color list
+   */
+  private filterBackgroundFromColorList(colors: string[]): string[] {
+    const commonBackgrounds = ["white", "light-gray", "neutral"];
+    return colors.filter(
+      (color) => !commonBackgrounds.includes(color) || colors.length === 1,
+    );
+  }
+
+  /**
+   * Detect clothing patterns and characteristics
+   */
+  private detectClothingPatterns(colors: string[], category: string): string[] {
+    const patterns = [];
+
+    // Multi-color analysis
+    if (colors.length > 2) {
+      patterns.push("multicolor");
+    } else if (colors.length === 2) {
+      patterns.push("two-tone");
+    }
+
+    // Color temperature analysis
+    const warmColors = ["red", "orange", "yellow", "pink", "coral"];
+    const coolColors = ["blue", "green", "purple", "teal", "navy"];
+
+    const hasWarm = colors.some((c) => warmColors.includes(c));
+    const hasCool = colors.some((c) => coolColors.includes(c));
+
+    if (hasWarm && !hasCool) {
+      patterns.push("warm-tones");
+    } else if (hasCool && !hasWarm) {
+      patterns.push("cool-tones");
+    }
+
+    // Category-specific pattern detection
+    switch (category) {
+      case "dresses":
+        if (colors.includes("floral") || colors.includes("print")) {
+          patterns.push("printed");
+        }
+        break;
+      case "shoes":
+        if (colors.includes("metallic") || colors.includes("shiny")) {
+          patterns.push("metallic-finish");
+        }
+        break;
+      case "accessories":
+        patterns.push("accent-piece");
+        break;
+    }
+
+    return patterns.slice(0, 2);
+  }
+
+  /**
+   * Enhanced background detection for better color accuracy
+   */
+  private isLikelyBackgroundColor(
+    colorName: string,
+    frequency: number,
+    totalPixels: number,
+  ): boolean {
+    const frequencyRatio = frequency / totalPixels;
+
+    // Very common colors are likely background
+    if (frequencyRatio > 0.4) {
+      return ["white", "light-gray", "gray", "neutral"].includes(colorName);
+    }
+
+    // Photography background indicators
+    const photographyBackgrounds = [
+      "white",
+      "light-gray",
+      "cream",
+      "off-white",
+      "neutral",
+      "beige",
+    ];
+
+    return photographyBackgrounds.includes(colorName) && frequencyRatio > 0.2;
   }
 
   /**
