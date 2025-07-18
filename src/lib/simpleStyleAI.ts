@@ -42,7 +42,7 @@ export class SimpleStyleAI {
   private readonly ITEM_COOLDOWN_MS = 30000; // 30 seconds before item can be used again
   private readonly MAX_ITEM_USAGE_PER_SESSION = 2; // Max times an item can appear in one session
 
-  generateRecommendations(
+    generateRecommendations(
     wardrobeItems: WardrobeItem[],
     profile: StyleProfile,
     context: { occasion: string; timeOfDay?: string; weather?: WeatherData },
@@ -457,16 +457,43 @@ export class SimpleStyleAI {
     return groups;
   }
 
-  private scoreOutfit(
+    private scoreOutfit(
     outfit: WardrobeItem[],
     profile: StyleProfile,
     context: { occasion: string; timeOfDay?: string; weather?: WeatherData },
   ): OutfitRecommendation {
-    let confidence = 0;
-    const reasoning: string[] = [];
+    try {
+      // Input validation
+      if (!outfit || !Array.isArray(outfit) || outfit.length === 0) {
+        throw new Error("Invalid outfit provided for scoring");
+      }
 
-    // Base confidence for having items
-    confidence += 0.2;
+      if (!profile || !profile.preferred_style) {
+        throw new Error("Invalid profile provided for scoring");
+      }
+
+      if (!context || !context.occasion) {
+        throw new Error("Invalid context provided for scoring");
+      }
+
+      // Validate outfit items
+      const validItems = outfit.filter((item) => {
+        if (!item || !item.id || !item.category || !item.color) {
+          console.warn("Invalid outfit item:", item);
+          return false;
+        }
+        return true;
+      });
+
+      if (validItems.length === 0) {
+        throw new Error("No valid items in outfit");
+      }
+
+      let confidence = 0;
+      const reasoning: string[] = [];
+
+      // Base confidence for having items
+      confidence += 0.2;
 
     // Diversity bonus - reward outfits with less-used items
     const diversityBonus = this.calculateDiversityScore(outfit) * 0.15;
@@ -538,7 +565,7 @@ export class SimpleStyleAI {
       reasoning.push("Complete, well-balanced outfit");
     }
 
-    // Trend relevance and fashion rules
+        // Trend relevance and fashion rules
     const fashionScore = this.calculateFashionScore(outfit, context);
     confidence += fashionScore * 0.1;
 
@@ -1318,7 +1345,7 @@ export class SimpleStyleAI {
     return Math.min(1, score);
   }
 
-  private calculateFashionScore(
+    private calculateFashionScore(
     outfit: WardrobeItem[],
     context: { occasion: string; timeOfDay?: string },
   ): number {
@@ -1347,9 +1374,7 @@ export class SimpleStyleAI {
     }
 
     // Fabric weight balance
-    const fabricWeights = outfit.map((item) =>
-      this.calculateFabricWeight(item),
-    );
+    const fabricWeights = outfit.map((item) => this.calculateFabricWeight(item));
     const uniqueWeights = [...new Set(fabricWeights)];
     if (uniqueWeights.length >= 2 && uniqueWeights.length <= 3) {
       score += 0.1; // Good weight variety
@@ -1654,7 +1679,7 @@ export class SimpleStyleAI {
     return seasonalPalettes[season as keyof typeof seasonalPalettes] || [];
   }
 
-  private calculateColorTemperature(
+    private calculateColorTemperature(
     colors: string[],
   ): "warm" | "cool" | "neutral" {
     const warmColors = [
@@ -1762,10 +1787,9 @@ export class SimpleStyleAI {
     );
   }
 
-  private checkPatternHarmony(outfit: WardrobeItem[]): {
-    score: number;
-    reasoning: string;
-  } {
+  private checkPatternHarmony(
+    outfit: WardrobeItem[],
+  ): { score: number; reasoning: string } {
     try {
       const patternedItems = outfit.filter(
         (item) => this.getPatternsFromItem(item).length > 0,
@@ -1796,12 +1820,8 @@ export class SimpleStyleAI {
           patterns1.some((p) => p.includes("dots") || p.includes("small")) ||
           patterns2.some((p) => p.includes("dots") || p.includes("small"));
         const hasLargePattern =
-          patterns1.some(
-            (p) => p.includes("floral") || p.includes("geometric"),
-          ) ||
-          patterns2.some(
-            (p) => p.includes("floral") || p.includes("geometric"),
-          );
+          patterns1.some((p) => p.includes("floral") || p.includes("geometric")) ||
+          patterns2.some((p) => p.includes("floral") || p.includes("geometric"));
 
         if (hasSmallPattern && hasLargePattern) {
           return {
@@ -1857,10 +1877,9 @@ export class SimpleStyleAI {
     }
   }
 
-  private checkTextureBalance(outfit: WardrobeItem[]): {
-    score: number;
-    reasoning: string;
-  } {
+  private checkTextureBalance(
+    outfit: WardrobeItem[],
+  ): { score: number; reasoning: string } {
     try {
       const textures = outfit.flatMap((item) => this.getTexturesFromItem(item));
       const uniqueTextures = [...new Set(textures)];
@@ -1870,10 +1889,7 @@ export class SimpleStyleAI {
       }
 
       if (uniqueTextures.length === 1) {
-        return {
-          score: 0.7,
-          reasoning: "Uniform texture creates cohesive look",
-        };
+        return { score: 0.7, reasoning: "Uniform texture creates cohesive look" };
       }
 
       if (uniqueTextures.length === 2 || uniqueTextures.length === 3) {
@@ -1914,9 +1930,7 @@ export class SimpleStyleAI {
     }
   }
 
-  private calculateFabricWeight(
-    item: WardrobeItem,
-  ): "light" | "medium" | "heavy" {
+  private calculateFabricWeight(item: WardrobeItem): "light" | "medium" | "heavy" {
     const lightFabrics = [
       "silk",
       "chiffon",
