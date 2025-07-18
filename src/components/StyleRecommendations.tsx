@@ -309,14 +309,29 @@ export const StyleRecommendations = () => {
       );
 
       console.log("Generated recommendations:", recs);
+
+      if (!Array.isArray(recs)) {
+        throw new Error("Invalid recommendation response format");
+      }
+
+      if (recs.length === 0) {
+        setError(
+          "No outfit recommendations could be generated with your current wardrobe. Try adding more items or adjusting your preferences.",
+        );
+      }
+
       setRecommendations(recs);
     } catch (error) {
       console.error("Error loading recommendations:", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to generate recommendations",
-      );
+      let errorMessage = "Failed to generate recommendations";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+
+      setError(errorMessage);
       setRecommendations([]);
     } finally {
       setLoading(false);
