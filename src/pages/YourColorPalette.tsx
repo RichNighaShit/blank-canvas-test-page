@@ -427,7 +427,7 @@ const YourColorPalette = () => {
                     </div>
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
                       <div className="text-2xl font-bold text-pink-600">
-                        {colorStats.avgSaturation}%
+                        {colorAnalysis.avgSaturation}%
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Avg Saturation
