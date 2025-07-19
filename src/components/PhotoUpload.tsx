@@ -365,30 +365,38 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
       // Upload to storage first
       const imageUrl = await uploadToStorage(croppedFile);
 
-      // Perform systematic analysis
+      // Perform advanced color extraction
       let aiAnalysis = null;
       let colors = ["neutral"];
+      let paletteData: ExtractedPalette | null = null;
 
+      // First try advanced color extraction
+      try {
+        const colorAnalysis = await analyzeImageColors(croppedFile);
+        colors = colorAnalysis.colors;
+        paletteData = colorAnalysis.palette;
+
+        toast({
+          title: "🎨 Color Palette Extracted!",
+          description: `Extracted ${colors.length} colors with ${Math.round(paletteData.confidence * 100)}% confidence from ${paletteData.source}`,
+        });
+      } catch (colorError) {
+        console.warn("Advanced color extraction failed:", colorError);
+        colors = await extractBasicColors(croppedFile);
+
+        toast({
+          title: "Colors extracted!",
+          description: "Using basic color detection as fallback.",
+        });
+      }
+
+      // Then try systematic analysis (optional)
       try {
         aiAnalysis = await performSystematicAnalysis(imageUrl);
-        colors = aiAnalysis?.analysis?.colors || colors;
-
-        toast({
-          title: "🔍 Systematic Analysis Complete!",
-          description: `Analysis identified: ${aiAnalysis?.analysis?.name || "clothing item"} with ${Math.round((aiAnalysis?.confidence || 0) * 100)}% confidence`,
-        });
+        console.log("Systematic analysis result:", aiAnalysis);
       } catch (aiError) {
-        console.warn(
-          "Systematic analysis failed, using fallback color analysis:",
-          aiError,
-        );
-        colors = await analyzeImageColors(croppedFile);
-
-        toast({
-          title: "Photo analyzed!",
-          description:
-            "Using enhanced color detection. Analysis temporarily unavailable.",
-        });
+        console.warn("Systematic analysis failed (optional):", aiError);
+        // Continue without AI analysis
       }
 
       onAnalysisComplete({ imageUrl, colors, aiAnalysis });
