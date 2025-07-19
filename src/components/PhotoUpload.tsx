@@ -6,10 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import Cropper from "react-easy-crop";
 import { useRef } from "react";
 import { Palette } from "lucide-react";
-import {
-  colorExtractionService,
-  ExtractedPalette,
-} from "@/lib/colorExtractionService";
 
 import neutralBody from "@/assets/neutral-body.png";
 import { useProfile } from "@/hooks/useProfile";
