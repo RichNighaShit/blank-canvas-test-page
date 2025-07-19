@@ -59,8 +59,13 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   }, [user, profile]);
 
   const dismissColorPalettePrompt = () => {
-    if (user) {
-      localStorage.setItem(`color_palette_prompt_${user.id}`, "true");
+    try {
+      if (user && user.id) {
+        localStorage.setItem(`color_palette_prompt_${user.id}`, "true");
+        setShowColorPalettePrompt(false);
+      }
+    } catch (error) {
+      console.warn("Error dismissing color palette prompt:", error);
       setShowColorPalettePrompt(false);
     }
   };
