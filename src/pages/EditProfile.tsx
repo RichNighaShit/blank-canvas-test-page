@@ -82,6 +82,7 @@ const EditProfile = () => {
     gender_identity: "",
     preferred_style: "",
     favorite_colors: [] as string[],
+    color_palette_colors: [] as string[],
     goals: [] as string[],
     face_photo_url: "",
   });
@@ -96,6 +97,9 @@ const EditProfile = () => {
         preferred_style: profile.preferred_style || "",
         favorite_colors: Array.isArray(profile.favorite_colors)
           ? profile.favorite_colors
+          : [],
+        color_palette_colors: Array.isArray(profile.color_palette_colors)
+          ? profile.color_palette_colors
           : [],
         goals: Array.isArray(profile.goals) ? profile.goals : [],
         face_photo_url: profile.face_photo_url || "",
@@ -127,10 +131,11 @@ const EditProfile = () => {
       setForm((prev) => ({
         ...prev,
         face_photo_url: analysisResult.imageUrl,
-        favorite_colors:
+        // Store extracted colors in color_palette_colors, not favorite_colors
+        color_palette_colors:
           analysisResult.colors && Array.isArray(analysisResult.colors)
             ? analysisResult.colors.slice(0, 6)
-            : prev.favorite_colors,
+            : prev.color_palette_colors || [],
       }));
     }
   };
@@ -168,6 +173,7 @@ const EditProfile = () => {
         gender_identity: form.gender_identity || null,
         preferred_style: form.preferred_style || null,
         favorite_colors: form.favorite_colors,
+        color_palette_colors: form.color_palette_colors,
         goals: form.goals,
         face_photo_url: form.face_photo_url || null,
       };

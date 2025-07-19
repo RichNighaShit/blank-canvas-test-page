@@ -10,6 +10,7 @@ interface Profile {
   culture: string;
   preferred_style: string;
   favorite_colors?: string[];
+  color_palette_colors?: string[];
   goals?: string[];
   gender_identity?: string;
   face_photo_url?: string;
@@ -23,15 +24,15 @@ export const useProfile = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const fetchProfile = async () => {
+  const fetchProfile = async (forceRefresh = false) => {
     if (!user) {
       setProfile(null);
       setLoading(false);
       return;
     }
 
-    // Check cache first
-    if (profileCache[user.id]) {
+    // Check cache first, but skip if force refresh is requested
+    if (!forceRefresh && profileCache[user.id]) {
       setProfile(profileCache[user.id]);
       setLoading(false);
       return;
@@ -88,5 +89,13 @@ export const useProfile = () => {
     fetchProfile();
   }, [user]);
 
-  return { profile, loading, refetch: fetchProfile };
+  const refetch = async () => {
+    // Clear cache before refetching to ensure fresh data
+    if (user?.id) {
+      delete profileCache[user.id];
+    }
+    await fetchProfile(true);
+  };
+
+  return { profile, loading, refetch };
 };

@@ -30,6 +30,7 @@ interface ProfileData {
   gender_identity: string;
   preferred_style: string[];
   favorite_colors: string[];
+  color_palette_colors: string[];
   goals: string[];
   face_photo_url?: string;
 }
@@ -44,6 +45,7 @@ const Onboarding = () => {
     gender_identity: "",
     preferred_style: [],
     favorite_colors: [],
+    color_palette_colors: [],
     goals: [],
   });
   const { user, loading } = useAuth();
@@ -140,10 +142,10 @@ const Onboarding = () => {
     setProfileData((prev) => ({
       ...prev,
       face_photo_url: analysisResult.imageUrl,
-      favorite_colors: [
-        ...prev.favorite_colors,
-        ...analysisResult.colors.slice(0, 3),
-      ],
+      // Store extracted colors in color_palette_colors, not favorite_colors
+      color_palette_colors: analysisResult.colors
+        ? analysisResult.colors.slice(0, 6)
+        : [],
     }));
     setStep(2);
   };
@@ -208,6 +210,7 @@ const Onboarding = () => {
             culture: profileData.gender_identity,
             preferred_style: profileData.preferred_style[0],
             favorite_colors: profileData.favorite_colors,
+            color_palette_colors: profileData.color_palette_colors,
             goals: profileData.goals,
             face_photo_url: profileData.face_photo_url,
           })
@@ -225,6 +228,7 @@ const Onboarding = () => {
           culture: profileData.gender_identity,
           preferred_style: profileData.preferred_style[0],
           favorite_colors: profileData.favorite_colors,
+          color_palette_colors: profileData.color_palette_colors,
           goals: profileData.goals,
           face_photo_url: profileData.face_photo_url,
         });

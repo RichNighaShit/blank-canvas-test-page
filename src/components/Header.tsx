@@ -19,6 +19,7 @@ import {
   Menu,
   Sparkles,
   Shirt,
+  Palette,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -66,6 +67,11 @@ const Header = React.memo(() => {
         label: "Style Me",
         path: "/recommendations",
         icon: Sparkles,
+      },
+      {
+        label: "Color Palette",
+        path: "/profile/palette",
+        icon: Palette,
       },
       {
         label: "Analytics",
@@ -253,6 +259,10 @@ const Header = React.memo(() => {
                 <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                   <Settings className="mr-2 h-4 w-4" />
                   Edit Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/profile/palette")}>
+                  <Palette className="mr-2 h-4 w-4" />
+                  Your Color Palette
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>

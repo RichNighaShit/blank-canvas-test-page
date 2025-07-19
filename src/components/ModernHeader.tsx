@@ -18,6 +18,7 @@ import {
   Menu,
   Sparkles,
   Shirt,
+  Palette,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -268,6 +269,13 @@ const ModernHeader = () => {
                 >
                   <Settings className="mr-3 h-4 w-4" />
                   Edit Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => navigate("/profile/palette")}
+                  className="py-3"
+                >
+                  <Palette className="mr-3 h-4 w-4" />
+                  Your Color Palette
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="py-3">

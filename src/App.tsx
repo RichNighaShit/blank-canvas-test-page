@@ -23,6 +23,7 @@ const WardrobeAnalyticsPage = React.lazy(
 const Onboarding = React.lazy(() => import("./pages/Onboarding"));
 const Index = React.lazy(() => import("./pages/Index"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
+const YourColorPalette = React.lazy(() => import("./pages/YourColorPalette"));
 
 // Loading component for Suspense fallback
 const PageLoader = () => (
@@ -82,6 +83,14 @@ function App() {
             element={
               <Suspense fallback={<PageLoader />}>
                 <EditProfile />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/profile/palette"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <YourColorPalette />
               </Suspense>
             }
           />

@@ -23,6 +23,7 @@ export interface StyleProfile {
   id: string;
   preferred_style: string;
   favorite_colors?: string[];
+  color_palette_colors?: string[];
   goals?: string[];
 }
 
@@ -36,6 +37,8 @@ export interface OutfitRecommendation {
   reasoning: string[];
 }
 
+import { advancedColorTheory, ColorHarmonyResult } from "./advancedColorTheory";
+
 export class SimpleStyleAI {
   private usedItemsHistory: { [itemId: string]: number } = {};
   private lastGenerationTime: number = 0;
@@ -45,6 +48,7 @@ export class SimpleStyleAI {
   private debugMode: boolean = false;
   private performanceMetrics: { [key: string]: number } = {};
   private generationStats: { [key: string]: any } = {};
+  private useAdvancedColorTheory: boolean = true; // Enable advanced color theory
 
   generateRecommendations(
     wardrobeItems: WardrobeItem[],
@@ -149,8 +153,8 @@ export class SimpleStyleAI {
         // Group items by category
         const itemsByCategory = this.groupByCategory(weatherFilteredItems);
 
-        // Generate diverse outfit combinations with weather context
-        const combinations = this.generateDiverseCombinations(
+        // Generate diverse outfit combinations with advanced color theory and weather context
+        const combinations = this.generateAdvancedCombinations(
           itemsByCategory,
           context.occasion,
           profile.preferred_style,
@@ -371,6 +375,330 @@ export class SimpleStyleAI {
       console.error("Error in filterByWeather:", error);
       return items || [];
     }
+  }
+
+  /**
+   * Generate outfit combinations using advanced color theory principles
+   * Falls back to basic logic if no combinations are found
+   */
+  private generateAdvancedCombinations(
+    itemsByCategory: { [key: string]: WardrobeItem[] },
+    occasion: string,
+    preferredStyle?: string,
+    includeAccessories: boolean = true,
+    weather?: WeatherData,
+  ): WardrobeItem[][] {
+    try {
+      // First try advanced color theory approach
+      const advancedCombinations = this.generateWithAdvancedColorTheory(
+        itemsByCategory,
+        occasion,
+        preferredStyle,
+        includeAccessories,
+        weather,
+      );
+
+      // If we get good results with advanced theory, use them
+      if (advancedCombinations.length >= 3) {
+        console.log(
+          `Generated ${advancedCombinations.length} combinations using advanced color theory`,
+        );
+        return advancedCombinations;
+      }
+
+      console.log(
+        `Advanced color theory yielded ${advancedCombinations.length} combinations, falling back to diverse combinations`,
+      );
+
+      // Fallback to existing diverse combinations logic
+      const fallbackCombinations = this.generateDiverseCombinations(
+        itemsByCategory,
+        occasion,
+        preferredStyle,
+        includeAccessories,
+        weather,
+      );
+
+      // Combine both approaches for maximum variety
+      const allCombinations = [
+        ...advancedCombinations,
+        ...fallbackCombinations,
+      ];
+
+      // Remove duplicates based on item IDs
+      const uniqueCombinations = allCombinations.filter(
+        (combination, index, array) => {
+          const combinationKey = combination
+            .map((item) => item.id)
+            .sort()
+            .join("-");
+          return (
+            array.findIndex(
+              (c) =>
+                c
+                  .map((item) => item.id)
+                  .sort()
+                  .join("-") === combinationKey,
+            ) === index
+          );
+        },
+      );
+
+      return uniqueCombinations;
+    } catch (error) {
+      console.error("Error in generateAdvancedCombinations:", error);
+      // Complete fallback to existing logic
+      return this.generateDiverseCombinations(
+        itemsByCategory,
+        occasion,
+        preferredStyle,
+        includeAccessories,
+        weather,
+      );
+    }
+  }
+
+  /**
+   * Generate combinations using advanced color theory principles
+   */
+  private generateWithAdvancedColorTheory(
+    itemsByCategory: { [key: string]: WardrobeItem[] },
+    occasion: string,
+    preferredStyle?: string,
+    includeAccessories: boolean = true,
+    weather?: WeatherData,
+  ): WardrobeItem[][] {
+    if (!itemsByCategory || typeof itemsByCategory !== "object") {
+      console.warn("Invalid itemsByCategory provided to advanced color theory");
+      return [];
+    }
+
+    const combinations: WardrobeItem[][] = [];
+    const tops = this.shuffleArray(itemsByCategory.tops || []);
+    const bottoms = this.shuffleArray(itemsByCategory.bottoms || []);
+    const dresses = this.shuffleArray(itemsByCategory.dresses || []);
+    const shoes = this.shuffleArray(itemsByCategory.shoes || []);
+    const outerwear = this.shuffleArray(itemsByCategory.outerwear || []);
+    const accessories = this.shuffleArray(itemsByCategory.accessories || []);
+
+    const shouldExcludeOuterwear = weather && weather.temperature > 25;
+
+    // Sort items by color harmony potential (favor harmonious colors)
+    const enhancedTops = this.enhanceItemsWithColorAnalysis(tops);
+    const enhancedBottoms = this.enhanceItemsWithColorAnalysis(bottoms);
+    const enhancedDresses = this.enhanceItemsWithColorAnalysis(dresses);
+
+    // Generate dress-based outfits with advanced color theory
+    for (let i = 0; i < Math.min(enhancedDresses.length, 8); i++) {
+      const dress = enhancedDresses[i];
+
+      if (!this.isAppropriateForOccasion(dress, occasion, preferredStyle))
+        continue;
+      if (
+        (this.usedItemsHistory[dress.id] || 0) >=
+        this.MAX_ITEM_USAGE_PER_SESSION * 1.5
+      )
+        continue;
+
+      const outfit = [dress];
+
+      // Find shoes using advanced color harmony
+      const harmoniousShoes = shoes.filter((shoe) => {
+        const harmonyResult = advancedColorTheory.analyzeColorHarmony(
+          dress.color,
+          shoe.color,
+        );
+        return harmonyResult.confidence > 0.6 && harmonyResult.isHarmonious;
+      });
+
+      if (harmoniousShoes.length > 0) {
+        outfit.push(harmoniousShoes[0]);
+      } else {
+        // Fallback to basic color matching
+        const compatibleShoes = shoes.filter(
+          (shoe) =>
+            this.colorsWork(dress.color, shoe.color) ||
+            this.isNeutralColor(shoe.color),
+        );
+        if (compatibleShoes.length > 0) {
+          outfit.push(compatibleShoes[0]);
+        }
+      }
+
+      // Add outerwear with color harmony consideration
+      if (
+        !shouldExcludeOuterwear &&
+        Math.random() > 0.6 &&
+        outerwear.length > 0
+      ) {
+        const harmoniousOuterwear = outerwear.filter((coat) => {
+          const harmonyResult = advancedColorTheory.analyzeColorHarmony(
+            dress.color,
+            coat.color,
+          );
+          return harmonyResult.confidence > 0.5 && harmonyResult.isHarmonious;
+        });
+
+        if (harmoniousOuterwear.length > 0) {
+          outfit.push(harmoniousOuterwear[0]);
+        }
+      }
+
+      // Add accessories with color consideration
+      if (includeAccessories && Math.random() > 0.5 && accessories.length > 0) {
+        const outfitColors = outfit.flatMap((item) => item.color);
+        const harmoniousAccessories = accessories.filter((acc) => {
+          const harmonyResult = advancedColorTheory.analyzeColorHarmony(
+            outfitColors,
+            acc.color,
+          );
+          return (
+            harmonyResult.confidence > 0.4 &&
+            (harmonyResult.isHarmonious || this.isNeutralColor(acc.color))
+          );
+        });
+
+        if (harmoniousAccessories.length > 0) {
+          outfit.push(harmoniousAccessories[0]);
+        }
+      }
+
+      combinations.push(outfit);
+    }
+
+    // Generate top + bottom combinations with advanced color theory
+    const maxCombinations = Math.min(
+      enhancedTops.length * enhancedBottoms.length,
+      25,
+    );
+
+    for (let i = 0; i < maxCombinations; i++) {
+      const topIndex = i % enhancedTops.length;
+      const bottomIndex =
+        Math.floor(i / enhancedTops.length) % enhancedBottoms.length;
+
+      const top = enhancedTops[topIndex];
+      const bottom = enhancedBottoms[bottomIndex];
+
+      if (
+        !this.isAppropriateForOccasion(top, occasion, preferredStyle) ||
+        !this.isAppropriateForOccasion(bottom, occasion, preferredStyle)
+      ) {
+        continue;
+      }
+
+      if (
+        (this.usedItemsHistory[top.id] || 0) >=
+          this.MAX_ITEM_USAGE_PER_SESSION ||
+        (this.usedItemsHistory[bottom.id] || 0) >=
+          this.MAX_ITEM_USAGE_PER_SESSION
+      ) {
+        continue;
+      }
+
+      // Check color harmony using advanced theory
+      const harmonyResult = advancedColorTheory.analyzeColorHarmony(
+        top.color,
+        bottom.color,
+      );
+
+      // Accept if good harmony, or fallback to basic logic
+      if (harmonyResult.confidence > 0.6 && harmonyResult.isHarmonious) {
+        const outfit = [top, bottom];
+
+        // Add shoes with color harmony consideration
+        const outfitColors = [...top.color, ...bottom.color];
+        const harmoniousShoes = shoes.filter((shoe) => {
+          const shoeHarmony = advancedColorTheory.analyzeColorHarmony(
+            outfitColors,
+            shoe.color,
+          );
+          return (
+            shoeHarmony.confidence > 0.5 &&
+            (shoeHarmony.isHarmonious || this.isNeutralColor(shoe.color))
+          );
+        });
+
+        if (harmoniousShoes.length > 0) {
+          outfit.push(harmoniousShoes[0]);
+        }
+
+        // Add outerwear with harmony consideration
+        if (
+          !shouldExcludeOuterwear &&
+          Math.random() > 0.7 &&
+          outerwear.length > 0
+        ) {
+          const harmoniousOuterwear = outerwear.filter((coat) => {
+            const coatHarmony = advancedColorTheory.analyzeColorHarmony(
+              outfitColors,
+              coat.color,
+            );
+            return coatHarmony.confidence > 0.4 && coatHarmony.isHarmonious;
+          });
+
+          if (harmoniousOuterwear.length > 0) {
+            outfit.push(harmoniousOuterwear[0]);
+          }
+        }
+
+        // Add accessories
+        if (
+          includeAccessories &&
+          Math.random() > 0.6 &&
+          accessories.length > 0
+        ) {
+          const currentOutfitColors = outfit.flatMap((item) => item.color);
+          const harmoniousAccessories = accessories.filter((acc) => {
+            const accHarmony = advancedColorTheory.analyzeColorHarmony(
+              currentOutfitColors,
+              acc.color,
+            );
+            return (
+              accHarmony.confidence > 0.3 &&
+              (accHarmony.isHarmonious || this.isNeutralColor(acc.color))
+            );
+          });
+
+          if (harmoniousAccessories.length > 0) {
+            outfit.push(harmoniousAccessories[0]);
+          }
+        }
+
+        combinations.push(outfit);
+      }
+    }
+
+    console.log(
+      `Advanced color theory generated ${combinations.length} harmonious combinations`,
+    );
+    return combinations;
+  }
+
+  /**
+   * Enhance items with color analysis for better sorting
+   */
+  private enhanceItemsWithColorAnalysis(items: WardrobeItem[]): WardrobeItem[] {
+    return items
+      .map((item) => {
+        try {
+          const colorAnalysis = advancedColorTheory.analyzeColor(
+            item.color[0] || "neutral",
+          );
+          // Add color analysis as metadata (non-persistent)
+          (item as any)._colorAnalysis = colorAnalysis;
+          return item;
+        } catch (error) {
+          console.warn("Error analyzing color for item:", item.id, error);
+          return item;
+        }
+      })
+      .sort((a, b) => {
+        // Sort by color harmony potential and usage history
+        const usageA = this.usedItemsHistory[a.id] || 0;
+        const usageB = this.usedItemsHistory[b.id] || 0;
+        return usageA - usageB; // Prefer less used items
+      });
   }
 
   private generateDiverseCombinations(
@@ -917,19 +1245,49 @@ export class SimpleStyleAI {
         );
       }
 
-      // Simplified color harmony analysis
-      const colorHarmonyScore = this.calculateSimplifiedColorHarmony(
+      // Enhanced color harmony analysis with advanced color theory
+      const colorHarmonyScore = this.calculateAdvancedColorHarmony(
         validItems,
         profile,
       );
       confidence += colorHarmonyScore * scoringWeights.colorHarmony;
 
-      if (colorHarmonyScore > 0.8) {
-        reasoning.push("Beautiful color coordination");
-      } else if (colorHarmonyScore > 0.6) {
-        reasoning.push("Great color harmony");
-      } else if (colorHarmonyScore > 0.4) {
-        reasoning.push("Nice color balance");
+      // Enhanced reasoning with advanced color theory insights
+      if (this.useAdvancedColorTheory) {
+        const allColors = validItems.flatMap((item) => item.color);
+        const overallHarmony = advancedColorTheory.findBestHarmony(allColors);
+
+        if (colorHarmonyScore > 0.8) {
+          reasoning.push(
+            `Exceptional ${overallHarmony.harmonyType} color harmony`,
+          );
+        } else if (colorHarmonyScore > 0.6) {
+          reasoning.push(
+            `Beautiful ${overallHarmony.harmonyType} color coordination`,
+          );
+        } else if (colorHarmonyScore > 0.4) {
+          reasoning.push(overallHarmony.reasoning || "Nice color balance");
+        }
+
+        // Add specific color theory insights
+        if (overallHarmony.harmonyType.includes("modern")) {
+          reasoning.push("Contemporary color palette");
+        } else if (overallHarmony.harmonyType === "seasonal") {
+          reasoning.push(`Perfect for ${this.getCurrentSeason()} season`);
+        } else if (overallHarmony.harmonyType === "complementary") {
+          reasoning.push("Dynamic color contrast creates visual interest");
+        } else if (overallHarmony.harmonyType === "monochromatic") {
+          reasoning.push("Sophisticated tonal variation");
+        }
+      } else {
+        // Fallback to simple reasoning
+        if (colorHarmonyScore > 0.8) {
+          reasoning.push("Beautiful color coordination");
+        } else if (colorHarmonyScore > 0.6) {
+          reasoning.push("Great color harmony");
+        } else if (colorHarmonyScore > 0.4) {
+          reasoning.push("Nice color balance");
+        }
       }
 
       // Occasion appropriateness with formality levels
@@ -1174,7 +1532,18 @@ export class SimpleStyleAI {
         return false;
       }
 
-      // Simplified approach: Use popular color combinations
+      // Use advanced color theory first, fallback to basic logic
+      if (this.useAdvancedColorTheory) {
+        const harmonyResult = advancedColorTheory.analyzeColorHarmony(
+          colors1,
+          colors2,
+        );
+        if (harmonyResult.confidence > 0.6) {
+          return harmonyResult.isHarmonious;
+        }
+      }
+
+      // Fallback to simplified approach: Use popular color combinations
       return this.checkPopularColorCombinations(colors1, colors2);
     } catch (error) {
       console.warn("Error in colorsWork:", error);
@@ -1388,6 +1757,118 @@ export class SimpleStyleAI {
     return Math.min(1, score);
   }
 
+  /**
+   * Calculate color harmony using advanced color theory principles
+   * Falls back to simplified logic if advanced theory fails
+   */
+  private calculateAdvancedColorHarmony(
+    outfit: WardrobeItem[],
+    profile: StyleProfile,
+  ): number {
+    try {
+      if (!this.useAdvancedColorTheory) {
+        return this.calculateSimplifiedColorHarmony(outfit, profile);
+      }
+
+      const allColors = outfit.flatMap((item) => item.color);
+      if (allColors.length === 0) {
+        return 0.5; // Neutral score when no color data
+      }
+
+      // Use advanced color theory to analyze the overall outfit harmony
+      const overallHarmony = advancedColorTheory.findBestHarmony(allColors);
+      let score = overallHarmony.confidence;
+
+      // Bonus for specific harmony types
+      const harmonyBonuses: { [key: string]: number } = {
+        monochromatic: 0.1,
+        complementary: 0.15,
+        analogous: 0.12,
+        triadic: 0.1,
+        seasonal: 0.13,
+        neutral: 0.08,
+        "modern-complementary": 0.16,
+        "modern-monochromatic": 0.11,
+        "modern-triadic": 0.12,
+      };
+
+      const bonus = harmonyBonuses[overallHarmony.harmonyType] || 0;
+      score += bonus;
+
+      // Check pairwise harmony between items for additional scoring
+      let pairwiseScore = 0;
+      let pairCount = 0;
+
+      for (let i = 0; i < outfit.length; i++) {
+        for (let j = i + 1; j < outfit.length; j++) {
+          const pairHarmony = advancedColorTheory.analyzeColorHarmony(
+            outfit[i].color,
+            outfit[j].color,
+          );
+          pairwiseScore += pairHarmony.confidence;
+          pairCount++;
+        }
+      }
+
+      if (pairCount > 0) {
+        const avgPairwiseScore = pairwiseScore / pairCount;
+        score = score * 0.7 + avgPairwiseScore * 0.3; // Weight overall harmony more
+      }
+
+      // Bonus for user's favorite colors (manually selected preferences)
+      if (profile.favorite_colors && profile.favorite_colors.length > 0) {
+        const favoriteMatches = allColors.filter((color) =>
+          profile.favorite_colors!.some((fav) =>
+            color.toLowerCase().includes(fav.toLowerCase()),
+          ),
+        ).length;
+
+        if (favoriteMatches > 0) {
+          score += 0.18 * (favoriteMatches / allColors.length); // Higher weight for deliberate choices
+        }
+      }
+
+      // Bonus for user's color palette colors (extracted from profile picture)
+      if (
+        profile.color_palette_colors &&
+        profile.color_palette_colors.length > 0
+      ) {
+        const paletteMatches = allColors.filter((color) =>
+          profile.color_palette_colors!.some((paletteColor) =>
+            color.toLowerCase().includes(paletteColor.toLowerCase()),
+          ),
+        ).length;
+
+        if (paletteMatches > 0) {
+          score += 0.12 * (paletteMatches / allColors.length); // Moderate weight for analyzed colors
+        }
+      }
+
+      // Seasonal color bonus
+      const currentSeason = this.getCurrentSeason();
+      const seasonalPalette = advancedColorTheory.getCurrentSeasonalPalette();
+      const seasonalMatches = allColors.filter((color) =>
+        seasonalPalette.palette.some(
+          (seasonalColor) =>
+            color.toLowerCase().includes(seasonalColor.toLowerCase()) ||
+            seasonalColor.toLowerCase().includes(color.toLowerCase()),
+        ),
+      ).length;
+
+      if (seasonalMatches > 0) {
+        score += 0.1 * (seasonalMatches / allColors.length);
+      }
+
+      return Math.min(1, Math.max(0, score));
+    } catch (error) {
+      console.warn(
+        "Error in calculateAdvancedColorHarmony, falling back to simplified:",
+        error,
+      );
+      return this.calculateSimplifiedColorHarmony(outfit, profile);
+    }
+  }
+
   private calculateSimplifiedColorHarmony(
     outfit: WardrobeItem[],
     profile: StyleProfile,
@@ -1425,7 +1906,7 @@ export class SimpleStyleAI {
       score -= 0.2;
     }
 
-    // Bonus for user's favorite colors
+    // Bonus for user's favorite colors (manually selected)
     if (profile.favorite_colors && profile.favorite_colors.length > 0) {
       const favoriteMatches = allColors.filter((color) =>
         profile.favorite_colors!.some((fav) =>
@@ -1434,6 +1915,21 @@ export class SimpleStyleAI {
       ).length;
       if (favoriteMatches > 0) {
         score += 0.2;
+      }
+    }
+
+    // Bonus for user's color palette colors (from profile picture)
+    if (
+      profile.color_palette_colors &&
+      profile.color_palette_colors.length > 0
+    ) {
+      const paletteMatches = allColors.filter((color) =>
+        profile.color_palette_colors!.some((paletteColor) =>
+          color.includes(paletteColor.toLowerCase()),
+        ),
+      ).length;
+      if (paletteMatches > 0) {
+        score += 0.15; // Slightly lower than favorite colors
       }
     }
 
