@@ -10,6 +10,7 @@ interface Profile {
   culture: string;
   preferred_style: string;
   favorite_colors?: string[];
+  color_palette_colors?: string[];
   goals?: string[];
   gender_identity?: string;
   face_photo_url?: string;
