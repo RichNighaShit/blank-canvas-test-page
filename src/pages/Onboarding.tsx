@@ -30,6 +30,7 @@ interface ProfileData {
   gender_identity: string;
   preferred_style: string[];
   favorite_colors: string[];
+  color_palette_colors: string[];
   goals: string[];
   face_photo_url?: string;
 }
@@ -44,6 +45,7 @@ const Onboarding = () => {
     gender_identity: "",
     preferred_style: [],
     favorite_colors: [],
+    color_palette_colors: [],
     goals: [],
   });
   const { user, loading } = useAuth();
