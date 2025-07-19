@@ -406,44 +406,331 @@ const YourColorPalette = () => {
               </CardContent>
             </Card>
 
-            {/* Color Statistics */}
+            {/* Comprehensive Color Analysis */}
             {colorAnalysis && (
-              <Card className="card-premium mb-8">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Info className="h-5 w-5 text-blue-600" />
-                    Palette Analysis
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">
-                        {colorAnalysis.avgBrightness}%
+              <>
+                {/* Season & Temperature Analysis */}
+                <Card className="card-premium mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-purple-600" />
+                      Your Color Season & Style
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg">
+                          <div>
+                            <h3 className="font-semibold text-lg">
+                              {colorAnalysis.season} Colors
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Your ideal color season
+                            </p>
+                          </div>
+                          <div className="text-3xl">
+                            {colorAnalysis.season === "Spring" && "🌸"}
+                            {colorAnalysis.season === "Summer" && "☀️"}
+                            {colorAnalysis.season === "Autumn" && "🍂"}
+                            {colorAnalysis.season === "Winter" && "❄️"}
+                            {colorAnalysis.season === "Universal" && "🌈"}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="text-center p-3 bg-muted/50 rounded-lg">
+                            <div className="text-lg font-bold text-orange-600">
+                              {colorAnalysis.temperature}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Temperature
+                            </div>
+                          </div>
+                          <div className="text-center p-3 bg-muted/50 rounded-lg">
+                            <div className="text-lg font-bold text-rose-600">
+                              {colorAnalysis.undertone}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Undertone
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Avg Brightness
+
+                      <div className="space-y-4">
+                        <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg">
+                          <h3 className="font-semibold mb-2">
+                            {colorAnalysis.personality}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {colorAnalysis.personality === "Vibrant & Bold" &&
+                              "Your palette radiates energy and confidence with rich, saturated colors."}
+                            {colorAnalysis.personality === "Soft & Muted" &&
+                              "Your palette embodies elegance with gentle, sophisticated tones."}
+                            {colorAnalysis.personality === "High Contrast" &&
+                              "Your palette creates drama with striking light and dark combinations."}
+                            {colorAnalysis.personality === "Monochromatic" &&
+                              "Your palette shows harmony with subtle variations in similar tones."}
+                            {colorAnalysis.personality === "Balanced" &&
+                              "Your palette offers versatility with a perfect mix of tones and intensities."}
+                          </p>
+                        </div>
+
+                        <div className="text-center p-3 bg-muted/50 rounded-lg">
+                          <div className="text-lg font-bold text-emerald-600">
+                            {colorAnalysis.dominantColorFamily}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Dominant Color Family
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <div className="text-2xl font-bold text-pink-600">
-                        {colorAnalysis.avgSaturation}%
+                  </CardContent>
+                </Card>
+
+                {/* Detailed Color Metrics */}
+                <Card className="card-premium mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Info className="h-5 w-5 text-blue-600" />
+                      Color Metrics & Analysis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center p-4 bg-gradient-to-b from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 rounded-lg">
+                        <div className="text-2xl font-bold text-purple-600">
+                          {colorAnalysis.avgBrightness}%
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Brightness
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {colorAnalysis.avgBrightness > 70
+                            ? "Light"
+                            : colorAnalysis.avgBrightness > 40
+                              ? "Medium"
+                              : "Dark"}
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Avg Saturation
+
+                      <div className="text-center p-4 bg-gradient-to-b from-pink-50 to-pink-100 dark:from-pink-950/20 dark:to-pink-900/20 rounded-lg">
+                        <div className="text-2xl font-bold text-pink-600">
+                          {colorAnalysis.avgSaturation}%
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Saturation
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {colorAnalysis.avgSaturation > 70
+                            ? "Vivid"
+                            : colorAnalysis.avgSaturation > 40
+                              ? "Moderate"
+                              : "Muted"}
+                        </div>
+                      </div>
+
+                      <div className="text-center p-4 bg-gradient-to-b from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {colorAnalysis.contrastLevel}%
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Contrast
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {colorAnalysis.contrastLevel > 50
+                            ? "High"
+                            : colorAnalysis.contrastLevel > 25
+                              ? "Medium"
+                              : "Low"}
+                        </div>
+                      </div>
+
+                      <div className="text-center p-4 bg-gradient-to-b from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 rounded-lg">
+                        <div className="text-2xl font-bold text-emerald-600">
+                          {colorAnalysis.colorDiversity}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Colors
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {colorAnalysis.colorDiversity > 4
+                            ? "Diverse"
+                            : colorAnalysis.colorDiversity > 2
+                              ? "Varied"
+                              : "Limited"}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {colorAnalysis.colorDiversity}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Color Diversity
-                      </div>
+                  </CardContent>
+                </Card>
+
+                {/* Season-Specific Recommendations */}
+                <Card className="card-premium mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Palette className="h-5 w-5 text-indigo-600" />
+                      {colorAnalysis.season} Season Styling Guide
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {colorAnalysis.season === "Spring" && (
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="font-semibold mb-2 text-green-700">
+                              Perfect For You:
+                            </h4>
+                            <ul className="text-sm space-y-1 text-muted-foreground">
+                              <li>
+                                • Clear, warm colors with yellow undertones
+                              </li>
+                              <li>
+                                • Bright corals, warm pinks, and peach tones
+                              </li>
+                              <li>• Golden yellows and warm reds</li>
+                              <li>• Clear blues and turquoise</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2 text-red-700">
+                              Avoid:
+                            </h4>
+                            <ul className="text-sm space-y-1 text-muted-foreground">
+                              <li>• Cool, muted colors</li>
+                              <li>• Black and pure white</li>
+                              <li>• Deep, heavy colors</li>
+                              <li>• Colors with blue undertones</li>
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+
+                      {colorAnalysis.season === "Summer" && (
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="font-semibold mb-2 text-blue-700">
+                              Perfect For You:
+                            </h4>
+                            <ul className="text-sm space-y-1 text-muted-foreground">
+                              <li>• Soft, cool colors with blue undertones</li>
+                              <li>• Powder blues and soft pinks</li>
+                              <li>• Lavender and soft purples</li>
+                              <li>• Muted roses and berry tones</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2 text-red-700">
+                              Avoid:
+                            </h4>
+                            <ul className="text-sm space-y-1 text-muted-foreground">
+                              <li>• Bright, warm colors</li>
+                              <li>• Orange and golden yellows</li>
+                              <li>• Harsh, contrasting colors</li>
+                              <li>• Colors with yellow undertones</li>
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+
+                      {colorAnalysis.season === "Autumn" && (
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="font-semibold mb-2 text-orange-700">
+                              Perfect For You:
+                            </h4>
+                            <ul className="text-sm space-y-1 text-muted-foreground">
+                              <li>
+                                • Rich, warm colors with golden undertones
+                              </li>
+                              <li>• Deep oranges, rust, and terracotta</li>
+                              <li>• Golden browns and camel</li>
+                              <li>• Deep teals and forest greens</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2 text-red-700">
+                              Avoid:
+                            </h4>
+                            <ul className="text-sm space-y-1 text-muted-foreground">
+                              <li>• Cool, icy colors</li>
+                              <li>• Black and stark white</li>
+                              <li>• Pastel colors</li>
+                              <li>• Colors with blue undertones</li>
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+
+                      {colorAnalysis.season === "Winter" && (
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="font-semibold mb-2 text-indigo-700">
+                              Perfect For You:
+                            </h4>
+                            <ul className="text-sm space-y-1 text-muted-foreground">
+                              <li>• Clear, cool colors with blue undertones</li>
+                              <li>• True reds and deep burgundy</li>
+                              <li>• Pure white and true black</li>
+                              <li>• Royal blues and emerald greens</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2 text-red-700">
+                              Avoid:
+                            </h4>
+                            <ul className="text-sm space-y-1 text-muted-foreground">
+                              <li>• Warm, muted colors</li>
+                              <li>• Orange and golden yellows</li>
+                              <li>• Earthy, brown tones</li>
+                              <li>• Colors with yellow undertones</li>
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+
+                      {colorAnalysis.season === "Universal" && (
+                        <div>
+                          <h4 className="font-semibold mb-2 text-purple-700">
+                            Lucky You! Universal Palette
+                          </h4>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            Your color palette works across multiple seasons,
+                            giving you incredible versatility in your wardrobe
+                            choices.
+                          </p>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <h5 className="font-medium mb-2">
+                                Styling Tips:
+                              </h5>
+                              <ul className="text-sm space-y-1 text-muted-foreground">
+                                <li>• Mix warm and cool tones freely</li>
+                                <li>• Experiment with different intensities</li>
+                                <li>
+                                  • Use accessories to shift seasonal vibes
+                                </li>
+                              </ul>
+                            </div>
+                            <div>
+                              <h5 className="font-medium mb-2">
+                                Your Advantage:
+                              </h5>
+                              <ul className="text-sm space-y-1 text-muted-foreground">
+                                <li>• Greater wardrobe flexibility</li>
+                                <li>• Easy to shop for new pieces</li>
+                                <li>• Works in any climate or setting</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </>
             )}
 
             {/* How to Use Section */}
