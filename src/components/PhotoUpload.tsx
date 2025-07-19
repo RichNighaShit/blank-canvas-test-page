@@ -248,19 +248,51 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   };
 
   const categorizeColor = ([h, s, l]: [number, number, number]): string => {
-    if (l < 20) return "black";
-    if (l > 80) return "white";
-    if (s < 20) return "gray";
+    // Return actual hex colors instead of color names
+    if (l < 20) return "#1a1a1a"; // Very dark gray/black
+    if (l > 80) return "#f5f5f5"; // Light gray/white
+    if (s < 20)
+      return `#${Math.round(l * 2.55)
+        .toString(16)
+        .padStart(2, "0")
+        .repeat(3)}`; // Gray
 
-    if (h < 15 || h > 345) return "red";
-    if (h < 45) return "orange";
-    if (h < 75) return "yellow";
-    if (h < 165) return "green";
-    if (h < 195) return "cyan";
-    if (h < 255) return "blue";
-    if (h < 285) return "purple";
-    if (h < 315) return "magenta";
-    return "pink";
+    // Convert HSL back to RGB and then to hex
+    const [r, g, b] = hslToRgb(h, s, l);
+    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+  };
+
+  const hslToRgb = (
+    h: number,
+    s: number,
+    l: number,
+  ): [number, number, number] => {
+    h /= 360;
+    s /= 100;
+    l /= 100;
+
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+
+    let r, g, b;
+
+    if (s === 0) {
+      r = g = b = l; // achromatic
+    } else {
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1 / 3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1 / 3);
+    }
+
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
   };
 
   const uploadToStorage = async (file: File): Promise<string> => {
