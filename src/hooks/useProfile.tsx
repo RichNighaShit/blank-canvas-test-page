@@ -24,15 +24,15 @@ export const useProfile = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const fetchProfile = async () => {
+  const fetchProfile = async (forceRefresh = false) => {
     if (!user) {
       setProfile(null);
       setLoading(false);
       return;
     }
 
-    // Check cache first
-    if (profileCache[user.id]) {
+    // Check cache first, but skip if force refresh is requested
+    if (!forceRefresh && profileCache[user.id]) {
       setProfile(profileCache[user.id]);
       setLoading(false);
       return;
