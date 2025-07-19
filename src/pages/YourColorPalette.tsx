@@ -124,29 +124,45 @@ const YourColorPalette = () => {
   };
 
   const getBasicColorAnalysis = () => {
-    if (!hasColors) return null;
+    if (!hasColors || colors.length === 0) return null;
 
     let totalBrightness = 0;
     let totalSaturation = 0;
+    let validColors = 0;
 
     colors.forEach((color) => {
-      // Simple brightness calculation
-      const hex = color.replace("#", "");
-      const r = parseInt(hex.substr(0, 2), 16);
-      const g = parseInt(hex.substr(2, 2), 16);
-      const b = parseInt(hex.substr(4, 2), 16);
-      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-      totalBrightness += brightness;
+      if (!color || typeof color !== "string") return;
 
-      // Simple saturation calculation
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      const saturation = max === 0 ? 0 : ((max - min) / max) * 100;
-      totalSaturation += saturation;
+      try {
+        // Simple brightness calculation
+        const hex = color.replace("#", "");
+        if (hex.length !== 6) return;
+
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+
+        if (isNaN(r) || isNaN(g) || isNaN(b)) return;
+
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        totalBrightness += brightness;
+
+        // Simple saturation calculation
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const saturation = max === 0 ? 0 : ((max - min) / max) * 100;
+        totalSaturation += saturation;
+
+        validColors++;
+      } catch (error) {
+        console.warn("Error processing color:", color, error);
+      }
     });
 
-    const avgBrightness = Math.round(totalBrightness / colors.length);
-    const avgSaturation = Math.round(totalSaturation / colors.length);
+    if (validColors === 0) return null;
+
+    const avgBrightness = Math.round(totalBrightness / validColors);
+    const avgSaturation = Math.round(totalSaturation / validColors);
 
     return {
       avgBrightness,
@@ -163,7 +179,7 @@ const YourColorPalette = () => {
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header Section */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-12">
           <Button
             variant="ghost"
             size="sm"
@@ -175,10 +191,10 @@ const YourColorPalette = () => {
           </Button>
 
           <div className="flex-1">
-            <h1 className="text-3xl md:text-4xl font-heading bg-gradient-to-r from-purple-900 dark:from-purple-400 to-pink-700 dark:to-pink-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl md:text-4xl font-heading bg-gradient-to-r from-purple-900 dark:from-purple-400 to-pink-700 dark:to-pink-400 bg-clip-text text-transparent mb-3">
               Your Color Palette
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-muted-foreground text-lg">
               Colors extracted from your profile picture
             </p>
           </div>
