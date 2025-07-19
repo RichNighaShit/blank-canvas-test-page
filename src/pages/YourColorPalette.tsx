@@ -435,7 +435,7 @@ const YourColorPalette = () => {
                     </div>
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
                       <div className="text-2xl font-bold text-blue-600">
-                        {colorStats.colorDiversity}
+                        {colorAnalysis.colorDiversity}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Color Diversity
