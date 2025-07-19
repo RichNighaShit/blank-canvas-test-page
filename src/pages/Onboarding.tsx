@@ -142,10 +142,10 @@ const Onboarding = () => {
     setProfileData((prev) => ({
       ...prev,
       face_photo_url: analysisResult.imageUrl,
-      favorite_colors: [
-        ...prev.favorite_colors,
-        ...analysisResult.colors.slice(0, 3),
-      ],
+      // Store extracted colors in color_palette_colors, not favorite_colors
+      color_palette_colors: analysisResult.colors
+        ? analysisResult.colors.slice(0, 6)
+        : [],
     }));
     setStep(2);
   };
