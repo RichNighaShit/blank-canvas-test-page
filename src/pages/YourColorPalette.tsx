@@ -419,7 +419,7 @@ const YourColorPalette = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600">
-                        {colorStats.avgBrightness}%
+                        {colorAnalysis.avgBrightness}%
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Avg Brightness
