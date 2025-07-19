@@ -287,6 +287,9 @@ const StyleRecommendations: React.FC = () => {
         favorite_colors: Array.isArray(profile.favorite_colors)
           ? profile.favorite_colors
           : [],
+        color_palette_colors: Array.isArray(profile.color_palette_colors)
+          ? profile.color_palette_colors
+          : [],
         goals: Array.isArray(profile.goals) ? profile.goals : [],
       };
 
