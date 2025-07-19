@@ -116,35 +116,35 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     imageFile: File,
   ): Promise<{ colors: string[]; palette?: any }> => {
     try {
-      console.log("🎨 Starting color extraction...");
+      console.log("🎨 Starting enhanced color extraction...");
 
-      // Use basic color extraction to avoid heavy dependency issues
-      const basicColors = await extractBasicColors(imageFile);
+      // Use the enhanced color extraction service
+      const enhancedColors = await extractEnhancedColors(imageFile);
 
-      console.log("🎨 Color extraction complete:", basicColors);
+      console.log("🎨 Enhanced color extraction complete:", enhancedColors);
 
       return {
-        colors: basicColors,
+        colors: enhancedColors,
         palette: {
-          colors: basicColors,
-          confidence: 0.7,
-          source: "basic" as const,
+          colors: enhancedColors,
+          confidence: 0.85,
+          source: "enhanced" as const,
           metadata: {
             faceDetected: false,
-            colorCount: basicColors.length,
-            dominantColor: basicColors[0] || "#000000",
+            colorCount: enhancedColors.length,
+            dominantColor: enhancedColors[0] || "#000000",
           },
         },
       };
     } catch (error) {
       console.error("Failed to analyze image colors:", error);
-      // Ultimate fallback with skin-tone colors
-      const fallbackColors = ["#8B7355", "#D4A574", "#F5E6D3"];
+      // Enhanced fallback with better skin-tone colors
+      const fallbackColors = ["#8B7355", "#D4A574", "#F5E6D3", "#A0522D", "#CD853F", "#DEB887"];
       return {
         colors: fallbackColors,
         palette: {
           colors: fallbackColors,
-          confidence: 0.3,
+          confidence: 0.4,
           source: "fallback" as const,
           metadata: {
             faceDetected: false,
@@ -156,7 +156,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     }
   };
 
-  const extractBasicColors = async (imageFile: File): Promise<string[]> => {
+  const extractEnhancedColors = async (imageFile: File): Promise<string[]> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -175,10 +175,10 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
               canvas.width,
               canvas.height,
             );
-            const colors = extractDominantColors(imageData);
+            const colors = extractAdvancedColors(imageData);
             resolve(colors);
           } else {
-            resolve(["#8B7355"]); // Default skin tone color
+            resolve(["#8B7355", "#D4A574", "#F5E6D3"]); // Enhanced fallback
           }
         };
         img.src = e.target?.result as string;
@@ -187,112 +187,184 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     });
   };
 
-  const extractDominantColors = (imageData: ImageData): string[] => {
+  const extractAdvancedColors = (imageData: ImageData): string[] => {
     const data = imageData.data;
     const colorMap = new Map<string, number>();
+    const labColorMap = new Map<string, { count: number; lab: { l: number; a: number; b: number } }>();
 
-    // Sample pixels (every 10th pixel for performance)
-    for (let i = 0; i < data.length; i += 40) {
+    // Sample pixels with better distribution
+    const step = Math.max(1, Math.floor(data.length / 10000)); // Sample 10k pixels max
+    
+    for (let i = 0; i < data.length; i += 4 * step) {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
 
-      // Convert to HSL to categorize colors better
-      const hsl = rgbToHsl(r, g, b);
-      const colorCategory = categorizeColor(hsl);
-
-      colorMap.set(colorCategory, (colorMap.get(colorCategory) || 0) + 1);
-    }
-
-    // Return top 3 colors
-    return Array.from(colorMap.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([color]) => color);
-  };
-
-  const rgbToHsl = (
-    r: number,
-    g: number,
-    b: number,
-  ): [number, number, number] => {
-    r /= 255;
-    g /= 255;
-    b /= 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    let h = 0,
-      s = 0,
-      l = (max + min) / 2;
-
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-
-      switch (max) {
-        case r:
-          h = (g - b) / d + (g < b ? 6 : 0);
-          break;
-        case g:
-          h = (b - r) / d + 2;
-          break;
-        case b:
-          h = (r - g) / d + 4;
-          break;
+      // Skip transparent or very dark/light pixels
+      if (isValidColor(r, g, b)) {
+        const hex = rgbToHex(r, g, b);
+        const lab = rgbToLab(r, g, b);
+        
+        // Group similar colors in CIELAB space
+        const labKey = `${Math.round(lab.l / 10)}_${Math.round(lab.a / 10)}_${Math.round(lab.b / 10)}`;
+        
+        if (labColorMap.has(labKey)) {
+          labColorMap.get(labKey)!.count++;
+        } else {
+          labColorMap.set(labKey, { count: 1, lab });
+        }
+        
+        colorMap.set(hex, (colorMap.get(hex) || 0) + 1);
       }
-      h /= 6;
     }
 
-    return [h * 360, s * 100, l * 100];
+    // Convert LAB groups back to hex and sort by frequency
+    const sortedColors = Array.from(labColorMap.entries())
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 8) // Get top 8 colors
+      .map(([_, data]) => {
+        const rgb = labToRgb(data.lab.l, data.lab.a, data.lab.b);
+        return rgbToHex(rgb.r, rgb.g, rgb.b);
+      });
+
+    // Ensure minimum color diversity
+    const diverseColors = ensureColorDiversity(sortedColors);
+    
+    return diverseColors.slice(0, 6); // Return top 6 colors
   };
 
-  const categorizeColor = ([h, s, l]: [number, number, number]): string => {
-    // Return actual hex colors instead of color names
-    if (l < 20) return "#1a1a1a"; // Very dark gray/black
-    if (l > 80) return "#f5f5f5"; // Light gray/white
-    if (s < 20)
-      return `#${Math.round(l * 2.55)
-        .toString(16)
-        .padStart(2, "0")
-        .repeat(3)}`; // Gray
-
-    // Convert HSL back to RGB and then to hex
-    const [r, g, b] = hslToRgb(h, s, l);
-    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+  const isValidColor = (r: number, g: number, b: number): boolean => {
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 15 && brightness < 240; // Avoid very dark/light colors
   };
 
-  const hslToRgb = (
-    h: number,
-    s: number,
-    l: number,
-  ): [number, number, number] => {
-    h /= 360;
-    s /= 100;
-    l /= 100;
+  const rgbToHex = (r: number, g: number, b: number): string => {
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`.toUpperCase();
+  };
 
-    const hue2rgb = (p: number, q: number, t: number) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1 / 6) return p + (q - p) * 6 * t;
-      if (t < 1 / 2) return q;
-      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-      return p;
+  const rgbToLab = (r: number, g: number, b: number): { l: number; a: number; b: number } => {
+    // Convert RGB to XYZ
+    const xyz = rgbToXyz(r, g, b);
+    
+    // Convert XYZ to CIELAB
+    const xn = 0.95047, yn = 1.00000, zn = 1.08883; // D65 illuminant
+    
+    const xr = xyzToLab(xyz.x / xn);
+    const yr = xyzToLab(xyz.y / yn);
+    const zr = xyzToLab(xyz.z / zn);
+    
+    const l = 116 * yr - 16;
+    const a = 500 * (xr - yr);
+    const bValue = 200 * (yr - zr);
+    
+    return { l, a, b: bValue };
+  };
+
+  const labToRgb = (l: number, a: number, b: number): { r: number; g: number; b: number } => {
+    const xn = 0.95047, yn = 1.00000, zn = 1.08883;
+    
+    const yr = (l + 16) / 116;
+    const xr = a / 500 + yr;
+    const zr = yr - b / 200;
+    
+    const x = xn * labToXyz(xr);
+    const y = yn * labToXyz(yr);
+    const z = zn * labToXyz(zr);
+    
+    return xyzToRgb(x, y, z);
+  };
+
+  const rgbToXyz = (r: number, g: number, b: number): { x: number; y: number; z: number } => {
+    r = r / 255;
+    g = g / 255;
+    b = b / 255;
+    
+    r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
+    g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
+    b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+    
+    const x = r * 0.4124 + g * 0.3576 + b * 0.1805;
+    const y = r * 0.2126 + g * 0.7152 + b * 0.0722;
+    const z = r * 0.0193 + g * 0.1192 + b * 0.9505;
+    
+    return { x, y, z };
+  };
+
+  const xyzToRgb = (x: number, y: number, z: number): { r: number; g: number; b: number } => {
+    const r = x * 3.2406 + y * -1.5372 + z * -0.4986;
+    const g = x * -0.9689 + y * 1.8758 + z * 0.0415;
+    const b = x * 0.0557 + y * -0.2040 + z * 1.0570;
+    
+    const rNorm = Math.max(0, Math.min(1, r));
+    const gNorm = Math.max(0, Math.min(1, g));
+    const bNorm = Math.max(0, Math.min(1, b));
+    
+    const rFinal = rNorm > 0.0031308 ? 1.055 * Math.pow(rNorm, 1/2.4) - 0.055 : 12.92 * rNorm;
+    const gFinal = gNorm > 0.0031308 ? 1.055 * Math.pow(gNorm, 1/2.4) - 0.055 : 12.92 * gNorm;
+    const bFinal = bNorm > 0.0031308 ? 1.055 * Math.pow(bNorm, 1/2.4) - 0.055 : 12.92 * bNorm;
+    
+    return {
+      r: Math.round(rFinal * 255),
+      g: Math.round(gFinal * 255),
+      b: Math.round(bFinal * 255)
     };
+  };
 
-    let r, g, b;
+  const xyzToLab = (t: number): number => {
+    return t > 0.008856 ? Math.pow(t, 1/3) : (7.787 * t) + (16 / 116);
+  };
 
-    if (s === 0) {
-      r = g = b = l; // achromatic
-    } else {
-      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-      const p = 2 * l - q;
-      r = hue2rgb(p, q, h + 1 / 3);
-      g = hue2rgb(p, q, h);
-      b = hue2rgb(p, q, h - 1 / 3);
+  const labToXyz = (t: number): number => {
+    return t > 0.206893 ? Math.pow(t, 3) : (t - 16 / 116) / 7.787;
+  };
+
+  const ensureColorDiversity = (colors: string[]): string[] => {
+    const diverse: string[] = [];
+    const minDistance = 20; // Minimum perceptual distance
+    
+    for (const color of colors) {
+      const rgb = hexToRgb(color);
+      const lab = rgbToLab(rgb.r, rgb.g, rgb.b);
+      
+      // Check if this color is sufficiently different from already selected colors
+      const isDiverse = diverse.every(existingColor => {
+        const existingRgb = hexToRgb(existingColor);
+        const existingLab = rgbToLab(existingRgb.r, existingRgb.g, existingRgb.b);
+        
+        const distance = Math.sqrt(
+          Math.pow(lab.l - existingLab.l, 2) +
+          Math.pow(lab.a - existingLab.a, 2) +
+          Math.pow(lab.b - existingLab.b, 2)
+        );
+        
+        return distance >= minDistance;
+      });
+      
+      if (isDiverse) {
+        diverse.push(color);
+      }
     }
+    
+    // If we don't have enough diverse colors, add some from the original list
+    while (diverse.length < 6 && diverse.length < colors.length) {
+      const remaining = colors.filter(c => !diverse.includes(c));
+      if (remaining.length > 0) {
+        diverse.push(remaining[0]);
+      } else {
+        break;
+      }
+    }
+    
+    return diverse;
+  };
 
-    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+  const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 0, g: 0, b: 0 };
   };
 
   const uploadToStorage = async (file: File): Promise<string> => {
@@ -454,11 +526,11 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
         });
       } catch (colorError) {
         console.warn("Advanced color extraction failed:", colorError);
-        colors = await extractBasicColors(croppedFile);
+        colors = await extractEnhancedColors(croppedFile); // Use enhanced colors here
 
         toast({
           title: "Colors extracted!",
-          description: "Using basic color detection as fallback.",
+          description: "Using enhanced color detection as fallback.",
         });
       }
 

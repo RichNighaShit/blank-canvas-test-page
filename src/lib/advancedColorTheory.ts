@@ -1,8 +1,12 @@
 /**
- * Advanced Color Theory System for Style Recommendations
+ * Advanced Color Theory System - Enhanced Version
  *
- * This module implements modern color theory principles to enhance outfit recommendations.
- * It includes color harmony analysis, seasonal color palettes, and advanced color matching.
+ * This module implements modern color theory principles with:
+ * - Improved hex color handling and validation
+ * - Enhanced color harmony analysis using CIELAB color space
+ * - Better seasonal color matching
+ * - Sophisticated color temperature analysis
+ * - Advanced complementary and analogous color generation
  */
 
 export interface ColorHarmonyResult {
@@ -10,6 +14,8 @@ export interface ColorHarmonyResult {
   harmonyType: string;
   confidence: number;
   reasoning: string;
+  colorDistance: number;
+  perceptualMatch: boolean;
 }
 
 export interface ColorAnalysis {
@@ -18,448 +24,502 @@ export interface ColorAnalysis {
   temperature: "warm" | "cool" | "neutral";
   intensity: "light" | "medium" | "dark";
   saturation: "low" | "medium" | "high";
+  hexValue: string;
+  labValues: { l: number; a: number; b: number };
 }
 
 export interface SeasonalColorProfile {
   season: "spring" | "summer" | "autumn" | "winter";
   palette: string[];
   characteristics: string[];
+  hexPalette: string[];
 }
 
 export class AdvancedColorTheory {
   private colorFamilies = {
     red: [
-      "red",
-      "crimson",
-      "burgundy",
-      "maroon",
-      "cherry",
-      "rose",
-      "coral",
-      "salmon",
-      "pink",
-      "blush",
-      "fuchsia",
-      "magenta",
+      "#FF0000", "#DC143C", "#8B0000", "#800000", "#DC143C", "#FF1493", "#FF69B4", "#FFB6C1", "#FFC0CB", "#FF69B4", "#FF00FF", "#FF00FF",
     ],
     blue: [
-      "blue",
-      "navy",
-      "royal",
-      "sky",
-      "powder",
-      "teal",
-      "turquoise",
-      "cyan",
-      "cerulean",
-      "cobalt",
-      "indigo",
-      "sapphire",
+      "#0000FF", "#000080", "#4169E1", "#87CEEB", "#B0E0E6", "#008080", "#40E0D0", "#00FFFF", "#1E90FF", "#0000CD", "#4B0082", "#191970",
     ],
     green: [
-      "green",
-      "forest",
-      "olive",
-      "lime",
-      "mint",
-      "sage",
-      "emerald",
-      "jade",
-      "kelly",
-      "hunter",
-      "chartreuse",
-      "seafoam",
+      "#008000", "#228B22", "#808000", "#32CD32", "#98FB98", "#00FF00", "#228B22", "#00FF7F", "#32CD32", "#006400", "#7FFF00", "#98FB98",
     ],
     yellow: [
-      "yellow",
-      "gold",
-      "mustard",
-      "lemon",
-      "cream",
-      "butter",
-      "champagne",
-      "amber",
-      "honey",
-      "canary",
-      "saffron",
+      "#FFFF00", "#FFD700", "#FFD700", "#FFFF00", "#FFFACD", "#F0E68C", "#DAA520", "#FFD700", "#FFD700", "#FFFF00", "#FFD700", "#FFD700",
     ],
     orange: [
-      "orange",
-      "peach",
-      "apricot",
-      "coral",
-      "rust",
-      "amber",
-      "bronze",
-      "tangerine",
-      "papaya",
-      "persimmon",
+      "#FFA500", "#FFC0CB", "#FFB6C1", "#FF69B4", "#FF4500", "#FFD700", "#CD853F", "#FF8C00", "#FFA500", "#FF6347",
     ],
     purple: [
-      "purple",
-      "violet",
-      "lavender",
-      "plum",
-      "mauve",
-      "lilac",
-      "amethyst",
-      "orchid",
-      "grape",
-      "eggplant",
+      "#800080", "#EE82EE", "#E6E6FA", "#DDA0DD", "#E0B0FF", "#C8A2C8", "#9370DB", "#DA70D6", "#9932CC", "#8B008B",
     ],
     neutral: [
-      "black",
-      "white",
-      "grey",
-      "gray",
-      "beige",
-      "tan",
-      "brown",
-      "taupe",
-      "khaki",
-      "camel",
-      "cream",
-      "ivory",
-      "charcoal",
-      "nude",
-      "stone",
+      "#000000", "#FFFFFF", "#808080", "#808080", "#F5F5DC", "#D2B48C", "#A0522D", "#483D8B", "#F4A460", "#D2B48C", "#F5DEB3", "#FFFFF0", "#696969", "#F5F5DC", "#F5F5DC", "#F5F5DC",
     ],
   };
 
   private complementaryPairs = [
-    ["red", "green"],
-    ["blue", "orange"],
-    ["yellow", "purple"],
-    ["pink", "mint"],
-    ["coral", "teal"],
-    ["navy", "gold"],
-    ["burgundy", "forest"],
-    ["rust", "sage"],
-    ["plum", "lime"],
-    ["lavender", "yellow"],
+    ["#FF0000", "#00FF00"],
+    ["#0000FF", "#FFA500"],
+    ["#FFFF00", "#800080"],
+    ["#FF69B4", "#98FB98"],
+    ["#FF7F50", "#008080"],
+    ["#000080", "#FFD700"],
+    ["#8B0000", "#228B22"],
+    ["#FF4500", "#98FB98"],
+    ["#800080", "#32CD32"],
+    ["#E6E6FA", "#FFFF00"],
   ];
 
   private analogousSets = [
-    ["red", "orange", "pink"],
-    ["blue", "purple", "teal"],
-    ["green", "yellow", "lime"],
-    ["orange", "yellow", "red"],
-    ["purple", "pink", "blue"],
-    ["teal", "green", "blue"],
+    ["#FF0000", "#FFA500", "#FF69B4"],
+    ["#0000FF", "#800080", "#008080"],
+    ["#008000", "#FFFF00", "#32CD32"],
+    ["#FFA500", "#FFFF00", "#FF0000"],
+    ["#800080", "#FF69B4", "#0000FF"],
+    ["#008080", "#008000", "#0000FF"],
   ];
 
   private triadicSets = [
-    ["red", "blue", "yellow"],
-    ["green", "orange", "purple"],
-    ["pink", "teal", "gold"],
-    ["navy", "coral", "sage"],
+    ["#FF0000", "#0000FF", "#FFFF00"],
+    ["#008000", "#FFA500", "#800080"],
+    ["#FF69B4", "#008080", "#FFD700"],
+    ["#000080", "#FF7F50", "#98FB98"],
   ];
 
   private seasonalPalettes: { [key: string]: SeasonalColorProfile } = {
     spring: {
       season: "spring",
       palette: [
-        "coral",
-        "peach",
-        "yellow",
-        "lime",
-        "turquoise",
-        "pink",
-        "gold",
-        "ivory",
-        "light blue",
-        "mint",
+        "coral", "peach", "yellow", "lime", "turquoise", "pink", "gold", "ivory", "light blue", "mint",
       ],
       characteristics: ["warm", "clear", "fresh", "bright"],
+      hexPalette: [
+        "#FF7F50", "#FFC0CB", "#FFFF00", "#32CD32", "#40E0D0", "#FF69B4", "#FFD700", "#FFFFF0", "#87CEEB", "#98FB98",
+      ],
     },
     summer: {
       season: "summer",
       palette: [
-        "lavender",
-        "rose",
-        "sage",
-        "powder blue",
-        "mint",
-        "pearl",
-        "champagne",
-        "mauve",
-        "soft pink",
-        "grey",
+        "lavender", "rose", "sage", "powder blue", "mint", "pearl", "champagne", "mauve", "soft pink", "grey",
       ],
       characteristics: ["cool", "soft", "muted", "elegant"],
+      hexPalette: [
+        "#E6E6FA", "#FF1493", "#98FB98", "#B0E0E6", "#98FB98", "#F0E68C", "#F0E68C", "#E0B0FF", "#FFC0CB", "#808080",
+      ],
     },
     autumn: {
       season: "autumn",
       palette: [
-        "rust",
-        "burgundy",
-        "forest",
-        "gold",
-        "brown",
-        "orange",
-        "olive",
-        "bronze",
-        "terracotta",
-        "mustard",
+        "rust", "burgundy", "forest", "gold", "brown", "orange", "olive", "bronze", "terracotta", "mustard",
       ],
       characteristics: ["warm", "rich", "earthy", "deep"],
+      hexPalette: [
+        "#FF4500", "#8B0000", "#228B22", "#FFD700", "#A0522D", "#FFA500", "#808000", "#CD853F", "#E2725B", "#FFD700",
+      ],
     },
     winter: {
       season: "winter",
       palette: [
-        "navy",
-        "black",
-        "white",
-        "crimson",
-        "royal blue",
-        "emerald",
-        "silver",
-        "purple",
-        "hot pink",
-        "charcoal",
+        "navy", "black", "white", "crimson", "royal blue", "emerald", "silver", "purple", "hot pink", "charcoal",
       ],
       characteristics: ["cool", "clear", "intense", "dramatic"],
+      hexPalette: [
+        "#000080", "#000000", "#FFFFFF", "#DC143C", "#4169E1", "#00FF7F", "#C0C0C0", "#800080", "#FF69B4", "#36454F",
+      ],
     },
   };
 
   private modernColorCombinations = [
     // Monochromatic modern
     {
-      colors: ["light grey", "charcoal", "white"],
+      colors: ["#D3D3D3", "#696969", "#FFFFFF"],
       type: "monochromatic",
       style: "minimalist",
     },
     {
-      colors: ["navy", "powder blue", "cream"],
+      colors: ["#000080", "#B0E0E6", "#F5DEB3"],
       type: "monochromatic",
       style: "classic",
     },
     {
-      colors: ["blush", "rose", "burgundy"],
+      colors: ["#FFB6C1", "#FF69B4", "#8B0000"],
       type: "monochromatic",
       style: "romantic",
     },
 
     // Contemporary complementary
     {
-      colors: ["sage", "terracotta"],
+      colors: ["#98FB98", "#E2725B"],
       type: "complementary",
       style: "earthy modern",
     },
     {
-      colors: ["navy", "camel"],
+      colors: ["#000080", "#D2B48C"],
       type: "complementary",
       style: "sophisticated",
     },
     {
-      colors: ["charcoal", "mustard"],
+      colors: ["#FF69B4", "#32CD32"],
       type: "complementary",
-      style: "bold modern",
+      style: "bold",
     },
 
     // Triadic modern
     {
-      colors: ["coral", "mint", "cream"],
+      colors: ["#FF0000", "#00FF00", "#0000FF"],
       type: "triadic",
-      style: "fresh modern",
+      style: "vibrant",
     },
     {
-      colors: ["navy", "blush", "gold"],
+      colors: ["#FFA500", "#800080", "#008000"],
       type: "triadic",
-      style: "elegant modern",
-    },
-    {
-      colors: ["forest", "rust", "ivory"],
-      type: "triadic",
-      style: "organic modern",
-    },
-
-    // Split complementary
-    {
-      colors: ["teal", "coral", "gold"],
-      type: "split-complementary",
-      style: "vibrant modern",
-    },
-    {
-      colors: ["navy", "peach", "sage"],
-      type: "split-complementary",
-      style: "balanced modern",
-    },
-
-    // Analogous modern
-    {
-      colors: ["sage", "mint", "seafoam"],
-      type: "analogous",
-      style: "natural modern",
-    },
-    {
-      colors: ["burgundy", "plum", "rose"],
-      type: "analogous",
-      style: "rich modern",
-    },
-    {
-      colors: ["navy", "teal", "forest"],
-      type: "analogous",
-      style: "deep modern",
+      style: "creative",
     },
   ];
 
   /**
-   * Analyzes color harmony between two color arrays using modern color theory
+   * Enhanced color harmony analysis using CIELAB color space
    */
   public analyzeColorHarmony(
     colors1: string[],
     colors2: string[],
   ): ColorHarmonyResult {
-    if (!colors1?.length || !colors2?.length) {
+    try {
+      const allColors = [...colors1, ...colors2];
+      const normalizedColors = allColors.map(color => this.normalizeColor(color));
+      
+      // Convert to CIELAB for perceptual analysis
+      const labColors = normalizedColors.map(hex => {
+        const rgb = this.hexToRgb(hex);
+        return this.rgbToLab(rgb.r, rgb.g, rgb.b);
+      });
+
+      // Calculate average perceptual distance
+      const distances = [];
+      for (let i = 0; i < labColors.length; i++) {
+        for (let j = i + 1; j < labColors.length; j++) {
+          distances.push(this.calculateLabDistance(labColors[i], labColors[j]));
+        }
+      }
+      
+      const avgDistance = distances.length > 0 ? distances.reduce((sum, d) => sum + d, 0) / distances.length : 0;
+      const perceptualMatch = avgDistance < 50; // Threshold for perceptual harmony
+
+      // Check for specific harmony types
+      const harmonyChecks = [
+        this.checkMonochromatic(normalizedColors),
+        this.checkComplementary(normalizedColors),
+        this.checkAnalogous(normalizedColors),
+        this.checkTriadic(normalizedColors),
+        this.checkSeasonalPalette(normalizedColors),
+        this.checkModernCombinations(normalizedColors, []),
+        this.checkNeutralHarmony(normalizedColors, normalizedColors),
+      ];
+
+      // Find the best harmony match
+      const bestHarmony = harmonyChecks.reduce((best, current) => 
+        current.confidence > best.confidence ? current : best
+      );
+
+      return {
+        isHarmonious: bestHarmony.confidence > 0.6,
+        harmonyType: bestHarmony.harmonyType,
+        confidence: bestHarmony.confidence,
+        reasoning: bestHarmony.reasoning,
+        colorDistance: avgDistance,
+        perceptualMatch,
+      };
+    } catch (error) {
+      console.warn("Color harmony analysis failed:", error);
       return {
         isHarmonious: false,
         harmonyType: "unknown",
-        confidence: 0,
-        reasoning: "Insufficient color data",
+        confidence: 0.3,
+        reasoning: "Analysis failed",
+        colorDistance: 100,
+        perceptualMatch: false,
       };
     }
-
-    // Normalize colors
-    const normalizedColors1 = colors1.map((c) => this.normalizeColor(c));
-    const normalizedColors2 = colors2.map((c) => this.normalizeColor(c));
-
-    // Check for neutral harmony (most forgiving)
-    const neutralHarmony = this.checkNeutralHarmony(
-      normalizedColors1,
-      normalizedColors2,
-    );
-    if (neutralHarmony.isHarmonious) {
-      return neutralHarmony;
-    }
-
-    // Check modern color combinations
-    const modernHarmony = this.checkModernCombinations(
-      normalizedColors1,
-      normalizedColors2,
-    );
-    if (modernHarmony.isHarmonious) {
-      return modernHarmony;
-    }
-
-    // Check traditional color theory harmonies
-    const traditionalHarmony = this.checkTraditionalHarmonies(
-      normalizedColors1,
-      normalizedColors2,
-    );
-    if (traditionalHarmony.isHarmonious) {
-      return traditionalHarmony;
-    }
-
-    // Check seasonal harmony
-    const seasonalHarmony = this.checkSeasonalHarmony(
-      normalizedColors1,
-      normalizedColors2,
-    );
-    if (seasonalHarmony.isHarmonious) {
-      return seasonalHarmony;
-    }
-
-    // Check color family harmony
-    const familyHarmony = this.checkColorFamilyHarmony(
-      normalizedColors1,
-      normalizedColors2,
-    );
-    if (familyHarmony.isHarmonious) {
-      return familyHarmony;
-    }
-
-    return {
-      isHarmonious: false,
-      harmonyType: "none",
-      confidence: 0.1,
-      reasoning: "Colors do not follow established harmony principles",
-    };
   }
 
   /**
-   * Analyzes individual color properties
+   * Enhanced color analysis with CIELAB values
    */
   public analyzeColor(color: string): ColorAnalysis {
-    const normalized = this.normalizeColor(color);
+    const normalizedColor = this.normalizeColor(color);
+    const rgb = this.hexToRgb(normalizedColor);
+    const lab = this.rgbToLab(rgb.r, rgb.g, rgb.b);
+    const hsl = this.rgbToHsl(rgb.r, rgb.g, rgb.b);
 
     return {
-      dominantColor: this.getDominantColor(normalized),
-      colorFamily: this.getColorFamily(normalized),
-      temperature: this.getColorTemperature(normalized),
-      intensity: this.getColorIntensity(normalized),
-      saturation: this.getColorSaturation(normalized),
+      dominantColor: this.getDominantColor(normalizedColor),
+      colorFamily: this.getColorFamily(normalizedColor),
+      temperature: this.getColorTemperature(normalizedColor),
+      intensity: this.getColorIntensity(normalizedColor),
+      saturation: this.getColorSaturation(hsl.s),
+      hexValue: normalizedColor,
+      labValues: lab,
     };
   }
 
   /**
-   * Gets the current seasonal color palette
+   * Get current seasonal palette with hex values
    */
   public getCurrentSeasonalPalette(): SeasonalColorProfile {
     const currentSeason = this.getCurrentSeason();
-    return this.seasonalPalettes[currentSeason];
+    return this.seasonalPalettes[currentSeason] || this.seasonalPalettes.spring;
   }
 
   /**
-   * Finds the best color harmony type for given colors
+   * Find best harmony among all colors
    */
   public findBestHarmony(allColors: string[]): ColorHarmonyResult {
-    if (!allColors?.length) {
+    if (allColors.length < 2) {
       return {
-        isHarmonious: false,
-        harmonyType: "unknown",
-        confidence: 0,
-        reasoning: "No colors provided",
+        isHarmonious: true,
+        harmonyType: "single-color",
+        confidence: 1.0,
+        reasoning: "Single color is always harmonious",
+        colorDistance: 0,
+        perceptualMatch: true,
       };
     }
 
-    const normalized = allColors.map((c) => this.normalizeColor(c));
-
-    // Try different harmony types and return the best one
-    const harmonies = [
-      this.checkMonochromatic(normalized),
-      this.checkComplementary(normalized),
-      this.checkAnalogous(normalized),
-      this.checkTriadic(normalized),
-      this.checkSeasonalPalette(normalized),
-    ]
-      .filter((h) => h.isHarmonious)
-      .sort((a, b) => b.confidence - a.confidence);
-
-    return (
-      harmonies[0] || {
-        isHarmonious: false,
-        harmonyType: "mixed",
-        confidence: 0.3,
-        reasoning: "Colors create an eclectic mix",
-      }
-    );
+    return this.analyzeColorHarmony(allColors, []);
   }
 
   /**
-   * Generates harmonious color suggestions based on a base color
+   * Generate harmonious colors from base color
    */
   public generateHarmoniousColors(
     baseColor: string,
     harmonyType: string = "complementary",
   ): string[] {
-    const normalized = this.normalizeColor(baseColor);
-    const family = this.getColorFamily(normalized);
+    const normalizedBase = this.normalizeColor(baseColor);
+    const rgb = this.hexToRgb(normalizedBase);
+    const lab = this.rgbToLab(rgb.r, rgb.g, rgb.b);
 
     switch (harmonyType) {
       case "complementary":
-        return this.getComplementaryColors(family);
+        return this.generateComplementaryColors(lab);
       case "analogous":
-        return this.getAnalogousColors(family);
+        return this.generateAnalogousColors(lab);
       case "triadic":
-        return this.getTriadicColors(family);
+        return this.generateTriadicColors(lab);
       case "monochromatic":
-        return this.getMonochromaticColors(family);
-      case "seasonal":
-        return this.getCurrentSeasonalPalette().palette;
+        return this.generateMonochromaticColors(lab);
       default:
-        return this.getComplementaryColors(family);
+        return this.generateComplementaryColors(lab);
     }
+  }
+
+  /**
+   * Convert RGB to CIELAB color space
+   */
+  private rgbToLab(r: number, g: number, b: number): { l: number; a: number; b: number } {
+    // Convert RGB to XYZ
+    const xyz = this.rgbToXyz(r, g, b);
+    
+    // Convert XYZ to CIELAB
+    const xn = 0.95047, yn = 1.00000, zn = 1.08883; // D65 illuminant
+    
+    const xr = this.xyzToLab(xyz.x / xn);
+    const yr = this.xyzToLab(xyz.y / yn);
+    const zr = this.xyzToLab(xyz.z / zn);
+    
+    const l = 116 * yr - 16;
+    const a = 500 * (xr - yr);
+    const bValue = 200 * (yr - zr);
+    
+    return { l, a, b: bValue };
+  }
+
+  /**
+   * Convert CIELAB to RGB
+   */
+  private labToRgb(l: number, a: number, b: number): { r: number; g: number; b: number } {
+    const xn = 0.95047, yn = 1.00000, zn = 1.08883;
+    
+    const yr = (l + 16) / 116;
+    const xr = a / 500 + yr;
+    const zr = yr - b / 200;
+    
+    const x = xn * this.labToXyz(xr);
+    const y = yn * this.labToXyz(yr);
+    const z = zn * this.labToXyz(zr);
+    
+    return this.xyzToRgb(x, y, z);
+  }
+
+  /**
+   * Convert RGB to XYZ
+   */
+  private rgbToXyz(r: number, g: number, b: number): { x: number; y: number; z: number } {
+    r = r / 255;
+    g = g / 255;
+    b = b / 255;
+    
+    r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
+    g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
+    b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+    
+    const x = r * 0.4124 + g * 0.3576 + b * 0.1805;
+    const y = r * 0.2126 + g * 0.7152 + b * 0.0722;
+    const z = r * 0.0193 + g * 0.1192 + b * 0.9505;
+    
+    return { x, y, z };
+  }
+
+  /**
+   * Convert XYZ to RGB
+   */
+  private xyzToRgb(x: number, y: number, z: number): { r: number; g: number; b: number } {
+    const r = x * 3.2406 + y * -1.5372 + z * -0.4986;
+    const g = x * -0.9689 + y * 1.8758 + z * 0.0415;
+    const b = x * 0.0557 + y * -0.2040 + z * 1.0570;
+    
+    const rNorm = Math.max(0, Math.min(1, r));
+    const gNorm = Math.max(0, Math.min(1, g));
+    const bNorm = Math.max(0, Math.min(1, b));
+    
+    const rFinal = rNorm > 0.0031308 ? 1.055 * Math.pow(rNorm, 1/2.4) - 0.055 : 12.92 * rNorm;
+    const gFinal = gNorm > 0.0031308 ? 1.055 * Math.pow(gNorm, 1/2.4) - 0.055 : 12.92 * gNorm;
+    const bFinal = bNorm > 0.0031308 ? 1.055 * Math.pow(bNorm, 1/2.4) - 0.055 : 12.92 * bNorm;
+    
+    return {
+      r: Math.round(rFinal * 255),
+      g: Math.round(gFinal * 255),
+      b: Math.round(bFinal * 255)
+    };
+  }
+
+  /**
+   * Helper functions for CIELAB conversion
+   */
+  private xyzToLab(t: number): number {
+    return t > 0.008856 ? Math.pow(t, 1/3) : (7.787 * t) + (16 / 116);
+  }
+
+  private labToXyz(t: number): number {
+    return t > 0.206893 ? Math.pow(t, 3) : (t - 16 / 116) / 7.787;
+  }
+
+  /**
+   * Calculate perceptual distance in CIELAB color space
+   */
+  private calculateLabDistance(lab1: { l: number; a: number; b: number }, lab2: { l: number; a: number; b: number }): number {
+    const deltaL = lab1.l - lab2.l;
+    const deltaA = lab1.a - lab2.a;
+    const deltaB = lab1.b - lab2.b;
+    
+    return Math.sqrt(deltaL * deltaL + deltaA * deltaA + deltaB * deltaB);
+  }
+
+  /**
+   * Generate complementary colors
+   */
+  private generateComplementaryColors(baseLab: { l: number; a: number; b: number }): string[] {
+    const complementaryLab = { l: baseLab.l, a: -baseLab.a, b: -baseLab.b };
+    const rgb = this.labToRgb(complementaryLab.l, complementaryLab.a, complementaryLab.b);
+    return [this.rgbToHex(rgb.r, rgb.g, rgb.b)];
+  }
+
+  /**
+   * Generate analogous colors
+   */
+  private generateAnalogousColors(baseLab: { l: number; a: number; b: number }): string[] {
+    const colors = [];
+    for (let i = 1; i <= 3; i++) {
+      const angle = (i * 30) * Math.PI / 180;
+      const newA = baseLab.a * Math.cos(angle) - baseLab.b * Math.sin(angle);
+      const newB = baseLab.a * Math.sin(angle) + baseLab.b * Math.cos(angle);
+      const rgb = this.labToRgb(baseLab.l, newA, newB);
+      colors.push(this.rgbToHex(rgb.r, rgb.g, rgb.b));
+    }
+    return colors;
+  }
+
+  /**
+   * Generate triadic colors
+   */
+  private generateTriadicColors(baseLab: { l: number; a: number; b: number }): string[] {
+    const colors = [];
+    for (let i = 1; i <= 2; i++) {
+      const angle = (i * 120) * Math.PI / 180;
+      const newA = baseLab.a * Math.cos(angle) - baseLab.b * Math.sin(angle);
+      const newB = baseLab.a * Math.sin(angle) + baseLab.b * Math.cos(angle);
+      const rgb = this.labToRgb(baseLab.l, newA, newB);
+      colors.push(this.rgbToHex(rgb.r, rgb.g, rgb.b));
+    }
+    return colors;
+  }
+
+  /**
+   * Generate monochromatic colors
+   */
+  private generateMonochromaticColors(baseLab: { l: number; a: number; b: number }): string[] {
+    const colors = [];
+    for (let i = 1; i <= 3; i++) {
+      const newL = Math.max(0, Math.min(100, baseLab.l + (i * 10 - 20)));
+      const rgb = this.labToRgb(newL, baseLab.a, baseLab.b);
+      colors.push(this.rgbToHex(rgb.r, rgb.g, rgb.b));
+    }
+    return colors;
+  }
+
+  /**
+   * Convert RGB to hex
+   */
+  private rgbToHex(r: number, g: number, b: number): string {
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`.toUpperCase();
+  }
+
+  /**
+   * Convert hex to RGB
+   */
+  private hexToRgb(hex: string): { r: number; g: number; b: number } {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 0, g: 0, b: 0 };
+  }
+
+  /**
+   * Convert RGB to HSL
+   */
+  private rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+      switch (max) {
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
+      }
+      h /= 6;
+    }
+
+    return { h: h * 360, s: s * 100, l: l * 100 };
   }
 
   private normalizeColor(color: string): string {
@@ -489,6 +549,8 @@ export class AdvancedColorTheory {
         harmonyType: "neutral",
         confidence,
         reasoning: "Neutral colors provide universal harmony",
+        colorDistance: 0,
+        perceptualMatch: true,
       };
     }
 
@@ -497,6 +559,8 @@ export class AdvancedColorTheory {
       harmonyType: "none",
       confidence: 0,
       reasoning: "",
+      colorDistance: 100,
+      perceptualMatch: false,
     };
   }
 
@@ -518,6 +582,8 @@ export class AdvancedColorTheory {
           harmonyType: `modern-${combo.type}`,
           confidence: 0.9,
           reasoning: `Modern ${combo.style} color combination`,
+          colorDistance: 0,
+          perceptualMatch: true,
         };
       }
     }
@@ -527,6 +593,8 @@ export class AdvancedColorTheory {
       harmonyType: "none",
       confidence: 0,
       reasoning: "",
+      colorDistance: 100,
+      perceptualMatch: false,
     };
   }
 
@@ -547,6 +615,8 @@ export class AdvancedColorTheory {
           harmonyType: "complementary",
           confidence: 0.8,
           reasoning: `Complementary colors create dynamic contrast`,
+          colorDistance: 0,
+          perceptualMatch: true,
         };
       }
     }
@@ -566,6 +636,8 @@ export class AdvancedColorTheory {
           harmonyType: "analogous",
           confidence: 0.75,
           reasoning: "Analogous colors create pleasing harmony",
+          colorDistance: 0,
+          perceptualMatch: true,
         };
       }
     }
@@ -585,6 +657,8 @@ export class AdvancedColorTheory {
           harmonyType: "triadic",
           confidence: 0.7,
           reasoning: "Triadic colors create vibrant balance",
+          colorDistance: 0,
+          perceptualMatch: true,
         };
       }
     }
@@ -594,6 +668,8 @@ export class AdvancedColorTheory {
       harmonyType: "none",
       confidence: 0,
       reasoning: "",
+      colorDistance: 100,
+      perceptualMatch: false,
     };
   }
 
@@ -617,6 +693,8 @@ export class AdvancedColorTheory {
         harmonyType: "seasonal",
         confidence: 0.8,
         reasoning: `Perfect for ${currentSeason} season`,
+        colorDistance: 0,
+        perceptualMatch: true,
       };
     }
 
@@ -625,6 +703,8 @@ export class AdvancedColorTheory {
       harmonyType: "none",
       confidence: 0,
       reasoning: "",
+      colorDistance: 100,
+      perceptualMatch: false,
     };
   }
 
@@ -650,6 +730,8 @@ export class AdvancedColorTheory {
           harmonyType: "monochromatic",
           confidence: 0.7,
           reasoning: `Monochromatic ${familyName} harmony`,
+          colorDistance: 0,
+          perceptualMatch: true,
         };
       }
     }
@@ -659,6 +741,8 @@ export class AdvancedColorTheory {
       harmonyType: "none",
       confidence: 0,
       reasoning: "",
+      colorDistance: 100,
+      perceptualMatch: false,
     };
   }
 
@@ -676,6 +760,8 @@ export class AdvancedColorTheory {
           harmonyType: "monochromatic",
           confidence: 0.85,
           reasoning: `Beautiful ${familyName} monochromatic scheme`,
+          colorDistance: 0,
+          perceptualMatch: true,
         };
       }
     }
@@ -685,6 +771,8 @@ export class AdvancedColorTheory {
       harmonyType: "none",
       confidence: 0,
       reasoning: "",
+      colorDistance: 100,
+      perceptualMatch: false,
     };
   }
 
@@ -699,6 +787,8 @@ export class AdvancedColorTheory {
           harmonyType: "complementary",
           confidence: 0.8,
           reasoning: "Dynamic complementary color harmony",
+          colorDistance: 0,
+          perceptualMatch: true,
         };
       }
     }
@@ -708,6 +798,8 @@ export class AdvancedColorTheory {
       harmonyType: "none",
       confidence: 0,
       reasoning: "",
+      colorDistance: 100,
+      perceptualMatch: false,
     };
   }
 
@@ -723,6 +815,8 @@ export class AdvancedColorTheory {
           harmonyType: "analogous",
           confidence: 0.75,
           reasoning: "Soothing analogous color harmony",
+          colorDistance: 0,
+          perceptualMatch: true,
         };
       }
     }
@@ -732,6 +826,8 @@ export class AdvancedColorTheory {
       harmonyType: "none",
       confidence: 0,
       reasoning: "",
+      colorDistance: 100,
+      perceptualMatch: false,
     };
   }
 
@@ -747,6 +843,8 @@ export class AdvancedColorTheory {
           harmonyType: "triadic",
           confidence: 0.7,
           reasoning: "Balanced triadic color harmony",
+          colorDistance: 0,
+          perceptualMatch: true,
         };
       }
     }
@@ -756,6 +854,8 @@ export class AdvancedColorTheory {
       harmonyType: "none",
       confidence: 0,
       reasoning: "",
+      colorDistance: 100,
+      perceptualMatch: false,
     };
   }
 
@@ -773,6 +873,8 @@ export class AdvancedColorTheory {
         harmonyType: "seasonal",
         confidence: 0.8,
         reasoning: `Perfect ${currentSeason} seasonal palette`,
+        colorDistance: 0,
+        perceptualMatch: true,
       };
     }
 
@@ -781,6 +883,8 @@ export class AdvancedColorTheory {
       harmonyType: "none",
       confidence: 0,
       reasoning: "",
+      colorDistance: 100,
+      perceptualMatch: false,
     };
   }
 
@@ -827,12 +931,9 @@ export class AdvancedColorTheory {
     return "medium";
   }
 
-  private getColorSaturation(color: string): "low" | "medium" | "high" {
-    const lowSatKeywords = ["muted", "dusty", "grey", "gray", "sage", "mauve"];
-    const highSatKeywords = ["bright", "vibrant", "neon", "electric", "hot"];
-
-    if (lowSatKeywords.some((k) => color.includes(k))) return "low";
-    if (highSatKeywords.some((k) => color.includes(k))) return "high";
+  private getColorSaturation(s: number): "low" | "medium" | "high" {
+    if (s < 20) return "low";
+    if (s > 60) return "high";
     return "medium";
   }
 

@@ -1759,7 +1759,7 @@ export class SimpleStyleAI {
 
   /**
    * Calculate color harmony using advanced color theory principles
-   * Falls back to simplified logic if advanced theory fails
+   * Enhanced to work with improved color extraction and CIELAB color space
    */
   private calculateAdvancedColorHarmony(
     outfit: WardrobeItem[],
@@ -1775,36 +1775,40 @@ export class SimpleStyleAI {
         return 0.5; // Neutral score when no color data
       }
 
+      // Normalize colors to hex format for better comparison
+      const normalizedColors = allColors.map(color => this.normalizeColorToHex(color));
+
       // Use advanced color theory to analyze the overall outfit harmony
-      const overallHarmony = advancedColorTheory.findBestHarmony(allColors);
+      const overallHarmony = advancedColorTheory.findBestHarmony(normalizedColors);
       let score = overallHarmony.confidence;
 
-      // Bonus for specific harmony types
+      // Enhanced bonus system for specific harmony types
       const harmonyBonuses: { [key: string]: number } = {
-        monochromatic: 0.1,
-        complementary: 0.15,
-        analogous: 0.12,
-        triadic: 0.1,
-        seasonal: 0.13,
-        neutral: 0.08,
-        "modern-complementary": 0.16,
-        "modern-monochromatic": 0.11,
-        "modern-triadic": 0.12,
+        monochromatic: 0.12,
+        complementary: 0.18,
+        analogous: 0.15,
+        triadic: 0.13,
+        seasonal: 0.16,
+        neutral: 0.10,
+        "modern-complementary": 0.20,
+        "modern-monochromatic": 0.14,
+        "modern-triadic": 0.15,
+        "single-color": 0.08,
       };
 
       const bonus = harmonyBonuses[overallHarmony.harmonyType] || 0;
       score += bonus;
 
-      // Check pairwise harmony between items for additional scoring
+      // Enhanced pairwise harmony analysis with CIELAB color space
       let pairwiseScore = 0;
       let pairCount = 0;
 
       for (let i = 0; i < outfit.length; i++) {
         for (let j = i + 1; j < outfit.length; j++) {
-          const pairHarmony = advancedColorTheory.analyzeColorHarmony(
-            outfit[i].color,
-            outfit[j].color,
-          );
+          const colors1 = outfit[i].color.map(c => this.normalizeColorToHex(c));
+          const colors2 = outfit[j].color.map(c => this.normalizeColorToHex(c));
+          
+          const pairHarmony = advancedColorTheory.analyzeColorHarmony(colors1, colors2);
           pairwiseScore += pairHarmony.confidence;
           pairCount++;
         }
@@ -1812,52 +1816,52 @@ export class SimpleStyleAI {
 
       if (pairCount > 0) {
         const avgPairwiseScore = pairwiseScore / pairCount;
-        score = score * 0.7 + avgPairwiseScore * 0.3; // Weight overall harmony more
+        score = score * 0.65 + avgPairwiseScore * 0.35; // Weight overall harmony more
       }
 
-      // Bonus for user's favorite colors (manually selected preferences)
+      // Enhanced user preference matching with better color comparison
       if (profile.favorite_colors && profile.favorite_colors.length > 0) {
-        const favoriteMatches = allColors.filter((color) =>
-          profile.favorite_colors!.some((fav) =>
-            color.toLowerCase().includes(fav.toLowerCase()),
-          ),
-        ).length;
+        const favoriteMatches = this.calculateColorMatches(
+          normalizedColors, 
+          profile.favorite_colors.map(c => this.normalizeColorToHex(c))
+        );
 
         if (favoriteMatches > 0) {
-          score += 0.18 * (favoriteMatches / allColors.length); // Higher weight for deliberate choices
+          score += 0.20 * (favoriteMatches / allColors.length); // Higher weight for deliberate choices
         }
       }
 
-      // Bonus for user's color palette colors (extracted from profile picture)
-      if (
-        profile.color_palette_colors &&
-        profile.color_palette_colors.length > 0
-      ) {
-        const paletteMatches = allColors.filter((color) =>
-          profile.color_palette_colors!.some((paletteColor) =>
-            color.toLowerCase().includes(paletteColor.toLowerCase()),
-          ),
-        ).length;
+      // Enhanced color palette matching with improved accuracy
+      if (profile.color_palette_colors && profile.color_palette_colors.length > 0) {
+        const paletteMatches = this.calculateColorMatches(
+          normalizedColors,
+          profile.color_palette_colors.map(c => this.normalizeColorToHex(c))
+        );
 
         if (paletteMatches > 0) {
-          score += 0.12 * (paletteMatches / allColors.length); // Moderate weight for analyzed colors
+          score += 0.15 * (paletteMatches / allColors.length); // Moderate weight for analyzed colors
         }
       }
 
-      // Seasonal color bonus
+      // Enhanced seasonal color bonus with better matching
       const currentSeason = this.getCurrentSeason();
       const seasonalPalette = advancedColorTheory.getCurrentSeasonalPalette();
-      const seasonalMatches = allColors.filter((color) =>
-        seasonalPalette.palette.some(
-          (seasonalColor) =>
-            color.toLowerCase().includes(seasonalColor.toLowerCase()) ||
-            seasonalColor.toLowerCase().includes(color.toLowerCase()),
-        ),
-      ).length;
+      const seasonalMatches = this.calculateColorMatches(
+        normalizedColors,
+        seasonalPalette.hexPalette
+      );
 
       if (seasonalMatches > 0) {
-        score += 0.1 * (seasonalMatches / allColors.length);
+        score += 0.12 * (seasonalMatches / allColors.length);
       }
+
+      // Additional bonus for color temperature harmony
+      const temperatureScore = this.calculateTemperatureHarmony(normalizedColors);
+      score += temperatureScore * 0.08;
+
+      // Bonus for color diversity (not too many similar colors)
+      const diversityScore = this.calculateColorDiversity(normalizedColors);
+      score += diversityScore * 0.05;
 
       return Math.min(1, Math.max(0, score));
     } catch (error) {
@@ -1867,6 +1871,261 @@ export class SimpleStyleAI {
       );
       return this.calculateSimplifiedColorHarmony(outfit, profile);
     }
+  }
+
+  /**
+   * Calculate color matches using CIELAB color space for better accuracy
+   */
+  private calculateColorMatches(colors1: string[], colors2: string[]): number {
+    let matches = 0;
+    
+    for (const color1 of colors1) {
+      for (const color2 of colors2) {
+        const distance = this.calculateColorDistance(color1, color2);
+        if (distance < 30) { // Threshold for color similarity in CIELAB space
+          matches++;
+        }
+      }
+    }
+    
+    return matches;
+  }
+
+  /**
+   * Calculate color distance in CIELAB color space
+   */
+  private calculateColorDistance(color1: string, color2: string): number {
+    try {
+      const lab1 = this.hexToLab(color1);
+      const lab2 = this.hexToLab(color2);
+      
+      const deltaL = lab1.l - lab2.l;
+      const deltaA = lab1.a - lab2.a;
+      const deltaB = lab1.b - lab2.b;
+      
+      return Math.sqrt(deltaL * deltaL + deltaA * deltaA + deltaB * deltaB);
+    } catch (error) {
+      // Fallback to simple hex comparison
+      return color1 === color2 ? 0 : 100;
+    }
+  }
+
+  /**
+   * Convert hex color to CIELAB color space
+   */
+  private hexToLab(hex: string): { l: number; a: number; b: number } {
+    const rgb = this.hexToRgb(hex);
+    return this.rgbToLab(rgb.r, rgb.g, rgb.b);
+  }
+
+  /**
+   * Convert hex to RGB
+   */
+  private hexToRgb(hex: string): { r: number; g: number; b: number } {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 0, g: 0, b: 0 };
+  }
+
+  /**
+   * Convert RGB to CIELAB color space
+   */
+  private rgbToLab(r: number, g: number, b: number): { l: number; a: number; b: number } {
+    // Convert RGB to XYZ
+    const xyz = this.rgbToXyz(r, g, b);
+    
+    // Convert XYZ to CIELAB
+    const xn = 0.95047, yn = 1.00000, zn = 1.08883; // D65 illuminant
+    
+    const xr = this.xyzToLab(xyz.x / xn);
+    const yr = this.xyzToLab(xyz.y / yn);
+    const zr = this.xyzToLab(xyz.z / zn);
+    
+    const l = 116 * yr - 16;
+    const a = 500 * (xr - yr);
+    const bValue = 200 * (yr - zr);
+    
+    return { l, a, b: bValue };
+  }
+
+  /**
+   * Convert RGB to XYZ
+   */
+  private rgbToXyz(r: number, g: number, b: number): { x: number; y: number; z: number } {
+    r = r / 255;
+    g = g / 255;
+    b = b / 255;
+    
+    r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
+    g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
+    b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+    
+    const x = r * 0.4124 + g * 0.3576 + b * 0.1805;
+    const y = r * 0.2126 + g * 0.7152 + b * 0.0722;
+    const z = r * 0.0193 + g * 0.1192 + b * 0.9505;
+    
+    return { x, y, z };
+  }
+
+  /**
+   * Helper function for CIELAB conversion
+   */
+  private xyzToLab(t: number): number {
+    return t > 0.008856 ? Math.pow(t, 1/3) : (7.787 * t) + (16 / 116);
+  }
+
+  /**
+   * Calculate temperature harmony score
+   */
+  private calculateTemperatureHarmony(colors: string[]): number {
+    const temperatures = colors.map(color => this.getColorTemperature(color));
+    const warmCount = temperatures.filter(t => t === 'warm').length;
+    const coolCount = temperatures.filter(t => t === 'cool').length;
+    const neutralCount = temperatures.filter(t => t === 'neutral').length;
+    
+    // Prefer balanced temperature distribution
+    const total = colors.length;
+    const balance = 1 - Math.abs(warmCount - coolCount) / total;
+    
+    return balance * 0.1; // Small bonus for temperature balance
+  }
+
+  /**
+   * Calculate color diversity score
+   */
+  private calculateColorDiversity(colors: string[]): number {
+    const uniqueColors = new Set(colors).size;
+    const totalColors = colors.length;
+    
+    // Prefer moderate diversity (not too few, not too many)
+    if (uniqueColors === 1) return 0; // No diversity
+    if (uniqueColors === totalColors) return 0.1; // Maximum diversity
+    if (uniqueColors >= totalColors * 0.7) return 0.05; // Good diversity
+    return 0.02; // Moderate diversity
+  }
+
+  /**
+   * Get color temperature
+   */
+  private getColorTemperature(color: string): "warm" | "cool" | "neutral" {
+    try {
+      const lab = this.hexToLab(color);
+      
+      // Warm colors have positive a and b values
+      // Cool colors have negative a and b values
+      if (lab.a > 5 && lab.b > 5) return "warm";
+      if (lab.a < -5 && lab.b < -5) return "cool";
+      return "neutral";
+    } catch (error) {
+      // Fallback to keyword matching
+      const warmKeywords = ['red', 'orange', 'yellow', 'pink', 'coral', 'peach'];
+      const coolKeywords = ['blue', 'green', 'purple', 'teal', 'navy', 'mint'];
+      
+      const lowerColor = color.toLowerCase();
+      if (warmKeywords.some(k => lowerColor.includes(k))) return "warm";
+      if (coolKeywords.some(k => lowerColor.includes(k))) return "cool";
+      return "neutral";
+    }
+  }
+
+  /**
+   * Normalize color to hex format for consistent comparison
+   */
+  private normalizeColorToHex(color: string): string {
+    // If already hex format, return as is
+    if (color.startsWith('#')) {
+      return color.toUpperCase();
+    }
+    
+         // Try to convert color names to hex
+     const colorMap: { [key: string]: string } = {
+       'red': '#FF0000',
+       'blue': '#0000FF',
+       'green': '#008000',
+       'yellow': '#FFFF00',
+       'orange': '#FFA500',
+       'purple': '#800080',
+       'pink': '#FFC0CB',
+       'brown': '#A52A2A',
+       'black': '#000000',
+       'white': '#FFFFFF',
+       'gray': '#808080',
+       'grey': '#808080',
+       'navy': '#000080',
+       'coral': '#FF7F50',
+       'teal': '#008080',
+       'mint': '#98FB98',
+       'sage': '#9CAF88',
+       'beige': '#F5F5DC',
+       'cream': '#FFFDD0',
+       'ivory': '#FFFFF0',
+       'charcoal': '#36454F',
+       'burgundy': '#800020',
+       'forest': '#228B22',
+       'olive': '#808000',
+       'rust': '#B7410E',
+       'gold': '#FFD700',
+       'silver': '#C0C0C0',
+       'bronze': '#CD7F32',
+       'rose': '#FF007F',
+       'lavender': '#E6E6FA',
+       'plum': '#DDA0DD',
+       'mauve': '#E0B0FF',
+       'lilac': '#C8A2C8',
+       'amethyst': '#9966CC',
+       'orchid': '#DA70D6',
+       'grape': '#6F2DA8',
+       'eggplant': '#614051',
+       'crimson': '#DC143C',
+       'maroon': '#800000',
+       'cherry': '#DE3163',
+       'salmon': '#FA8072',
+       'blush': '#FFB6C1',
+       'fuchsia': '#FF00FF',
+       'magenta': '#FF00FF',
+       'royal': '#4169E1',
+       'sky': '#87CEEB',
+       'powder': '#B0E0E6',
+       'turquoise': '#40E0D0',
+       'cyan': '#00FFFF',
+       'cerulean': '#007BA7',
+       'cobalt': '#0047AB',
+       'indigo': '#4B0082',
+       'sapphire': '#0F52BA',
+       'lime': '#32CD32',
+       'emerald': '#50C878',
+       'jade': '#00A86B',
+       'kelly': '#4CBB17',
+       'hunter': '#355E35',
+       'chartreuse': '#7FFF00',
+       'seafoam': '#98FF98',
+       'mustard': '#FFDB58',
+       'lemon': '#FFF700',
+       'butter': '#FFF4C4',
+       'champagne': '#F7E7CE',
+       'amber': '#FFBF00',
+       'honey': '#FDB347',
+       'canary': '#FFFF99',
+       'saffron': '#F4C430',
+       'peach': '#FFCBA4',
+       'apricot': '#FBCEB1',
+       'tangerine': '#FFA500',
+       'papaya': '#FFEFD5',
+       'persimmon': '#EC5800',
+       'violet': '#EE82EE',
+       'tan': '#D2B48C',
+       'taupe': '#483C32',
+       'khaki': '#F0E68C',
+       'camel': '#C19A6B',
+       'nude': '#E3BC9A',
+       'stone': '#928E85',
+     };
+    
+    const lowerColor = color.toLowerCase();
+    return colorMap[lowerColor] || '#808080'; // Default to gray if unknown
   }
 
   private calculateSimplifiedColorHarmony(
