@@ -173,6 +173,7 @@ const EditProfile = () => {
         gender_identity: form.gender_identity || null,
         preferred_style: form.preferred_style || null,
         favorite_colors: form.favorite_colors,
+        color_palette_colors: form.color_palette_colors,
         goals: form.goals,
         face_photo_url: form.face_photo_url || null,
       };
