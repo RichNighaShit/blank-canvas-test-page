@@ -94,48 +94,45 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     }
   };
 
-  // Enhanced color analysis using the new service
+  // Enhanced color analysis using basic extraction for now
   const analyzeImageColors = async (
     imageFile: File,
-  ): Promise<{ colors: string[]; palette: ExtractedPalette }> => {
+  ): Promise<{ colors: string[]; palette?: any }> => {
     try {
-      console.log("🎨 Starting advanced color extraction...");
+      console.log("🎨 Starting color extraction...");
 
-      const palette = await colorExtractionService.extractPalette(imageFile, {
-        colorCount: 6,
-        quality: 7,
-        fallbackToFullImage: true,
-        minColorDistance: 15,
-      });
-
-      console.log("🎨 Color extraction complete:", {
-        colors: palette.colors,
-        confidence: palette.confidence,
-        source: palette.source,
-        metadata: palette.metadata,
-      });
-
-      return {
-        colors: palette.colors,
-        palette,
-      };
-    } catch (error) {
-      console.error(
-        "Failed to analyze image colors with advanced service:",
-        error,
-      );
-      // Fallback to basic extraction
+      // Use basic color extraction to avoid heavy dependency issues
       const basicColors = await extractBasicColors(imageFile);
+
+      console.log("🎨 Color extraction complete:", basicColors);
+
       return {
         colors: basicColors,
         palette: {
           colors: basicColors,
-          confidence: 0.3,
-          source: "fallback" as const,
+          confidence: 0.7,
+          source: "basic" as const,
           metadata: {
             faceDetected: false,
             colorCount: basicColors.length,
             dominantColor: basicColors[0] || "#000000",
+          },
+        },
+      };
+    } catch (error) {
+      console.error("Failed to analyze image colors:", error);
+      // Ultimate fallback with skin-tone colors
+      const fallbackColors = ["#8B7355", "#D4A574", "#F5E6D3"];
+      return {
+        colors: fallbackColors,
+        palette: {
+          colors: fallbackColors,
+          confidence: 0.3,
+          source: "fallback" as const,
+          metadata: {
+            faceDetected: false,
+            colorCount: fallbackColors.length,
+            dominantColor: fallbackColors[0],
           },
         },
       };
