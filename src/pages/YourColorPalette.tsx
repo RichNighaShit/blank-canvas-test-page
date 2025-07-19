@@ -195,27 +195,37 @@ const YourColorPalette = () => {
     return [h * 360, s * 100, l * 100];
   };
 
-  const getComprehensiveColorAnalysis = () => {
-    if (!hasColors) return null;
+    const getComprehensiveColorAnalysis = () => {
+    try {
+      if (!hasColors || !colors || colors.length === 0) return null;
 
-    const colorData = colors
-      .map((color) => {
-        const rgb = hexToRgb(color);
-        if (!rgb) return null;
+      const colorData = colors
+        .map((color) => {
+          try {
+            if (!color || typeof color !== 'string') return null;
 
-        const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-        const [h, s, l] = hsl;
+            const rgb = hexToRgb(color);
+            if (!rgb) return null;
 
-        return {
-          hex: color,
-          rgb,
-          hsl,
-          name: getColorName(color),
-        };
-      })
-      .filter(Boolean);
+            const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+            if (!hsl || hsl.length !== 3) return null;
 
-    if (colorData.length === 0) return null;
+            const [h, s, l] = hsl;
+
+            return {
+              hex: color,
+              rgb,
+              hsl,
+              name: getColorName(color),
+            };
+          } catch (error) {
+            console.warn('Error processing color:', color, error);
+            return null;
+          }
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null);
+
+      if (colorData.length === 0) return null;
 
     // Calculate averages with proper HSL values
     const avgBrightness =
