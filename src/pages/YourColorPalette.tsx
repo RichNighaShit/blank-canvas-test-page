@@ -60,7 +60,7 @@ const YourColorPalette = () => {
     console.log("Colors array:", colors);
     console.log("Has colors:", hasColors);
     console.log("Colors length:", colors.length);
-  }, [profile, colors, hasColors]);
+  }, [profile]); // Only depend on profile to avoid infinite re-renders
 
   const handleCopyColor = async (color: string) => {
     try {
