@@ -1,10 +1,11 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Cropper from "react-easy-crop";
 import { useRef } from "react";
+import { Palette } from "lucide-react";
 import {
   colorExtractionService,
   ExtractedPalette,
