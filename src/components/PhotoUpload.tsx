@@ -10,6 +10,18 @@ import { Palette } from "lucide-react";
 import neutralBody from "@/assets/neutral-body.png";
 import { useProfile } from "@/hooks/useProfile";
 
+// Define the interface locally since it's not being imported properly
+interface ExtractedPalette {
+  colors: string[];
+  confidence: number;
+  source: "basic" | "advanced" | "fallback";
+  metadata: {
+    faceDetected: boolean;
+    colorCount: number;
+    dominantColor: string;
+  };
+}
+
 interface PhotoUploadProps {
   onAnalysisComplete: (result: {
     imageUrl: string;
@@ -406,7 +418,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
 
         toast({
           title: "🎨 Color Palette Extracted!",
-          description: `Extracted ${colors.length} colors with ${Math.round(paletteData.confidence * 100)}% confidence from ${paletteData.source}`,
+          description: `Extracted ${colors.length} colors with ${Math.round((paletteData?.confidence || 0) * 100)}% confidence from ${paletteData?.source || "basic"}`,
         });
       } catch (colorError) {
         console.warn("Advanced color extraction failed:", colorError);
@@ -425,6 +437,41 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
       } catch (aiError) {
         console.warn("Systematic analysis failed (optional):", aiError);
         // Continue without AI analysis
+      }
+
+      // Update the profile immediately with extracted colors
+      try {
+        if (user && colors.length > 0) {
+          console.log("🎨 Saving extracted colors to profile:", colors);
+          const { error: updateError } = await supabase
+            .from("profiles")
+            .update({
+              face_photo_url: imageUrl,
+              color_palette_colors: colors,
+            })
+            .eq("user_id", user.id);
+
+          if (updateError) {
+            console.error("Failed to save colors to profile:", updateError);
+            toast({
+              title: "Color save warning",
+              description:
+                "Photo uploaded but colors may not have been saved to your profile.",
+              variant: "destructive",
+            });
+          } else {
+            console.log("✅ Colors successfully saved to profile!");
+            // Force profile refetch to show updated colors immediately
+            await refetchProfile();
+            toast({
+              title: "🎨 Colors saved!",
+              description:
+                "Your color palette has been updated in your profile.",
+            });
+          }
+        }
+      } catch (saveError) {
+        console.error("Error saving colors:", saveError);
       }
 
       onAnalysisComplete({ imageUrl, colors, aiAnalysis });
