@@ -1726,6 +1726,102 @@ export class SimpleStyleAI {
     return Math.min(1, score);
   }
 
+  /**
+   * Calculate color harmony using advanced color theory principles
+   * Falls back to simplified logic if advanced theory fails
+   */
+  private calculateAdvancedColorHarmony(
+    outfit: WardrobeItem[],
+    profile: StyleProfile,
+  ): number {
+    try {
+      if (!this.useAdvancedColorTheory) {
+        return this.calculateSimplifiedColorHarmony(outfit, profile);
+      }
+
+      const allColors = outfit.flatMap((item) => item.color);
+      if (allColors.length === 0) {
+        return 0.5; // Neutral score when no color data
+      }
+
+      // Use advanced color theory to analyze the overall outfit harmony
+      const overallHarmony = advancedColorTheory.findBestHarmony(allColors);
+      let score = overallHarmony.confidence;
+
+      // Bonus for specific harmony types
+      const harmonyBonuses: { [key: string]: number } = {
+        monochromatic: 0.1,
+        complementary: 0.15,
+        analogous: 0.12,
+        triadic: 0.1,
+        seasonal: 0.13,
+        neutral: 0.08,
+        "modern-complementary": 0.16,
+        "modern-monochromatic": 0.11,
+        "modern-triadic": 0.12,
+      };
+
+      const bonus = harmonyBonuses[overallHarmony.harmonyType] || 0;
+      score += bonus;
+
+      // Check pairwise harmony between items for additional scoring
+      let pairwiseScore = 0;
+      let pairCount = 0;
+
+      for (let i = 0; i < outfit.length; i++) {
+        for (let j = i + 1; j < outfit.length; j++) {
+          const pairHarmony = advancedColorTheory.analyzeColorHarmony(
+            outfit[i].color,
+            outfit[j].color,
+          );
+          pairwiseScore += pairHarmony.confidence;
+          pairCount++;
+        }
+      }
+
+      if (pairCount > 0) {
+        const avgPairwiseScore = pairwiseScore / pairCount;
+        score = score * 0.7 + avgPairwiseScore * 0.3; // Weight overall harmony more
+      }
+
+      // Bonus for user's favorite colors
+      if (profile.favorite_colors && profile.favorite_colors.length > 0) {
+        const favoriteMatches = allColors.filter((color) =>
+          profile.favorite_colors!.some((fav) =>
+            color.toLowerCase().includes(fav.toLowerCase()),
+          ),
+        ).length;
+
+        if (favoriteMatches > 0) {
+          score += 0.15 * (favoriteMatches / allColors.length);
+        }
+      }
+
+      // Seasonal color bonus
+      const currentSeason = this.getCurrentSeason();
+      const seasonalPalette = advancedColorTheory.getCurrentSeasonalPalette();
+      const seasonalMatches = allColors.filter((color) =>
+        seasonalPalette.palette.some(
+          (seasonalColor) =>
+            color.toLowerCase().includes(seasonalColor.toLowerCase()) ||
+            seasonalColor.toLowerCase().includes(color.toLowerCase()),
+        ),
+      ).length;
+
+      if (seasonalMatches > 0) {
+        score += 0.1 * (seasonalMatches / allColors.length);
+      }
+
+      return Math.min(1, Math.max(0, score));
+    } catch (error) {
+      console.warn(
+        "Error in calculateAdvancedColorHarmony, falling back to simplified:",
+        error,
+      );
+      return this.calculateSimplifiedColorHarmony(outfit, profile);
+    }
+  }
+
   private calculateSimplifiedColorHarmony(
     outfit: WardrobeItem[],
     profile: StyleProfile,
