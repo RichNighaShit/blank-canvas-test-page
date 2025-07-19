@@ -35,6 +35,12 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   const [autoFitNotice, setAutoFitNotice] = useState(false);
   const { refetch: refetchProfile } = useProfile();
 
+  // Import the new color extraction service
+  import {
+    colorExtractionService,
+    ExtractedPalette,
+  } from "@/lib/colorExtractionService";
+
   // Systematic analysis using structured recognition
   const performSystematicAnalysis = async (imageUrl: string): Promise<any> => {
     try {
@@ -64,12 +70,51 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     }
   };
 
-  const analyzeImageColors = async (imageFile: File): Promise<string[]> => {
+  // Enhanced color analysis using the new service
+  const analyzeImageColors = async (
+    imageFile: File,
+  ): Promise<{ colors: string[]; palette: ExtractedPalette }> => {
     try {
-      return extractBasicColors(imageFile);
+      console.log("🎨 Starting advanced color extraction...");
+
+      const palette = await colorExtractionService.extractPalette(imageFile, {
+        colorCount: 6,
+        quality: 7,
+        fallbackToFullImage: true,
+        minColorDistance: 15,
+      });
+
+      console.log("🎨 Color extraction complete:", {
+        colors: palette.colors,
+        confidence: palette.confidence,
+        source: palette.source,
+        metadata: palette.metadata,
+      });
+
+      return {
+        colors: palette.colors,
+        palette,
+      };
     } catch (error) {
-      console.error("Failed to analyze image colors:", error);
-      return ["neutral"];
+      console.error(
+        "Failed to analyze image colors with advanced service:",
+        error,
+      );
+      // Fallback to basic extraction
+      const basicColors = await extractBasicColors(imageFile);
+      return {
+        colors: basicColors,
+        palette: {
+          colors: basicColors,
+          confidence: 0.3,
+          source: "fallback" as const,
+          metadata: {
+            faceDetected: false,
+            colorCount: basicColors.length,
+            dominantColor: basicColors[0] || "#000000",
+          },
+        },
+      };
     }
   };
 
