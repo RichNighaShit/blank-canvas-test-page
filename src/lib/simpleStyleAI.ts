@@ -23,6 +23,7 @@ export interface StyleProfile {
   id: string;
   preferred_style: string;
   favorite_colors?: string[];
+  color_palette_colors?: string[];
   goals?: string[];
 }
 
