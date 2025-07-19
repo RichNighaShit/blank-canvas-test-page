@@ -322,6 +322,103 @@ const YourColorPalette = () => {
               </Card>
             )}
 
+            {/* Palette Insights */}
+            {(() => {
+              const analysis = analyzePaletteCharacteristics(colors);
+              return (
+                <Card className="card-premium mb-8">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Eye className="h-5 w-5 text-indigo-600" />
+                      Your Palette Insights
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Dominant Mood */}
+                    <div>
+                      <h4 className="font-semibold mb-2">
+                        {analysis.dominantMood.mood}
+                      </h4>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {analysis.dominantMood.description}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {analysis.dominantMood.outfitSuggestions.map(
+                          (suggestion, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {suggestion}
+                            </Badge>
+                          ),
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Relevant Palette Info */}
+                    <div>
+                      <h4 className="font-semibold mb-2">
+                        {analysis.relevantInfo.name}
+                      </h4>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {analysis.relevantInfo.description}
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <h5 className="text-sm font-medium mb-2">
+                            Style Advice:
+                          </h5>
+                          <ul className="text-xs text-muted-foreground space-y-1">
+                            {analysis.relevantInfo.styleAdvice.map(
+                              (advice, index) => (
+                                <li
+                                  key={index}
+                                  className="flex items-start gap-2"
+                                >
+                                  <div className="w-1 h-1 bg-muted-foreground rounded-full mt-2 flex-shrink-0" />
+                                  {advice}
+                                </li>
+                              ),
+                            )}
+                          </ul>
+                        </div>
+                        <div>
+                          <h5 className="text-sm font-medium mb-2">
+                            Characteristics:
+                          </h5>
+                          <div className="flex flex-wrap gap-1">
+                            {analysis.relevantInfo.characteristics.map(
+                              (char, index) => (
+                                <Badge
+                                  key={index}
+                                  variant="outline"
+                                  className="text-xs"
+                                >
+                                  {char}
+                                </Badge>
+                              ),
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Color Theory */}
+                    <div className="bg-muted/30 p-4 rounded-lg">
+                      <h5 className="text-sm font-medium mb-2">
+                        Color Theory:
+                      </h5>
+                      <p className="text-xs text-muted-foreground">
+                        {analysis.relevantInfo.colorTheory}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
+
             {/* How to Use Section */}
             <Card className="card-premium">
               <CardHeader>
