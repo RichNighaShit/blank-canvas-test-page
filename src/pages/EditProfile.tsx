@@ -82,6 +82,7 @@ const EditProfile = () => {
     gender_identity: "",
     preferred_style: "",
     favorite_colors: [] as string[],
+    color_palette_colors: [] as string[],
     goals: [] as string[],
     face_photo_url: "",
   });
@@ -96,6 +97,9 @@ const EditProfile = () => {
         preferred_style: profile.preferred_style || "",
         favorite_colors: Array.isArray(profile.favorite_colors)
           ? profile.favorite_colors
+          : [],
+        color_palette_colors: Array.isArray(profile.color_palette_colors)
+          ? profile.color_palette_colors
           : [],
         goals: Array.isArray(profile.goals) ? profile.goals : [],
         face_photo_url: profile.face_photo_url || "",
