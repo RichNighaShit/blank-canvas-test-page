@@ -178,7 +178,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
             const colors = extractDominantColors(imageData);
             resolve(colors);
           } else {
-            resolve(["neutral"]);
+            resolve(["#8B7355"]); // Default skin tone color
           }
         };
         img.src = e.target?.result as string;
