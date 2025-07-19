@@ -36,6 +36,8 @@ export interface OutfitRecommendation {
   reasoning: string[];
 }
 
+import { advancedColorTheory, ColorHarmonyResult } from "./advancedColorTheory";
+
 export class SimpleStyleAI {
   private usedItemsHistory: { [itemId: string]: number } = {};
   private lastGenerationTime: number = 0;
@@ -45,6 +47,7 @@ export class SimpleStyleAI {
   private debugMode: boolean = false;
   private performanceMetrics: { [key: string]: number } = {};
   private generationStats: { [key: string]: any } = {};
+  private useAdvancedColorTheory: boolean = true; // Enable advanced color theory
 
   generateRecommendations(
     wardrobeItems: WardrobeItem[],
@@ -149,8 +152,8 @@ export class SimpleStyleAI {
         // Group items by category
         const itemsByCategory = this.groupByCategory(weatherFilteredItems);
 
-        // Generate diverse outfit combinations with weather context
-        const combinations = this.generateDiverseCombinations(
+        // Generate diverse outfit combinations with advanced color theory and weather context
+        const combinations = this.generateAdvancedCombinations(
           itemsByCategory,
           context.occasion,
           profile.preferred_style,
@@ -1174,7 +1177,18 @@ export class SimpleStyleAI {
         return false;
       }
 
-      // Simplified approach: Use popular color combinations
+      // Use advanced color theory first, fallback to basic logic
+      if (this.useAdvancedColorTheory) {
+        const harmonyResult = advancedColorTheory.analyzeColorHarmony(
+          colors1,
+          colors2,
+        );
+        if (harmonyResult.confidence > 0.6) {
+          return harmonyResult.isHarmonious;
+        }
+      }
+
+      // Fallback to simplified approach: Use popular color combinations
       return this.checkPopularColorCombinations(colors1, colors2);
     } catch (error) {
       console.warn("Error in colorsWork:", error);
