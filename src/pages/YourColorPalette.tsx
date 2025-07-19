@@ -19,11 +19,6 @@ import {
   Sparkles,
   Heart,
 } from "lucide-react";
-import { colorExtractionService } from "@/lib/colorExtractionService";
-import {
-  colorPaletteData,
-  analyzePaletteCharacteristics,
-} from "@/data/colorPaletteDetails";
 
 const YourColorPalette = () => {
   const { user, loading: authLoading } = useAuth();
@@ -113,20 +108,10 @@ const YourColorPalette = () => {
 
     setIsRegeneratingColors(true);
     try {
-      const palette = await colorExtractionService.extractPalette(
-        profile.face_photo_url,
-        {
-          colorCount: 6,
-          quality: 8,
-          fallbackToFullImage: true,
-          minColorDistance: 20,
-        },
-      );
-
-      // Update profile with new colors (you'd typically save this to the database)
+      // For now, just show a message - we'll implement the actual regeneration later
       toast({
-        title: "Colors regenerated!",
-        description: `Extracted ${palette.colors.length} new colors with ${Math.round(palette.confidence * 100)}% confidence`,
+        title: "Feature coming soon!",
+        description: "Color regeneration will be available soon",
       });
     } catch (error) {
       toast({
@@ -157,7 +142,32 @@ const YourColorPalette = () => {
 
   const getColorStats = () => {
     if (!hasColors) return null;
-    return colorExtractionService.getColorStats(colors);
+
+    // Simple color analysis without heavy dependencies
+    let avgBrightness = 0;
+    let avgSaturation = 0;
+
+    colors.forEach((color) => {
+      // Simple brightness calculation
+      const hex = color.replace("#", "");
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      avgBrightness += brightness;
+
+      // Simple saturation approximation
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const saturation = max === 0 ? 0 : (max - min) / max;
+      avgSaturation += saturation * 100;
+    });
+
+    return {
+      avgBrightness: Math.round(avgBrightness / colors.length),
+      avgSaturation: Math.round(avgSaturation / colors.length),
+      colorDiversity: colors.length > 3 ? 0.8 : 0.5,
+    };
   };
 
   const colorStats = getColorStats();
@@ -321,103 +331,6 @@ const YourColorPalette = () => {
                 </CardContent>
               </Card>
             )}
-
-            {/* Palette Insights */}
-            {(() => {
-              const analysis = analyzePaletteCharacteristics(colors);
-              return (
-                <Card className="card-premium mb-8">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Eye className="h-5 w-5 text-indigo-600" />
-                      Your Palette Insights
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Dominant Mood */}
-                    <div>
-                      <h4 className="font-semibold mb-2">
-                        {analysis.dominantMood.mood}
-                      </h4>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {analysis.dominantMood.description}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {analysis.dominantMood.outfitSuggestions.map(
-                          (suggestion, index) => (
-                            <Badge
-                              key={index}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              {suggestion}
-                            </Badge>
-                          ),
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Relevant Palette Info */}
-                    <div>
-                      <h4 className="font-semibold mb-2">
-                        {analysis.relevantInfo.name}
-                      </h4>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {analysis.relevantInfo.description}
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <h5 className="text-sm font-medium mb-2">
-                            Style Advice:
-                          </h5>
-                          <ul className="text-xs text-muted-foreground space-y-1">
-                            {analysis.relevantInfo.styleAdvice.map(
-                              (advice, index) => (
-                                <li
-                                  key={index}
-                                  className="flex items-start gap-2"
-                                >
-                                  <div className="w-1 h-1 bg-muted-foreground rounded-full mt-2 flex-shrink-0" />
-                                  {advice}
-                                </li>
-                              ),
-                            )}
-                          </ul>
-                        </div>
-                        <div>
-                          <h5 className="text-sm font-medium mb-2">
-                            Characteristics:
-                          </h5>
-                          <div className="flex flex-wrap gap-1">
-                            {analysis.relevantInfo.characteristics.map(
-                              (char, index) => (
-                                <Badge
-                                  key={index}
-                                  variant="outline"
-                                  className="text-xs"
-                                >
-                                  {char}
-                                </Badge>
-                              ),
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Color Theory */}
-                    <div className="bg-muted/30 p-4 rounded-lg">
-                      <h5 className="text-sm font-medium mb-2">
-                        Color Theory:
-                      </h5>
-                      <p className="text-xs text-muted-foreground">
-                        {analysis.relevantInfo.colorTheory}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })()}
 
             {/* How to Use Section */}
             <Card className="card-premium">
