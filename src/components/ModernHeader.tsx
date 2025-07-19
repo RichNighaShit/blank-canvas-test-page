@@ -18,6 +18,7 @@ import {
   Menu,
   Sparkles,
   Shirt,
+  Palette,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
