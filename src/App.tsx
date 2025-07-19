@@ -87,6 +87,14 @@ function App() {
             }
           />
           <Route
+            path="/profile/palette"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <YourColorPalette />
+              </Suspense>
+            }
+          />
+          <Route
             path="/recommendations"
             element={
               <Suspense fallback={<PageLoader />}>
