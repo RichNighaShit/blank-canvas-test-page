@@ -52,6 +52,16 @@ const YourColorPalette = () => {
   const colors = profile?.color_palette_colors || [];
   const hasColors = colors.length > 0;
 
+  // Debug logging to help troubleshoot
+  useEffect(() => {
+    console.log("🎨 YourColorPalette Debug Info:");
+    console.log("Profile:", profile);
+    console.log("Profile color_palette_colors:", profile?.color_palette_colors);
+    console.log("Colors array:", colors);
+    console.log("Has colors:", hasColors);
+    console.log("Colors length:", colors.length);
+  }, [profile, colors, hasColors]);
+
   const handleCopyColor = async (color: string) => {
     try {
       await navigator.clipboard.writeText(color);
