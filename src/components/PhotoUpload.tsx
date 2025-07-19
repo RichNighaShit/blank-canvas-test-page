@@ -439,7 +439,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
 
       // Perform advanced color extraction
       let aiAnalysis = null;
-      let colors = ["neutral"];
+      let colors = ["#8B7355"]; // Default skin tone color as hex
       let paletteData: ExtractedPalette | null = null;
 
       // First try advanced color extraction
@@ -795,7 +795,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
 
       {isAnalyzing && (
         <div className="text-center text-sm text-muted-foreground">
-          <p>🔍 Performing systematic analysis of your clothing item...</p>
+          <p>�� Performing systematic analysis of your clothing item...</p>
           <p>
             Advanced computer vision detecting style, material, and styling
             suggestions
