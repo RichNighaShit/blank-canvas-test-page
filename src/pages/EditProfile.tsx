@@ -127,10 +127,11 @@ const EditProfile = () => {
       setForm((prev) => ({
         ...prev,
         face_photo_url: analysisResult.imageUrl,
-        favorite_colors:
+        // Store extracted colors in color_palette_colors, not favorite_colors
+        color_palette_colors:
           analysisResult.colors && Array.isArray(analysisResult.colors)
             ? analysisResult.colors.slice(0, 6)
-            : prev.favorite_colors,
+            : prev.color_palette_colors || [],
       }));
     }
   };
