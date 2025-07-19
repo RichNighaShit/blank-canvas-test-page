@@ -1251,12 +1251,42 @@ export class SimpleStyleAI {
       );
       confidence += colorHarmonyScore * scoringWeights.colorHarmony;
 
-      if (colorHarmonyScore > 0.8) {
-        reasoning.push("Beautiful color coordination");
-      } else if (colorHarmonyScore > 0.6) {
-        reasoning.push("Great color harmony");
-      } else if (colorHarmonyScore > 0.4) {
-        reasoning.push("Nice color balance");
+      // Enhanced reasoning with advanced color theory insights
+      if (this.useAdvancedColorTheory) {
+        const allColors = validItems.flatMap((item) => item.color);
+        const overallHarmony = advancedColorTheory.findBestHarmony(allColors);
+
+        if (colorHarmonyScore > 0.8) {
+          reasoning.push(
+            `Exceptional ${overallHarmony.harmonyType} color harmony`,
+          );
+        } else if (colorHarmonyScore > 0.6) {
+          reasoning.push(
+            `Beautiful ${overallHarmony.harmonyType} color coordination`,
+          );
+        } else if (colorHarmonyScore > 0.4) {
+          reasoning.push(overallHarmony.reasoning || "Nice color balance");
+        }
+
+        // Add specific color theory insights
+        if (overallHarmony.harmonyType.includes("modern")) {
+          reasoning.push("Contemporary color palette");
+        } else if (overallHarmony.harmonyType === "seasonal") {
+          reasoning.push(`Perfect for ${this.getCurrentSeason()} season`);
+        } else if (overallHarmony.harmonyType === "complementary") {
+          reasoning.push("Dynamic color contrast creates visual interest");
+        } else if (overallHarmony.harmonyType === "monochromatic") {
+          reasoning.push("Sophisticated tonal variation");
+        }
+      } else {
+        // Fallback to simple reasoning
+        if (colorHarmonyScore > 0.8) {
+          reasoning.push("Beautiful color coordination");
+        } else if (colorHarmonyScore > 0.6) {
+          reasoning.push("Great color harmony");
+        } else if (colorHarmonyScore > 0.4) {
+          reasoning.push("Nice color balance");
+        }
       }
 
       // Occasion appropriateness with formality levels
