@@ -39,12 +39,6 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   const [autoFitNotice, setAutoFitNotice] = useState(false);
   const { refetch: refetchProfile } = useProfile();
 
-  // Import the new color extraction service
-  import {
-    colorExtractionService,
-    ExtractedPalette,
-  } from "@/lib/colorExtractionService";
-
   // Systematic analysis using structured recognition
   const performSystematicAnalysis = async (imageUrl: string): Promise<any> => {
     try {
