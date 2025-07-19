@@ -284,7 +284,7 @@ const YourColorPalette = () => {
     };
   };
 
-  const colorStats = getColorStats();
+  const colorAnalysis = getComprehensiveColorAnalysis();
 
   return (
     <div className="min-h-screen bg-gradient-hero">
