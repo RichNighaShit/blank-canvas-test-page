@@ -290,7 +290,8 @@ const YourColorPalette = () => {
         contrastLevel: Math.round(contrastLevel),
         colorData,
         colorDiversity: colorData.length,
-        dominantColorFamily: getColorName(colors[0]), // Most prominent color
+        dominantColorFamily:
+          colors.length > 0 ? getColorName(colors[0]) : "None", // Most prominent color
       };
     } catch (error) {
       console.error("Error in comprehensive color analysis:", error);
@@ -298,7 +299,14 @@ const YourColorPalette = () => {
     }
   };
 
-  const colorAnalysis = getComprehensiveColorAnalysis();
+    const colorAnalysis = React.useMemo(() => {
+    try {
+      return getComprehensiveColorAnalysis();
+    } catch (error) {
+      console.error('Error getting color analysis:', error);
+      return null;
+    }
+  }, [colors, hasColors]);
 
   return (
     <div className="min-h-screen bg-gradient-hero">
@@ -420,49 +428,53 @@ const YourColorPalette = () => {
               </CardContent>
             </Card>
 
-            {/* Comprehensive Color Analysis */}
+                        {/* Comprehensive Color Analysis */}
             {colorAnalysis && (
-              <>
-                {/* Season & Temperature Analysis */}
-                <Card className="card-premium mb-6">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-purple-600" />
-                      Your Color Season & Style
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg">
-                          <div>
-                            <h3 className="font-semibold text-lg">
-                              {colorAnalysis.season} Colors
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              Your ideal color season
-                            </p>
-                          </div>
-                          <div className="text-3xl">
-                            {colorAnalysis.season === "Spring" && "🌸"}
-                            {colorAnalysis.season === "Summer" && "☀️"}
-                            {colorAnalysis.season === "Autumn" && "🍂"}
-                            {colorAnalysis.season === "Winter" && "❄️"}
-                            {colorAnalysis.season === "Universal" && "🌈"}
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="text-center p-3 bg-muted/50 rounded-lg">
-                            <div className="text-lg font-bold text-orange-600">
-                              {colorAnalysis.temperature}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              Temperature
-                            </div>
-                          </div>
-                          <div className="text-center p-3 bg-muted/50 rounded-lg">
-                            <div className="text-lg font-bold text-rose-600">
+              <Card className="card-premium mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Info className="h-5 w-5 text-blue-600" />
+                    Enhanced Color Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <div className="text-lg font-bold text-purple-600">
+                        {colorAnalysis.season}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Color Season
+                      </div>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <div className="text-lg font-bold text-orange-600">
+                        {colorAnalysis.temperature}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Temperature
+                      </div>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <div className="text-lg font-bold text-pink-600">
+                        {colorAnalysis.avgBrightness}%
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Brightness
+                      </div>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <div className="text-lg font-bold text-blue-600">
+                        {colorAnalysis.avgSaturation}%
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Saturation
+                      </div>
+                                        </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
                               {colorAnalysis.undertone}
                             </div>
                             <div className="text-xs text-muted-foreground">
