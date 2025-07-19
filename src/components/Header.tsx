@@ -254,6 +254,10 @@ const Header = React.memo(() => {
                   <Settings className="mr-2 h-4 w-4" />
                   Edit Profile
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/profile/palette")}>
+                  <Palette className="mr-2 h-4 w-4" />
+                  Your Color Palette
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
