@@ -1906,7 +1906,7 @@ export class SimpleStyleAI {
       score -= 0.2;
     }
 
-    // Bonus for user's favorite colors
+    // Bonus for user's favorite colors (manually selected)
     if (profile.favorite_colors && profile.favorite_colors.length > 0) {
       const favoriteMatches = allColors.filter((color) =>
         profile.favorite_colors!.some((fav) =>
@@ -1915,6 +1915,21 @@ export class SimpleStyleAI {
       ).length;
       if (favoriteMatches > 0) {
         score += 0.2;
+      }
+    }
+
+    // Bonus for user's color palette colors (from profile picture)
+    if (
+      profile.color_palette_colors &&
+      profile.color_palette_colors.length > 0
+    ) {
+      const paletteMatches = allColors.filter((color) =>
+        profile.color_palette_colors!.some((paletteColor) =>
+          color.includes(paletteColor.toLowerCase()),
+        ),
+      ).length;
+      if (paletteMatches > 0) {
+        score += 0.15; // Slightly lower than favorite colors
       }
     }
 
