@@ -210,6 +210,7 @@ const Onboarding = () => {
             culture: profileData.gender_identity,
             preferred_style: profileData.preferred_style[0],
             favorite_colors: profileData.favorite_colors,
+            color_palette_colors: profileData.color_palette_colors,
             goals: profileData.goals,
             face_photo_url: profileData.face_photo_url,
           })
@@ -227,6 +228,7 @@ const Onboarding = () => {
           culture: profileData.gender_identity,
           preferred_style: profileData.preferred_style[0],
           favorite_colors: profileData.favorite_colors,
+          color_palette_colors: profileData.color_palette_colors,
           goals: profileData.goals,
           face_photo_url: profileData.face_photo_url,
         });
