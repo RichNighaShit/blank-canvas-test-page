@@ -290,7 +290,8 @@ const YourColorPalette = () => {
         contrastLevel: Math.round(contrastLevel),
         colorData,
         colorDiversity: colorData.length,
-        dominantColorFamily: getColorName(colors[0]), // Most prominent color
+        dominantColorFamily:
+          colors.length > 0 ? getColorName(colors[0]) : "None", // Most prominent color
       };
     } catch (error) {
       console.error("Error in comprehensive color analysis:", error);
