@@ -1244,8 +1244,8 @@ export class SimpleStyleAI {
         );
       }
 
-      // Simplified color harmony analysis
-      const colorHarmonyScore = this.calculateSimplifiedColorHarmony(
+      // Enhanced color harmony analysis with advanced color theory
+      const colorHarmonyScore = this.calculateAdvancedColorHarmony(
         validItems,
         profile,
       );
