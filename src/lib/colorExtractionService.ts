@@ -9,7 +9,7 @@
  */
 
 import * as faceapi from "face-api.js";
-import extractColors from "extract-colors";
+import { extractColors } from "extract-colors";
 import SmartCrop from "smartcrop";
 
 export interface ExtractedPalette {
