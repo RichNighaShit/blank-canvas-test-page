@@ -89,5 +89,13 @@ export const useProfile = () => {
     fetchProfile();
   }, [user]);
 
-  return { profile, loading, refetch: fetchProfile };
+  const refetch = async () => {
+    // Clear cache before refetching to ensure fresh data
+    if (user?.id) {
+      delete profileCache[user.id];
+    }
+    await fetchProfile(true);
+  };
+
+  return { profile, loading, refetch };
 };
