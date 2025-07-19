@@ -37,7 +37,32 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     null,
   );
   const [autoFitNotice, setAutoFitNotice] = useState(false);
+  const [showColorPalettePrompt, setShowColorPalettePrompt] = useState(false);
   const { refetch: refetchProfile } = useProfile();
+
+  // Check if user should see color palette extraction prompt
+  useEffect(() => {
+    if (user && profile) {
+      const hasSeenPrompt = localStorage.getItem(
+        `color_palette_prompt_${user.id}`,
+      );
+      const hasExistingPhoto = profile.face_photo_url;
+      const hasNoColorPalette =
+        !profile.color_palette_colors ||
+        profile.color_palette_colors.length === 0;
+
+      if (!hasSeenPrompt && hasExistingPhoto && hasNoColorPalette) {
+        setShowColorPalettePrompt(true);
+      }
+    }
+  }, [user, profile]);
+
+  const dismissColorPalettePrompt = () => {
+    if (user) {
+      localStorage.setItem(`color_palette_prompt_${user.id}`, "true");
+      setShowColorPalettePrompt(false);
+    }
+  };
 
   // Systematic analysis using structured recognition
   const performSystematicAnalysis = async (imageUrl: string): Promise<any> => {
