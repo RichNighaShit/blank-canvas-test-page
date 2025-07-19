@@ -407,7 +407,7 @@ const YourColorPalette = () => {
             </Card>
 
             {/* Color Statistics */}
-            {colorStats && (
+            {colorAnalysis && (
               <Card className="card-premium mb-8">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
