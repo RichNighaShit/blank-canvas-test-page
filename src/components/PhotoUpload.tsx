@@ -40,16 +40,20 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   // Check if user should see color palette extraction prompt
   useEffect(() => {
     if (user && profile) {
-      const hasSeenPrompt = localStorage.getItem(
-        `color_palette_prompt_${user.id}`,
-      );
-      const hasExistingPhoto = profile.face_photo_url;
-      const hasNoColorPalette =
-        !profile.color_palette_colors ||
-        profile.color_palette_colors.length === 0;
+      try {
+        const hasSeenPrompt = localStorage.getItem(
+          `color_palette_prompt_${user.id}`,
+        );
+        const hasExistingPhoto = profile.face_photo_url;
+        const hasNoColorPalette =
+          !profile.color_palette_colors ||
+          profile.color_palette_colors.length === 0;
 
-      if (!hasSeenPrompt && hasExistingPhoto && hasNoColorPalette) {
-        setShowColorPalettePrompt(true);
+        if (!hasSeenPrompt && hasExistingPhoto && hasNoColorPalette) {
+          setShowColorPalettePrompt(true);
+        }
+      } catch (error) {
+        console.warn("Error checking color palette prompt:", error);
       }
     }
   }, [user, profile]);
