@@ -20,6 +20,10 @@ import {
   Heart,
 } from "lucide-react";
 import { colorExtractionService } from "@/lib/colorExtractionService";
+import {
+  colorPaletteData,
+  analyzePaletteCharacteristics,
+} from "@/data/colorPaletteDetails";
 
 const YourColorPalette = () => {
   const { user, loading: authLoading } = useAuth();
