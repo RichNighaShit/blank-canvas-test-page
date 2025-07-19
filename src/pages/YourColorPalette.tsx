@@ -125,48 +125,162 @@ const YourColorPalette = () => {
   };
 
   const getColorName = (hex: string): string => {
-    // Simple color name mapping for common colors
-    const colorNames: { [key: string]: string } = {
-      "#FF0000": "Red",
-      "#00FF00": "Green",
-      "#0000FF": "Blue",
-      "#FFFFFF": "White",
-      "#000000": "Black",
-      "#FFFF00": "Yellow",
-      "#FF00FF": "Magenta",
-      "#00FFFF": "Cyan",
-    };
+    const rgb = hexToRgb(hex);
+    if (!rgb) return "Unknown";
 
-    return colorNames[hex.toUpperCase()] || "Custom Color";
+    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    const [h, s, l] = hsl;
+
+    // More sophisticated color naming
+    if (l < 15) return "Very Dark";
+    if (l > 90) return "Very Light";
+    if (s < 10) return "Gray";
+
+    const hue = Math.round(h);
+    if (hue < 15 || hue > 345) return "Red";
+    if (hue < 45) return "Orange";
+    if (hue < 75) return "Yellow";
+    if (hue < 105) return "Yellow-Green";
+    if (hue < 135) return "Green";
+    if (hue < 165) return "Blue-Green";
+    if (hue < 195) return "Cyan";
+    if (hue < 225) return "Blue";
+    if (hue < 255) return "Blue-Purple";
+    if (hue < 285) return "Purple";
+    if (hue < 315) return "Magenta";
+    return "Pink";
   };
 
-  const getColorStats = () => {
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16),
+        }
+      : null;
+  };
+
+  const rgbToHsl = (
+    r: number,
+    g: number,
+    b: number,
+  ): [number, number, number] => {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0,
+      s = 0;
+    const l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
+      }
+      h /= 6;
+    }
+    return [h * 360, s * 100, l * 100];
+  };
+
+  const getComprehensiveColorAnalysis = () => {
     if (!hasColors) return null;
 
-    // Simple color analysis without heavy dependencies
-    let avgBrightness = 0;
-    let avgSaturation = 0;
+    const colorData = colors
+      .map((color) => {
+        const rgb = hexToRgb(color);
+        if (!rgb) return null;
 
-    colors.forEach((color) => {
-      // Simple brightness calculation
-      const hex = color.replace("#", "");
-      const r = parseInt(hex.substr(0, 2), 16);
-      const g = parseInt(hex.substr(2, 2), 16);
-      const b = parseInt(hex.substr(4, 2), 16);
-      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-      avgBrightness += brightness;
+        const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+        const [h, s, l] = hsl;
 
-      // Simple saturation approximation
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      const saturation = max === 0 ? 0 : (max - min) / max;
-      avgSaturation += saturation * 100;
+        return {
+          hex: color,
+          rgb,
+          hsl,
+          name: getColorName(color),
+        };
+      })
+      .filter(Boolean);
+
+    if (colorData.length === 0) return null;
+
+    // Calculate averages with proper HSL values
+    const avgBrightness =
+      colorData.reduce((sum, c) => sum + c.hsl[2], 0) / colorData.length;
+    const avgSaturation =
+      colorData.reduce((sum, c) => sum + c.hsl[1], 0) / colorData.length;
+    const avgHue =
+      colorData.reduce((sum, c) => sum + c.hsl[0], 0) / colorData.length;
+
+    // Determine color temperature
+    const warmColors = colorData.filter((c) => {
+      const h = c.hsl[0];
+      return (h >= 0 && h <= 60) || (h >= 300 && h <= 360);
+    });
+    const coolColors = colorData.filter((c) => {
+      const h = c.hsl[0];
+      return h >= 180 && h <= 300;
     });
 
+    const temperature =
+      warmColors.length > coolColors.length
+        ? "Warm"
+        : coolColors.length > warmColors.length
+          ? "Cool"
+          : "Neutral";
+
+    // Determine undertones
+    let undertone = "Neutral";
+    if (avgHue >= 0 && avgHue <= 30) undertone = "Golden";
+    else if (avgHue >= 30 && avgHue <= 60) undertone = "Peachy";
+    else if (avgHue >= 180 && avgHue <= 240) undertone = "Cool Blue";
+    else if (avgHue >= 240 && avgHue <= 300) undertone = "Cool Purple";
+    else if (avgHue >= 300 && avgHue <= 360) undertone = "Rosy";
+
+    // Determine season
+    let season = "Universal";
+    if (temperature === "Warm" && avgBrightness > 60) season = "Spring";
+    else if (temperature === "Warm" && avgBrightness <= 60) season = "Autumn";
+    else if (temperature === "Cool" && avgBrightness > 60) season = "Summer";
+    else if (temperature === "Cool" && avgBrightness <= 60) season = "Winter";
+
+    // Calculate contrast level
+    const maxL = Math.max(...colorData.map((c) => c.hsl[2]));
+    const minL = Math.min(...colorData.map((c) => c.hsl[2]));
+    const contrastLevel = maxL - minL;
+
+    // Determine palette personality
+    let personality = "Balanced";
+    if (avgSaturation > 70) personality = "Vibrant & Bold";
+    else if (avgSaturation < 30) personality = "Soft & Muted";
+    else if (contrastLevel > 50) personality = "High Contrast";
+    else if (contrastLevel < 20) personality = "Monochromatic";
+
     return {
-      avgBrightness: Math.round(avgBrightness / colors.length),
-      avgSaturation: Math.round(avgSaturation / colors.length),
-      colorDiversity: colors.length > 3 ? 0.8 : 0.5,
+      avgBrightness: Math.round(avgBrightness),
+      avgSaturation: Math.round(avgSaturation),
+      avgHue: Math.round(avgHue),
+      temperature,
+      undertone,
+      season,
+      personality,
+      contrastLevel: Math.round(contrastLevel),
+      colorData,
+      colorDiversity: colorData.length,
+      dominantColorFamily: getColorName(colors[0]), // Most prominent color
     };
   };
 
