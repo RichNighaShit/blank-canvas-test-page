@@ -35,7 +35,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   );
   const [autoFitNotice, setAutoFitNotice] = useState(false);
   const [showColorPalettePrompt, setShowColorPalettePrompt] = useState(false);
-  const { refetch: refetchProfile } = useProfile();
+  const { profile, refetch: refetchProfile } = useProfile();
 
   // Check if user should see color palette extraction prompt
   useEffect(() => {
