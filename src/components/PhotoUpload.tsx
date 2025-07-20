@@ -126,7 +126,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
 
       console.log("🎨 Facial color analysis complete:", facialProfile);
 
-      // Use the flattering colors as the main palette
+            // Use the flattering colors as the main palette
       const colors = facialProfile.flatteringColors;
 
       return {
@@ -134,14 +134,9 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
         palette: {
           colors,
           confidence: facialProfile.confidence,
-          source: "facial-analysis" as const,
+          source: facialProfile.source as "facial-analysis" | "fallback",
           facialProfile,
-          metadata: {
-            faceDetected: true,
-            colorCount: colors.length,
-            dominantColor: facialProfile.skinTone.dominantTone,
-            analysisType: "facial-features" as const,
-          },
+          metadata: facialProfile.metadata,
         },
       };
     } catch (error) {
