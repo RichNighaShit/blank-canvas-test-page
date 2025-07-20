@@ -593,20 +593,11 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
       try {
         if (user && colors.length > 0) {
           console.log("🎨 Saving extracted colors to profile:", colors);
-                    // Prepare update data
-          const updateData: any = {
+                                        // Prepare update data (only fields that exist in database schema)
+          const updateData = {
             face_photo_url: imageUrl,
             color_palette_colors: colors,
           };
-
-                    // If we have facial profile data, store it as well
-          if (paletteData?.facialProfile) {
-            updateData.facial_analysis_data = {
-              confidence: paletteData.facialProfile.confidence,
-              source: paletteData.facialProfile.source,
-              metadata: paletteData.facialProfile.metadata
-            };
-          }
 
           const { error: updateError } = await supabase
             .from("profiles")
