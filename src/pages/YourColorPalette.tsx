@@ -234,11 +234,13 @@ const YourColorPalette = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                                {/* Facial Feature Color Display */}
+                                                {/* Facial Feature Color Display */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-                  {colors.map((color, index) => {
+                  {colors.slice(0, 3).map((color, index) => {
                     const labels = ["Skin Tone", "Hair Color", "Eye Color"];
                     const icons = ["👤", "💇", "👁️"];
+                    const label = labels[index] || `Color ${index + 1}`;
+                    const icon = icons[index] || "🎨";
 
                     return (
                       <div
@@ -248,15 +250,15 @@ const YourColorPalette = () => {
                           setSelectedColor(selectedColor === color ? null : color)
                         }
                       >
-                        <div className="text-2xl mb-2">{icons[index]}</div>
+                        <div className="text-2xl mb-2">{icon}</div>
                         <div
                           className="w-24 h-24 mx-auto rounded-lg border-2 border-border transition-all duration-200 group-hover:scale-105 group-hover:border-primary shadow-md"
                           style={{ backgroundColor: color }}
                           role="button"
-                          aria-label={`${labels[index]}: ${color}`}
+                          aria-label={`${label}: ${color}`}
                         />
                         <div className="mt-3">
-                          <div className="font-semibold text-sm">{labels[index]}</div>
+                          <div className="font-semibold text-sm">{label}</div>
                           <code className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground group-hover:text-foreground transition-colors">
                             {color}
                           </code>
