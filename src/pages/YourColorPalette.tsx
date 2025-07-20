@@ -238,9 +238,14 @@ const YourColorPalette = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                                                {/* Facial Feature Color Display */}
+                                                                {/* Facial Feature Color Display */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
                   {colors.slice(0, 3).map((color, index) => {
+                    // Validate color is a string and looks like a hex color
+                    if (!color || typeof color !== 'string' || !color.match(/^#[0-9A-Fa-f]{6}$/)) {
+                      return null; // Skip invalid colors
+                    }
+
                     const labels = ["Skin Tone", "Hair Color", "Eye Color"];
                     const icons = ["👤", "💇", "👁️"];
                     const label = labels[index] || `Color ${index + 1}`;
