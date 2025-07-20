@@ -9,16 +9,19 @@ import { Palette } from "lucide-react";
 
 import neutralBody from "@/assets/neutral-body.png";
 import { useProfile } from "@/hooks/useProfile";
+import { facialColorAnalysisService, FacialColorProfile } from "@/lib/facialColorAnalysis";
 
-// Define the interface locally since it's not being imported properly
-interface ExtractedPalette {
+// Updated interface for facial color analysis
+interface ColorAnalysisResult {
   colors: string[];
   confidence: number;
-  source: "basic" | "advanced" | "fallback";
+  source: "facial-analysis" | "fallback";
+  facialProfile?: FacialColorProfile;
   metadata: {
     faceDetected: boolean;
     colorCount: number;
     dominantColor: string;
+    analysisType: "facial-features" | "fallback";
   };
 }
 
