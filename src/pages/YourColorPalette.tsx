@@ -47,7 +47,7 @@ const YourColorPalette = () => {
     );
   }
 
-  const colors = profile?.color_palette_colors || [];
+    const colors = Array.isArray(profile?.color_palette_colors) ? profile.color_palette_colors : [];
   const hasColors = colors.length > 0;
 
   const handleCopyColor = async (color: string) => {
