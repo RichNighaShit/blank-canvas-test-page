@@ -128,7 +128,7 @@ const YourColorPalette = () => {
     }
   };
 
-  const getBasicColorAnalysis = () => {
+    const getBasicColorAnalysis = () => {
     if (!hasColors || colors.length === 0) return null;
 
     let totalBrightness = 0;
@@ -136,18 +136,19 @@ const YourColorPalette = () => {
     let validColors = 0;
 
     colors.forEach((color) => {
-      if (!color || typeof color !== "string") return;
+      // Validate color input more thoroughly
+      if (!color || typeof color !== "string" || !color.startsWith("#")) return;
 
       try {
         // Simple brightness calculation
         const hex = color.replace("#", "");
-        if (hex.length !== 6) return;
+        if (hex.length !== 6 || !/^[0-9A-Fa-f]{6}$/.test(hex)) return;
 
         const r = parseInt(hex.substring(0, 2), 16);
         const g = parseInt(hex.substring(2, 4), 16);
         const b = parseInt(hex.substring(4, 6), 16);
 
-        if (isNaN(r) || isNaN(g) || isNaN(b)) return;
+        if (isNaN(r) || isNaN(g) || isNaN(b) || r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) return;
 
         const brightness = (r * 299 + g * 587 + b * 114) / 1000;
         totalBrightness += brightness;
