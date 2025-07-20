@@ -422,22 +422,36 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     } : { r: 0, g: 0, b: 0 };
   };
 
-  const uploadToStorage = async (file: File): Promise<string> => {
-    if (!user) throw new Error("User not authenticated");
+    const uploadToStorage = async (file: File): Promise<string> => {
+    console.log("📤 uploadToStorage called with file:", file.name, file.size, "bytes");
+
+    if (!user) {
+      console.error("❌ User not authenticated in uploadToStorage");
+      throw new Error("User not authenticated");
+    }
+
+    console.log("👤 User ID:", user.id);
 
     const fileExt = file.name.split(".").pop();
     const fileName = `${user.id}/profile.${fileExt}`;
+    console.log("📁 Upload filename:", fileName);
 
+    console.log("📤 Starting Supabase storage upload...");
     const { error: uploadError } = await supabase.storage
       .from("user-photos")
       .upload(fileName, file, { upsert: true });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error("❌ Upload error:", uploadError);
+      throw uploadError;
+    }
 
+    console.log("✅ File uploaded successfully, getting public URL...");
     const { data } = supabase.storage
       .from("user-photos")
       .getPublicUrl(fileName);
 
+    console.log("🔗 Public URL generated:", data.publicUrl);
     return data.publicUrl;
   };
 
