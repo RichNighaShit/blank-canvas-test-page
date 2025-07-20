@@ -715,9 +715,17 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
         });
       }
 
-      onAnalysisComplete({ imageUrl, colors, aiAnalysis });
+            // Clean up the blob URL since we now have the permanent URL
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+
+      // Update to show the uploaded image
       setPreviewUrl(imageUrl);
       setShowCropper(false);
+
+      // Call the callback to update parent component
+      onAnalysisComplete({ imageUrl, colors, aiAnalysis });
         } catch (error) {
       console.error("❌ Upload/analysis error:", error);
       console.error("❌ Error details:", error?.message || error);
