@@ -47,7 +47,10 @@ const YourColorPalette = () => {
     );
   }
 
-    const colors = Array.isArray(profile?.color_palette_colors) ? profile.color_palette_colors : [];
+      const rawColors = Array.isArray(profile?.color_palette_colors) ? profile.color_palette_colors : [];
+  const colors = rawColors.filter(color =>
+    color && typeof color === 'string' && color.match(/^#[0-9A-Fa-f]{6}$/)
+  );
   const hasColors = colors.length > 0;
 
     const handleCopyColor = async (color: string) => {
