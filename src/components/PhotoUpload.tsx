@@ -9,7 +9,7 @@ import { Palette } from "lucide-react";
 
 import neutralBody from "@/assets/neutral-body.png";
 import { useProfile } from "@/hooks/useProfile";
-import { simplifiedFacialAnalysisService, SimplifiedColorProfile } from "@/lib/simplifiedFacialAnalysis";
+import { accurateFacialFeatureAnalysis, FacialFeatureColors } from "@/lib/accurateFacialFeatureAnalysis";
 
 // Updated interface for facial color analysis
 interface ColorAnalysisResult {
