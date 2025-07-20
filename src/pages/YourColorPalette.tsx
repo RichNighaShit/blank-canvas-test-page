@@ -206,9 +206,9 @@ const YourColorPalette = () => {
             <Card className="card-premium mb-8">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <CardTitle className="flex items-center gap-2">
+                                    <CardTitle className="flex items-center gap-2">
                     <Palette className="h-5 w-5 text-purple-600" />
-                    Your Colors
+                    Your Flattering Colors
                   </CardTitle>
                   <div className="flex flex-wrap gap-2">
                     <Button
