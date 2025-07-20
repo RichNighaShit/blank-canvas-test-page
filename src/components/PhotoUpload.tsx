@@ -121,8 +121,8 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     try {
       console.log("🎨 Starting facial color analysis...");
 
-      // Use the facial color analysis service
-      const facialProfile = await facialColorAnalysisService.analyzeFacialColors(imageFile);
+            // Use the simplified facial color analysis service
+      const facialProfile = await simplifiedFacialAnalysisService.analyzeFacialColors(imageFile);
 
       console.log("🎨 Facial color analysis complete:", facialProfile);
 
