@@ -947,15 +947,19 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
           </>
         )}
 
-                <Button
+                                <Button
           type="button"
           disabled={isAnalyzing}
           className="shadow-button"
           onClick={() => {
             const input = document.getElementById("photo-input") as HTMLInputElement;
             if (input) {
-              input.value = ""; // Clear previous selection to allow re-selecting same file
-              input.click();
+              // Clear the input value to ensure onChange fires even for the same file
+              input.value = "";
+              // Force a small delay to ensure the clear takes effect
+              setTimeout(() => {
+                input.click();
+              }, 10);
             }
           }}
         >
