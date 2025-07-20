@@ -50,7 +50,20 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   );
   const [autoFitNotice, setAutoFitNotice] = useState(false);
   const [showColorPalettePrompt, setShowColorPalettePrompt] = useState(false);
-  const { profile, refetch: refetchProfile } = useProfile();
+    const { profile, refetch: refetchProfile } = useProfile();
+
+  // Cleanup effect for preview URLs
+  useEffect(() => {
+    return () => {
+      // Clean up any blob URLs when component unmounts
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      if (autoFitPreviewUrl && autoFitPreviewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(autoFitPreviewUrl);
+      }
+    };
+  }, [previewUrl, autoFitPreviewUrl]);
 
   // Check if user should see color palette extraction prompt
   useEffect(() => {
