@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { SimplePhotoUploadTest } from "@/components/SimplePhotoUploadTest";
 
 const styleOptions = [
   { id: "streetwear", label: "Streetwear", icon: Shirt },
@@ -278,9 +279,12 @@ const EditProfile = () => {
                     </Select>
                   </div>
                 </div>
-                                <div className="flex-1 space-y-4">
+                                                <div className="flex-1 space-y-4">
                   <Label>Profile Photo</Label>
                   <PhotoUpload onAnalysisComplete={handlePhotoAnalysis} />
+
+                  {/* DEBUG: Simple upload test */}
+                  <SimplePhotoUploadTest />
                 </div>
               </div>
               <div>
