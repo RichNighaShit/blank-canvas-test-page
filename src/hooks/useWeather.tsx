@@ -247,9 +247,9 @@ export const useWeather = (location?: string) => {
       const locationToUse = userLocation || location || "London";
       console.log("Using fallback location:", locationToUse);
 
-      // Geocode city name to lat/lon using Open-Meteo's geocoding API
+            // Geocode city name to lat/lon using Open-Meteo's geocoding API
       const controller = new AbortController();
-      let timeoutId: NodeJS.Timeout | null = null;
+      let timeoutId: number | null = null;
 
       try {
         timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
