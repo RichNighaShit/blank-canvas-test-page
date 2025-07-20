@@ -571,13 +571,14 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
           description: `Analyzed ${analysisType} and found ${colors.length} flattering colors with ${Math.round((paletteData?.confidence || 0) * 100)}% confidence`,
         });
 
-                // Log facial analysis details if available
-        if (paletteData?.facialProfile) {
-          const profile = paletteData.facialProfile;
-          console.log(`✅ Facial Analysis Results:\n` +
-            `   Colors: ${profile.flatteringColors.length} flattering colors found\n` +
-            `   Source: ${profile.source}\n` +
-            `   Confidence: ${Math.round(profile.confidence * 100)}%`);
+                        // Log facial analysis details if available
+        if (paletteData?.facialFeatures) {
+          const features = paletteData.facialFeatures;
+          console.log(`✅ Facial Feature Detection Results:\n` +
+            `   Skin: ${features.skinTone.color} (${features.skinTone.lightness} ${features.skinTone.undertone})\n` +
+            `   Hair: ${features.hairColor.color} (${features.hairColor.description})\n` +
+            `   Eyes: ${features.eyeColor.color} (${features.eyeColor.description})\n` +
+            `   Overall Confidence: ${Math.round(features.overallConfidence * 100)}%`);
         }
       } catch (colorError) {
         console.warn("Facial color analysis failed:", colorError);
