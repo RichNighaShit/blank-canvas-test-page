@@ -121,22 +121,31 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     try {
       console.log("🎨 Starting facial color analysis...");
 
-            // Use the simplified facial color analysis service
-      const facialProfile = await simplifiedFacialAnalysisService.analyzeFacialColors(imageFile);
+                        // Use the accurate facial feature analysis service
+      const facialFeatures = await accurateFacialFeatureAnalysis.detectFacialFeatureColors(imageFile);
 
-      console.log("🎨 Facial color analysis complete:", facialProfile);
+      console.log("🎨 Facial feature analysis complete:", facialFeatures);
 
-            // Use the flattering colors as the main palette
-      const colors = facialProfile.flatteringColors;
+            // Use the actual detected feature colors (skin, hair, eyes)
+      const colors = [
+        facialFeatures.skinTone.color,
+        facialFeatures.hairColor.color,
+        facialFeatures.eyeColor.color
+      ];
 
       return {
         colors,
         palette: {
           colors,
-          confidence: facialProfile.confidence,
-          source: facialProfile.source as "facial-analysis" | "fallback",
-          facialProfile,
-          metadata: facialProfile.metadata,
+          confidence: facialFeatures.overallConfidence,
+          source: facialFeatures.detectedFeatures ? "facial-analysis" : "fallback",
+          facialFeatures,
+          metadata: {
+            faceDetected: facialFeatures.detectedFeatures,
+            colorCount: colors.length,
+            dominantColor: facialFeatures.skinTone.color,
+            analysisType: facialFeatures.detectedFeatures ? "facial-features" : "fallback",
+          },
         },
       };
     } catch (error) {
