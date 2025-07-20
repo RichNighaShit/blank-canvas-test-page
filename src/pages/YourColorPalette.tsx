@@ -384,10 +384,9 @@ const YourColorPalette = () => {
               <h3 className="text-xl font-semibold mb-4">
                 No Color Palette Yet
               </h3>
-                            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Upload a profile picture to analyze your facial features and
-                discover colors that naturally complement your skin tone, hair, and eyes.
-                Perfect for personalized outfit recommendations.
+                                          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Upload a profile picture to discover colors that complement your natural coloring.
+                Our analysis generates a personalized palette perfect for outfit recommendations.
               </p>
               <Button
                 onClick={() => navigate("/edit-profile")}
