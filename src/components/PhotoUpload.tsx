@@ -604,12 +604,12 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
             .update(updateData)
             .eq("user_id", user.id);
 
-          if (updateError) {
-            console.error("Failed to save colors to profile:", updateError);
+                    if (updateError) {
+            console.error("Failed to save colors to profile:", updateError.message || updateError);
             toast({
               title: "Color save warning",
               description:
-                "Photo uploaded but colors may not have been saved to your profile.",
+                `Failed to save colors: ${updateError.message || 'Unknown database error'}`,
               variant: "destructive",
             });
           } else {
