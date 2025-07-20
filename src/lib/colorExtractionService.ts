@@ -42,7 +42,7 @@ export interface ColorExtractionOptions {
 interface ColorPoint {
   r: number;
   g: number;
-  b: number;
+  b_lab: number;
   l: number;
   a: number;
   b: number;
