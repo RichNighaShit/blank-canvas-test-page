@@ -922,8 +922,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
         <div className="text-center text-sm text-muted-foreground">
                     <p>🧬 Analyzing your facial features and natural coloring...</p>
           <p>
-            Advanced computer vision detecting style, material, and styling
-            suggestions
+                        Detecting skin tone, hair color, and eye color to generate your perfect palette
           </p>
         </div>
       )}
