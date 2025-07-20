@@ -344,10 +344,10 @@ const YourColorPalette = () => {
                   <Heart className="h-5 w-5 text-pink-500 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="font-semibold">Outfit Recommendations</h4>
-                    <p className="text-sm text-muted-foreground">
-                      These colors are automatically used to enhance your outfit
-                      recommendations, ensuring suggestions complement your
-                      natural coloring.
+                                        <p className="text-sm text-muted-foreground">
+                      These colors are scientifically selected based on your facial
+                      features to enhance your natural beauty and are used for
+                      personalized outfit recommendations.
                     </p>
                   </div>
                 </div>
