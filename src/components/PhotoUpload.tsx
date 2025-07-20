@@ -514,7 +514,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     }
   };
 
-  const handleFiles = useCallback(
+    const handleFiles = useCallback(
     async (files: File[]) => {
       if (!files.length || !user) return;
       const file = files[0];
@@ -527,16 +527,26 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
         return;
             }
 
-      // Reset previous state when changing photo
+      // Clean up previous preview URL to prevent memory leaks
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+
+      // Reset all state when changing photo
       setCroppedAreaPixels(null);
       setCrop({ x: 0, y: 0 });
       setZoom(1);
+      setShowAutoFit(false);
+      setAutoFitPreviewUrl(null);
+      setAutoFitNotice(false);
 
-      setPreviewUrl(URL.createObjectURL(file));
+      // Set new preview URL and file
+      const newPreviewUrl = URL.createObjectURL(file);
+      setPreviewUrl(newPreviewUrl);
       fileRef.current = file;
       setShowCropper(true);
     },
-    [user, toast],
+    [user, toast, previewUrl],
   );
 
   const handleCropAndSave = useCallback(async () => {
