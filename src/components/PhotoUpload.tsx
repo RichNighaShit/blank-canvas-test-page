@@ -907,11 +907,17 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
           </>
         )}
 
-        <Button
+                <Button
           type="button"
           disabled={isAnalyzing}
           className="shadow-button"
-          onClick={() => document.getElementById("photo-input")?.click()}
+          onClick={() => {
+            const input = document.getElementById("photo-input") as HTMLInputElement;
+            if (input) {
+              input.value = ""; // Clear previous selection to allow re-selecting same file
+              input.click();
+            }
+          }}
         >
                     {isAnalyzing
             ? "Analyzing Features..."
