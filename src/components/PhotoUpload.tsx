@@ -731,8 +731,8 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
               />
             </div>
             <div className="flex gap-4 mt-4">
-              <Button onClick={handleCropAndSave} disabled={isAnalyzing}>
-                {isAnalyzing ? "AI Analyzing..." : "Crop & Analyze with AI"}
+                            <Button onClick={handleCropAndSave} disabled={isAnalyzing}>
+                {isAnalyzing ? "Analyzing Face..." : "Analyze My Colors"}
               </Button>
               <Button
                 variant="outline"
