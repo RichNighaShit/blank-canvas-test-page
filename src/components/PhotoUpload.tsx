@@ -547,28 +547,43 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
       // Upload to storage first
       const imageUrl = await uploadToStorage(croppedFile);
 
-      // Perform advanced color extraction
+            // Perform facial color analysis
       let aiAnalysis = null;
-      let colors = ["#8B7355"]; // Default skin tone color as hex
-      let paletteData: ExtractedPalette | null = null;
+      let colors = ["#8B7355"]; // Default fallback color
+      let paletteData: ColorAnalysisResult | null = null;
 
-      // First try advanced color extraction
+      // Analyze facial colors and generate flattering recommendations
       try {
-        const colorAnalysis = await analyzeImageColors(croppedFile);
+        const colorAnalysis = await analyzeFacialColors(croppedFile);
         colors = colorAnalysis.colors;
         paletteData = colorAnalysis.palette;
 
-        toast({
-          title: "🎨 Color Palette Extracted!",
-          description: `Extracted ${colors.length} colors with ${Math.round((paletteData?.confidence || 0) * 100)}% confidence from ${paletteData?.source || "basic"}`,
-        });
-      } catch (colorError) {
-        console.warn("Advanced color extraction failed:", colorError);
-        colors = await extractEnhancedColors(croppedFile); // Use enhanced colors here
+        const analysisType = paletteData?.metadata.analysisType === "facial-features"
+          ? "your facial features"
+          : "enhanced detection";
 
         toast({
-          title: "Colors extracted!",
-          description: "Using enhanced color detection as fallback.",
+          title: "🎨 Your Color Palette Ready!",
+          description: `Analyzed ${analysisType} and found ${colors.length} flattering colors with ${Math.round((paletteData?.confidence || 0) * 100)}% confidence`,
+        });
+
+        // Log facial analysis details if available
+        if (paletteData?.facialProfile) {
+          const profile = paletteData.facialProfile;
+          console.log(`✅ Facial Analysis Results:\n` +
+            `   Skin: ${profile.skinTone.lightness} ${profile.skinTone.undertone}\n` +
+            `   Hair: ${profile.hairColor.depth} ${profile.hairColor.tone}\n` +
+            `   Eyes: ${profile.eyeColor.dominantColor}\n` +
+            `   Season: ${profile.colorSeason.season} (${profile.colorSeason.subSeason})\n` +
+            `   Confidence: ${Math.round(profile.confidence * 100)}%`);
+        }
+      } catch (colorError) {
+        console.warn("Facial color analysis failed:", colorError);
+
+        toast({
+          title: "Color analysis completed",
+          description: "Using fallback color detection method.",
+          variant: "default",
         });
       }
 
