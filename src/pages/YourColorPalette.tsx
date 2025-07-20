@@ -11,13 +11,11 @@ import {
   Palette,
   Copy,
   Download,
-  Eye,
   RefreshCw,
   Camera,
   ArrowLeft,
   Info,
   Sparkles,
-  Heart,
 } from "lucide-react";
 
 const YourColorPalette = () => {
