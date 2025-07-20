@@ -50,14 +50,18 @@ const YourColorPalette = () => {
     const colors = Array.isArray(profile?.color_palette_colors) ? profile.color_palette_colors : [];
   const hasColors = colors.length > 0;
 
-  const handleCopyColor = async (color: string) => {
+    const handleCopyColor = async (color: string) => {
     try {
+      if (!color || typeof color !== 'string') {
+        throw new Error('Invalid color value');
+      }
       await navigator.clipboard.writeText(color);
       toast({
         title: "Color copied!",
         description: `${color} copied to clipboard`,
       });
     } catch (error) {
+      console.error('Copy color error:', error);
       toast({
         title: "Copy failed",
         description: "Unable to copy color to clipboard",
