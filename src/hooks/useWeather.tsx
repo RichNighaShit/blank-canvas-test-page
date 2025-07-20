@@ -52,12 +52,12 @@ export const useWeather = (location?: string) => {
     });
   };
 
-  const fetchWeatherByCoordinates = async (
+    const fetchWeatherByCoordinates = async (
     latitude: number,
     longitude: number,
     locationName?: string,
   ) => {
-    let timeoutId: NodeJS.Timeout | null = null;
+    let timeoutId: number | null = null;
     const controller = new AbortController();
 
     try {
