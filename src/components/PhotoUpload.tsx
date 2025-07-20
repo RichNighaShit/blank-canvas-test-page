@@ -527,18 +527,32 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     }
   };
 
-    const handleFiles = useCallback(
+      const handleFiles = useCallback(
     async (files: File[]) => {
-      if (!files.length || !user) return;
+      console.log("🔍 handleFiles called with:", files);
+      console.log("🔍 User authenticated:", !!user);
+
+      if (!files.length || !user) {
+        console.log("❌ No files or user not authenticated");
+        return;
+      }
+
       const file = files[0];
+      console.log("📁 Selected file:", {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+
       if (!file.type.startsWith("image/")) {
+        console.log("❌ Invalid file type:", file.type);
         toast({
           title: "Invalid file type",
           description: "Please upload an image file",
           variant: "destructive",
         });
         return;
-            }
+      }
 
       // Clean up previous preview URL to prevent memory leaks
       if (previewUrl && previewUrl.startsWith('blob:')) {
@@ -553,10 +567,12 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
       setAutoFitPreviewUrl(null);
       setAutoFitNotice(false);
 
-      // Set new preview URL and file
+            // Set new preview URL and file
       const newPreviewUrl = URL.createObjectURL(file);
+      console.log("🖼️ Created preview URL:", newPreviewUrl);
       setPreviewUrl(newPreviewUrl);
       fileRef.current = file;
+      console.log("✅ Setting showCropper to true");
       setShowCropper(true);
     },
     [user, toast, previewUrl],
@@ -964,15 +980,21 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
           type="button"
           disabled={isAnalyzing}
           className="shadow-button"
-          onClick={() => {
+                  onClick={() => {
+            console.log("🔍 Photo upload button clicked");
             const input = document.getElementById("photo-input") as HTMLInputElement;
+            console.log("🔍 Input element found:", !!input);
             if (input) {
               // Clear the input value to ensure onChange fires even for the same file
               input.value = "";
+              console.log("🔍 Input value cleared, triggering click");
               // Force a small delay to ensure the clear takes effect
               setTimeout(() => {
+                console.log("🔍 Triggering input click");
                 input.click();
               }, 10);
+            } else {
+              console.error("❌ Photo input element not found!");
             }
           }}
         >
@@ -988,9 +1010,11 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={(e) =>
-            e.target.files && handleFiles(Array.from(e.target.files))
-          }
+                    onChange={(e) => {
+            console.log("🔍 File input onChange triggered");
+            console.log("🔍 Files:", e.target.files);
+            e.target.files && handleFiles(Array.from(e.target.files));
+          }}
         />
       </div>
 
