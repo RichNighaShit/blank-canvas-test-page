@@ -69,11 +69,6 @@ const Header = React.memo(() => {
         icon: Sparkles,
       },
       {
-        label: "Color Palette",
-        path: "/profile/palette",
-        icon: Palette,
-      },
-      {
         label: "Analytics",
         path: "/analytics",
         icon: BarChart3,

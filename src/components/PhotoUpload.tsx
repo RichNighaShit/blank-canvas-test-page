@@ -9,16 +9,19 @@ import { Palette } from "lucide-react";
 
 import neutralBody from "@/assets/neutral-body.png";
 import { useProfile } from "@/hooks/useProfile";
+import { accurateFacialFeatureAnalysis, FacialFeatureColors } from "@/lib/accurateFacialFeatureAnalysis";
 
-// Define the interface locally since it's not being imported properly
-interface ExtractedPalette {
+// Updated interface for facial color analysis
+interface ColorAnalysisResult {
   colors: string[];
   confidence: number;
-  source: "basic" | "advanced" | "fallback";
+  source: "facial-analysis" | "fallback";
+  facialFeatures?: FacialFeatureColors;
   metadata: {
     faceDetected: boolean;
     colorCount: number;
     dominantColor: string;
+    analysisType: "facial-features" | "fallback";
   };
 }
 
@@ -47,7 +50,20 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   );
   const [autoFitNotice, setAutoFitNotice] = useState(false);
   const [showColorPalettePrompt, setShowColorPalettePrompt] = useState(false);
-  const { profile, refetch: refetchProfile } = useProfile();
+    const { profile, refetch: refetchProfile } = useProfile();
+
+  // Cleanup effect for preview URLs
+  useEffect(() => {
+    return () => {
+      // Clean up any blob URLs when component unmounts
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      if (autoFitPreviewUrl && autoFitPreviewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(autoFitPreviewUrl);
+      }
+    };
+  }, [previewUrl, autoFitPreviewUrl]);
 
   // Check if user should see color palette extraction prompt
   useEffect(() => {
@@ -111,48 +127,87 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     }
   };
 
-  // Enhanced color analysis using basic extraction for now
-  const analyzeImageColors = async (
+    // Facial color analysis using the new service
+  const analyzeFacialColors = async (
     imageFile: File,
-  ): Promise<{ colors: string[]; palette?: any }> => {
+  ): Promise<{ colors: string[]; palette?: ColorAnalysisResult }> => {
     try {
-      console.log("🎨 Starting enhanced color extraction...");
+      console.log("🎨 Starting facial color analysis...");
 
-      // Use the enhanced color extraction service
-      const enhancedColors = await extractEnhancedColors(imageFile);
+                        // Use the accurate facial feature analysis service
+      const facialFeatures = await accurateFacialFeatureAnalysis.detectFacialFeatureColors(imageFile);
 
-      console.log("🎨 Enhanced color extraction complete:", enhancedColors);
+      console.log("🎨 Facial feature analysis complete:", facialFeatures);
+
+            // Use the actual detected feature colors (skin, hair, eyes)
+      const colors = [
+        facialFeatures.skinTone.color,
+        facialFeatures.hairColor.color,
+        facialFeatures.eyeColor.color
+      ];
 
       return {
-        colors: enhancedColors,
+        colors,
         palette: {
-          colors: enhancedColors,
-          confidence: 0.85,
-          source: "enhanced" as const,
+          colors,
+          confidence: facialFeatures.overallConfidence,
+          source: facialFeatures.detectedFeatures ? "facial-analysis" : "fallback",
+          facialFeatures,
           metadata: {
-            faceDetected: false,
-            colorCount: enhancedColors.length,
-            dominantColor: enhancedColors[0] || "#000000",
+            faceDetected: facialFeatures.detectedFeatures,
+            colorCount: colors.length,
+            dominantColor: facialFeatures.skinTone.color,
+            analysisType: facialFeatures.detectedFeatures ? "facial-features" : "fallback",
           },
         },
       };
     } catch (error) {
-      console.error("Failed to analyze image colors:", error);
-      // Enhanced fallback with better skin-tone colors
-      const fallbackColors = ["#8B7355", "#D4A574", "#F5E6D3", "#A0522D", "#CD853F", "#DEB887"];
-      return {
-        colors: fallbackColors,
-        palette: {
-          colors: fallbackColors,
-          confidence: 0.4,
-          source: "fallback" as const,
-          metadata: {
-            faceDetected: false,
-            colorCount: fallbackColors.length,
-            dominantColor: fallbackColors[0],
+      console.error("Failed to analyze facial colors:", error);
+
+      // Try enhanced extraction as fallback
+      try {
+        console.log("🔄 Falling back to enhanced color extraction...");
+        const enhancedColors = await extractEnhancedColors(imageFile);
+
+        return {
+          colors: enhancedColors,
+          palette: {
+            colors: enhancedColors,
+            confidence: 0.6,
+            source: "fallback" as const,
+            metadata: {
+              faceDetected: false,
+              colorCount: enhancedColors.length,
+              dominantColor: enhancedColors[0] || "#000000",
+              analysisType: "fallback" as const,
+            },
           },
-        },
-      };
+        };
+      } catch (fallbackError) {
+        console.error("Fallback color extraction failed:", fallbackError);
+
+        // Ultimate fallback with curated flattering colors
+        const fallbackColors = [
+          "#8B7355", "#D4A574", "#F5E6D3", "#A0522D",
+          "#CD853F", "#DEB887", "#E6E6FA", "#B0E0E6",
+          "#98FB98", "#FFB6C1", "#DDA0DD", "#F5DEB3"
+        ];
+
+        return {
+          colors: fallbackColors,
+          palette: {
+            colors: fallbackColors,
+            confidence: 0.4,
+            source: "fallback" as const,
+            metadata: {
+              faceDetected: false,
+              colorCount: fallbackColors.length,
+              dominantColor: fallbackColors[0],
+              analysisType: "fallback" as const,
+            },
+          },
+        };
+      }
     }
   };
 
@@ -367,22 +422,36 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     } : { r: 0, g: 0, b: 0 };
   };
 
-  const uploadToStorage = async (file: File): Promise<string> => {
-    if (!user) throw new Error("User not authenticated");
+    const uploadToStorage = async (file: File): Promise<string> => {
+    console.log("📤 uploadToStorage called with file:", file.name, file.size, "bytes");
+
+    if (!user) {
+      console.error("❌ User not authenticated in uploadToStorage");
+      throw new Error("User not authenticated");
+    }
+
+    console.log("👤 User ID:", user.id);
 
     const fileExt = file.name.split(".").pop();
     const fileName = `${user.id}/profile.${fileExt}`;
+    console.log("📁 Upload filename:", fileName);
 
+    console.log("📤 Starting Supabase storage upload...");
     const { error: uploadError } = await supabase.storage
       .from("user-photos")
       .upload(fileName, file, { upsert: true });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error("❌ Upload error:", uploadError);
+      throw uploadError;
+    }
 
+    console.log("✅ File uploaded successfully, getting public URL...");
     const { data } = supabase.storage
       .from("user-photos")
       .getPublicUrl(fileName);
 
+    console.log("🔗 Public URL generated:", data.publicUrl);
     return data.publicUrl;
   };
 
@@ -472,11 +541,25 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     }
   };
 
-  const handleFiles = useCallback(
+      const handleFiles = useCallback(
     async (files: File[]) => {
-      if (!files.length || !user) return;
+      console.log("🔍 handleFiles called with:", files);
+      console.log("🔍 User authenticated:", !!user);
+
+      if (!files.length || !user) {
+        console.log("❌ No files or user not authenticated");
+        return;
+      }
+
       const file = files[0];
+      console.log("📁 Selected file:", {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+
       if (!file.type.startsWith("image/")) {
+        console.log("❌ Invalid file type:", file.type);
         toast({
           title: "Invalid file type",
           description: "Please upload an image file",
@@ -484,15 +567,43 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
         });
         return;
       }
-      setPreviewUrl(URL.createObjectURL(file));
+
+      // Clean up previous preview URL to prevent memory leaks
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+
+      // Reset all state when changing photo
+      setCroppedAreaPixels(null);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setShowAutoFit(false);
+      setAutoFitPreviewUrl(null);
+      setAutoFitNotice(false);
+
+            // Set new preview URL and file
+      const newPreviewUrl = URL.createObjectURL(file);
+      console.log("🖼️ Created preview URL:", newPreviewUrl);
+      setPreviewUrl(newPreviewUrl);
       fileRef.current = file;
+      console.log("✅ Setting showCropper to true");
       setShowCropper(true);
     },
-    [user, toast],
+    [user, toast, previewUrl],
   );
 
-  const handleCropAndSave = useCallback(async () => {
-    if (!previewUrl || !croppedAreaPixels || !user) return;
+    const handleCropAndSave = useCallback(async () => {
+    console.log("🔍 handleCropAndSave called");
+    console.log("🖼️ Preview URL:", !!previewUrl);
+    console.log("✂️ Cropped area pixels:", !!croppedAreaPixels);
+    console.log("👤 User:", !!user);
+
+    if (!previewUrl || !croppedAreaPixels || !user) {
+      console.log("❌ Missing required data for crop and save");
+      return;
+    }
+
+    console.log("🔄 Setting isAnalyzing to true");
     setIsAnalyzing(true);
 
     try {
@@ -506,31 +617,47 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
         return;
       }
 
-      // Upload to storage first
+            // Upload to storage first
+      console.log("📤 Starting upload to storage...");
       const imageUrl = await uploadToStorage(croppedFile);
+      console.log("✅ Upload completed, image URL:", imageUrl);
 
-      // Perform advanced color extraction
+            // Perform facial color analysis
       let aiAnalysis = null;
-      let colors = ["#8B7355"]; // Default skin tone color as hex
-      let paletteData: ExtractedPalette | null = null;
+      let colors = ["#8B7355"]; // Default fallback color
+      let paletteData: ColorAnalysisResult | null = null;
 
-      // First try advanced color extraction
+      // Analyze facial colors and generate flattering recommendations
       try {
-        const colorAnalysis = await analyzeImageColors(croppedFile);
+        const colorAnalysis = await analyzeFacialColors(croppedFile);
         colors = colorAnalysis.colors;
         paletteData = colorAnalysis.palette;
 
-        toast({
-          title: "🎨 Color Palette Extracted!",
-          description: `Extracted ${colors.length} colors with ${Math.round((paletteData?.confidence || 0) * 100)}% confidence from ${paletteData?.source || "basic"}`,
-        });
-      } catch (colorError) {
-        console.warn("Advanced color extraction failed:", colorError);
-        colors = await extractEnhancedColors(croppedFile); // Use enhanced colors here
+        const analysisType = paletteData?.metadata.analysisType === "facial-features"
+          ? "your facial features"
+          : "enhanced detection";
 
         toast({
-          title: "Colors extracted!",
-          description: "Using enhanced color detection as fallback.",
+          title: "🎨 Your Color Palette Ready!",
+          description: `Analyzed ${analysisType} and found ${colors.length} flattering colors with ${Math.round((paletteData?.confidence || 0) * 100)}% confidence`,
+        });
+
+                        // Log facial analysis details if available
+        if (paletteData?.facialFeatures) {
+          const features = paletteData.facialFeatures;
+          console.log(`✅ Facial Feature Detection Results:\n` +
+            `   Skin: ${features.skinTone.color} (${features.skinTone.lightness} ${features.skinTone.undertone})\n` +
+            `   Hair: ${features.hairColor.color} (${features.hairColor.description})\n` +
+            `   Eyes: ${features.eyeColor.color} (${features.eyeColor.description})\n` +
+            `   Overall Confidence: ${Math.round(features.overallConfidence * 100)}%`);
+        }
+      } catch (colorError) {
+        console.warn("Facial color analysis failed:", colorError);
+
+        toast({
+          title: "Color analysis completed",
+          description: "Using fallback color detection method.",
+          variant: "default",
         });
       }
 
@@ -546,21 +673,26 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
       // Update the profile immediately with extracted colors
       try {
         if (user && colors.length > 0) {
-          console.log("🎨 Saving extracted colors to profile:", colors);
+                    console.log("🎨 Saving extracted colors to profile:", colors);
+          console.log("👤 User ID:", user.id);
+                                        // Prepare update data (only fields that exist in database schema)
+          const updateData = {
+            face_photo_url: imageUrl,
+            color_palette_colors: colors,
+          };
+          console.log("📝 Update data:", updateData);
+
           const { error: updateError } = await supabase
             .from("profiles")
-            .update({
-              face_photo_url: imageUrl,
-              color_palette_colors: colors,
-            })
+            .update(updateData)
             .eq("user_id", user.id);
 
-          if (updateError) {
-            console.error("Failed to save colors to profile:", updateError);
+                    if (updateError) {
+            console.error("Failed to save colors to profile:", updateError.message || updateError);
             toast({
               title: "Color save warning",
               description:
-                "Photo uploaded but colors may not have been saved to your profile.",
+                `Failed to save colors: ${updateError.message || 'Unknown database error'}`,
               variant: "destructive",
             });
           } else {
@@ -574,22 +706,37 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
             });
           }
         }
-      } catch (saveError) {
-        console.error("Error saving colors:", saveError);
+            } catch (saveError) {
+        console.error("Error saving colors:", saveError?.message || saveError);
+        toast({
+          title: "Save Error",
+          description: `Failed to save colors: ${saveError?.message || 'Unknown error'}`,
+          variant: "destructive",
+        });
       }
 
-      onAnalysisComplete({ imageUrl, colors, aiAnalysis });
+            // Clean up the blob URL since we now have the permanent URL
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+
+      // Update to show the uploaded image
       setPreviewUrl(imageUrl);
       setShowCropper(false);
-    } catch (error) {
-      console.error("Upload/analysis error:", error);
+
+      // Call the callback to update parent component
+      onAnalysisComplete({ imageUrl, colors, aiAnalysis });
+        } catch (error) {
+      console.error("❌ Upload/analysis error:", error);
+      console.error("❌ Error details:", error?.message || error);
       toast({
         title: "Upload failed",
-        description: "Please try again with a different image",
+        description: `Please try again with a different image. Error: ${error?.message || 'Unknown error'}`,
         variant: "destructive",
       });
       setShowCropper(false);
     } finally {
+      console.log("🔄 Setting isAnalyzing to false");
       setIsAnalyzing(false);
     }
   }, [previewUrl, croppedAreaPixels, user, toast, onAnalysisComplete]);
@@ -617,7 +764,31 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   );
 
   return (
-    <div className="space-y-4">
+        <div className="space-y-4">
+      {/* Photo Upload Guidance */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0">
+            📸
+          </div>
+          <div className="flex-1">
+            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+              📸 For Best Results
+            </h4>
+            <p className="text-sm text-blue-700 dark:text-blue-200 mb-2">
+              Upload a close-up photo of your face with:
+            </p>
+            <ul className="text-sm text-blue-700 dark:text-blue-200 list-disc list-inside space-y-1">
+              <li><strong>Hair visible</strong> - so we can detect your real hair color</li>
+              <li><strong>Eyes clearly shown</strong> - for accurate eye color detection</li>
+              <li><strong>Skin exposed</strong> - to analyze your skin tone properly</li>
+              <li><strong>White/neutral background</strong> - prevents color interference</li>
+              <li><strong>Good lighting</strong> - natural light works best</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {/* Color Palette Extraction Prompt for Existing Users */}
       {showColorPalettePrompt && (
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4 mb-4">
@@ -678,8 +849,8 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
               />
             </div>
             <div className="flex gap-4 mt-4">
-              <Button onClick={handleCropAndSave} disabled={isAnalyzing}>
-                {isAnalyzing ? "AI Analyzing..." : "Crop & Analyze with AI"}
+                            <Button onClick={handleCropAndSave} disabled={isAnalyzing}>
+                {isAnalyzing ? "Analyzing Face..." : "Analyze My Colors"}
               </Button>
               <Button
                 variant="outline"
@@ -828,27 +999,43 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
                 </svg>
               )}
             </div>
-            <h3 className="text-xl font-semibold mb-2">
+                                    <h3 className="text-xl font-semibold mb-2">
               {isAnalyzing
-                ? "🔍 Systematic analysis in progress..."
+                ? "🔍 Detecting your facial features..."
                 : "Upload your photo"}
             </h3>
             <p className="text-muted-foreground mb-4">
               {isAnalyzing
-                ? "Analyzing your clothing's style, color, and material with structured recognition"
-                : "Drag & drop your photo or click to browse"}
+                ? "Analyzing your actual skin tone, hair color, and eye color"
+                : "We'll detect your real skin tone, hair color, and eye color from your photo"}
             </p>
           </>
         )}
 
-        <Button
+                                <Button
           type="button"
           disabled={isAnalyzing}
           className="shadow-button"
-          onClick={() => document.getElementById("photo-input")?.click()}
+                  onClick={() => {
+            console.log("🔍 Photo upload button clicked");
+            const input = document.getElementById("photo-input") as HTMLInputElement;
+            console.log("🔍 Input element found:", !!input);
+            if (input) {
+              // Clear the input value to ensure onChange fires even for the same file
+              input.value = "";
+              console.log("🔍 Input value cleared, triggering click");
+              // Force a small delay to ensure the clear takes effect
+              setTimeout(() => {
+                console.log("🔍 Triggering input click");
+                input.click();
+              }, 10);
+            } else {
+              console.error("❌ Photo input element not found!");
+            }
+          }}
         >
-          {isAnalyzing
-            ? "AI Processing..."
+                    {isAnalyzing
+            ? "Analyzing Features..."
             : previewUrl
               ? "Change Photo"
               : "Choose Photo"}
@@ -859,18 +1046,19 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={(e) =>
-            e.target.files && handleFiles(Array.from(e.target.files))
-          }
+                    onChange={(e) => {
+            console.log("🔍 File input onChange triggered");
+            console.log("🔍 Files:", e.target.files);
+            e.target.files && handleFiles(Array.from(e.target.files));
+          }}
         />
       </div>
 
       {isAnalyzing && (
         <div className="text-center text-sm text-muted-foreground">
-          <p>�� Performing systematic analysis of your clothing item...</p>
+                                        <p>🔍 Detecting your actual facial feature colors...</p>
           <p>
-            Advanced computer vision detecting style, material, and styling
-            suggestions
+                        Analyzing your real skin tone, hair color, and eye color from the photo
           </p>
         </div>
       )}

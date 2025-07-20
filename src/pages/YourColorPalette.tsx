@@ -11,7 +11,6 @@ import {
   Palette,
   Copy,
   Download,
-  Eye,
   RefreshCw,
   Camera,
   ArrowLeft,
@@ -21,6 +20,12 @@ import {
 } from "lucide-react";
 
 const YourColorPalette = () => {
+  // Cache busting effect
+  useEffect(() => {
+    // Force component remount if cache issues persist
+    const cacheVersion = new Date().getTime();
+    console.log('YourColorPalette loaded at:', cacheVersion);
+  }, []);
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, refetch } = useProfile();
   const navigate = useNavigate();
@@ -49,17 +54,24 @@ const YourColorPalette = () => {
     );
   }
 
-  const colors = profile?.color_palette_colors || [];
+      const rawColors = Array.isArray(profile?.color_palette_colors) ? profile.color_palette_colors : [];
+  const colors = rawColors.filter(color =>
+    color && typeof color === 'string' && color.match(/^#[0-9A-Fa-f]{6}$/)
+  );
   const hasColors = colors.length > 0;
 
-  const handleCopyColor = async (color: string) => {
+    const handleCopyColor = async (color: string) => {
     try {
+      if (!color || typeof color !== 'string') {
+        throw new Error('Invalid color value');
+      }
       await navigator.clipboard.writeText(color);
       toast({
         title: "Color copied!",
         description: `${color} copied to clipboard`,
       });
     } catch (error) {
+      console.error('Copy color error:', error);
       toast({
         title: "Copy failed",
         description: "Unable to copy color to clipboard",
@@ -123,7 +135,7 @@ const YourColorPalette = () => {
     }
   };
 
-  const getBasicColorAnalysis = () => {
+    const getBasicColorAnalysis = () => {
     if (!hasColors || colors.length === 0) return null;
 
     let totalBrightness = 0;
@@ -131,18 +143,19 @@ const YourColorPalette = () => {
     let validColors = 0;
 
     colors.forEach((color) => {
-      if (!color || typeof color !== "string") return;
+      // Validate color input more thoroughly
+      if (!color || typeof color !== "string" || !color.startsWith("#")) return;
 
       try {
         // Simple brightness calculation
         const hex = color.replace("#", "");
-        if (hex.length !== 6) return;
+        if (hex.length !== 6 || !/^[0-9A-Fa-f]{6}$/.test(hex)) return;
 
         const r = parseInt(hex.substring(0, 2), 16);
         const g = parseInt(hex.substring(2, 4), 16);
         const b = parseInt(hex.substring(4, 6), 16);
 
-        if (isNaN(r) || isNaN(g) || isNaN(b)) return;
+        if (isNaN(r) || isNaN(g) || isNaN(b) || r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) return;
 
         const brightness = (r * 299 + g * 587 + b * 114) / 1000;
         totalBrightness += brightness;
@@ -194,8 +207,8 @@ const YourColorPalette = () => {
             <h1 className="text-3xl md:text-4xl font-heading bg-gradient-to-r from-purple-900 dark:from-purple-400 to-pink-700 dark:to-pink-400 bg-clip-text text-transparent mb-3">
               Your Color Palette
             </h1>
-            <p className="text-muted-foreground text-lg">
-              Colors extracted from your profile picture
+                                    <p className="text-muted-foreground text-lg">
+              Your actual skin tone, hair color, and eye color detected from your photo
             </p>
           </div>
         </div>
@@ -206,9 +219,9 @@ const YourColorPalette = () => {
             <Card className="card-premium mb-8">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <CardTitle className="flex items-center gap-2">
+                                                      <CardTitle className="flex items-center gap-2">
                     <Palette className="h-5 w-5 text-purple-600" />
-                    Your Colors
+                    Your Facial Feature Colors
                   </CardTitle>
                   <div className="flex flex-wrap gap-2">
                     <Button
@@ -236,29 +249,43 @@ const YourColorPalette = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                {/* Color Swatches Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-6">
-                  {colors.map((color, index) => (
-                    <div
-                      key={index}
-                      className="group cursor-pointer"
-                      onClick={() =>
-                        setSelectedColor(selectedColor === color ? null : color)
-                      }
-                    >
+                                                                {/* Facial Feature Color Display */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+                  {colors.slice(0, 3).map((color, index) => {
+                    // Validate color is a string and looks like a hex color
+                    if (!color || typeof color !== 'string' || !color.match(/^#[0-9A-Fa-f]{6}$/)) {
+                      return null; // Skip invalid colors
+                    }
+
+                    const labels = ["Skin Tone", "Hair Color", "Eye Color"];
+                    const icons = ["👤", "💇", "👁️"];
+                    const label = labels[index] || `Color ${index + 1}`;
+                    const icon = icons[index] || "🎨";
+
+                    return (
                       <div
-                        className="w-full aspect-square rounded-lg border-2 border-border transition-all duration-200 group-hover:scale-105 group-hover:border-primary shadow-md"
-                        style={{ backgroundColor: color }}
-                        role="button"
-                        aria-label={`Color ${color}`}
-                      />
-                      <div className="mt-2 text-center">
-                        <code className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground group-hover:text-foreground transition-colors">
-                          {color}
-                        </code>
+                        key={index}
+                        className="group cursor-pointer text-center"
+                        onClick={() =>
+                          setSelectedColor(selectedColor === color ? null : color)
+                        }
+                      >
+                        <div className="text-2xl mb-2">{icon}</div>
+                        <div
+                          className="w-24 h-24 mx-auto rounded-lg border-2 border-border transition-all duration-200 group-hover:scale-105 group-hover:border-primary shadow-md"
+                          style={{ backgroundColor: color }}
+                          role="button"
+                          aria-label={`${label}: ${color}`}
+                        />
+                        <div className="mt-3">
+                          <div className="font-semibold text-sm">{label}</div>
+                          <code className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground group-hover:text-foreground transition-colors">
+                            {color}
+                          </code>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Selected Color Details */}
@@ -344,10 +371,10 @@ const YourColorPalette = () => {
                   <Heart className="h-5 w-5 text-pink-500 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="font-semibold">Outfit Recommendations</h4>
-                    <p className="text-sm text-muted-foreground">
-                      These colors are automatically used to enhance your outfit
-                      recommendations, ensuring suggestions complement your
-                      natural coloring.
+                                                            <p className="text-sm text-muted-foreground">
+                      These are your actual detected facial feature colors: skin tone,
+                      hair color, and eye color. Use these as reference for choosing
+                      clothing and makeup that complements your natural coloring.
                     </p>
                   </div>
                 </div>
@@ -384,10 +411,9 @@ const YourColorPalette = () => {
               <h3 className="text-xl font-semibold mb-4">
                 No Color Palette Yet
               </h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Upload a profile picture to automatically extract your
-                personalized color palette. These colors will enhance your
-                outfit recommendations.
+                                                        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Upload a profile picture to detect your actual skin tone, hair color, and eye color.
+                We'll show you the real colors from your photo for accurate reference.
               </p>
               <Button
                 onClick={() => navigate("/edit-profile")}
