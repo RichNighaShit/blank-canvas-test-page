@@ -920,7 +920,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
 
       {isAnalyzing && (
         <div className="text-center text-sm text-muted-foreground">
-          <p>�� Performing systematic analysis of your clothing item...</p>
+                    <p>🧬 Analyzing your facial features and natural coloring...</p>
           <p>
             Advanced computer vision detecting style, material, and styling
             suggestions
