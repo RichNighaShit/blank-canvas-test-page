@@ -562,14 +562,12 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
           description: `Analyzed ${analysisType} and found ${colors.length} flattering colors with ${Math.round((paletteData?.confidence || 0) * 100)}% confidence`,
         });
 
-        // Log facial analysis details if available
+                // Log facial analysis details if available
         if (paletteData?.facialProfile) {
           const profile = paletteData.facialProfile;
           console.log(`✅ Facial Analysis Results:\n` +
-            `   Skin: ${profile.skinTone.lightness} ${profile.skinTone.undertone}\n` +
-            `   Hair: ${profile.hairColor.depth} ${profile.hairColor.tone}\n` +
-            `   Eyes: ${profile.eyeColor.dominantColor}\n` +
-            `   Season: ${profile.colorSeason.season} (${profile.colorSeason.subSeason})\n` +
+            `   Colors: ${profile.flatteringColors.length} flattering colors found\n` +
+            `   Source: ${profile.source}\n` +
             `   Confidence: ${Math.round(profile.confidence * 100)}%`);
         }
       } catch (colorError) {
