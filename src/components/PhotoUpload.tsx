@@ -599,9 +599,13 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
             color_palette_colors: colors,
           };
 
-          // If we have facial profile data, store it as well
+                    // If we have facial profile data, store it as well
           if (paletteData?.facialProfile) {
-            updateData.facial_analysis_data = paletteData.facialProfile;
+            updateData.facial_analysis_data = {
+              confidence: paletteData.facialProfile.confidence,
+              source: paletteData.facialProfile.source,
+              metadata: paletteData.facialProfile.metadata
+            };
           }
 
           const { error: updateError } = await supabase
