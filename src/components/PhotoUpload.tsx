@@ -16,7 +16,7 @@ interface ColorAnalysisResult {
   colors: string[];
   confidence: number;
   source: "facial-analysis" | "fallback";
-  facialProfile?: FacialColorProfile;
+  facialProfile?: SimplifiedColorProfile;
   metadata: {
     faceDetected: boolean;
     colorCount: number;
