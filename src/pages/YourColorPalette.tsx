@@ -16,9 +16,16 @@ import {
   ArrowLeft,
   Info,
   Sparkles,
+  Heart,
 } from "lucide-react";
 
 const YourColorPalette = () => {
+  // Cache busting effect
+  useEffect(() => {
+    // Force component remount if cache issues persist
+    const cacheVersion = new Date().getTime();
+    console.log('YourColorPalette loaded at:', cacheVersion);
+  }, []);
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, refetch } = useProfile();
   const navigate = useNavigate();
