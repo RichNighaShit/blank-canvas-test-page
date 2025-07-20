@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { facialColorAnalysisService, FacialColorProfile } from "@/lib/facialColorAnalysis";
-import { performanceOptimizedFacialAnalysis } from "@/lib/performanceOptimizedFacialAnalysis";
+import { simplifiedFacialAnalysisService, SimplifiedColorProfile } from "@/lib/simplifiedFacialAnalysis";
 import { EnhancedColorPalette } from "./EnhancedColorPalette";
 
 export const FacialAnalysisTest: React.FC = () => {
