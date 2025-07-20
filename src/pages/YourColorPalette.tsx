@@ -194,8 +194,8 @@ const YourColorPalette = () => {
             <h1 className="text-3xl md:text-4xl font-heading bg-gradient-to-r from-purple-900 dark:from-purple-400 to-pink-700 dark:to-pink-400 bg-clip-text text-transparent mb-3">
               Your Color Palette
             </h1>
-            <p className="text-muted-foreground text-lg">
-              Colors extracted from your profile picture
+                        <p className="text-muted-foreground text-lg">
+              Personalized colors that complement your natural features
             </p>
           </div>
         </div>
