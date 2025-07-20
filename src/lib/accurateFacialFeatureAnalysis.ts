@@ -2,8 +2,10 @@
  * Accurate Facial Feature Color Analysis Service
  * 
  * Detects and returns the ACTUAL colors of hair, eyes, and skin tone
- * NOT "flattering" colors - shows what the person actually looks like
+ * using face landmark detection for significantly improved accuracy.
+ * NOT "flattering" colors - shows what the person actually looks like.
  */
+import * as faceapi from 'face-api.js';
 
 export interface FacialFeatureColors {
   skinTone: {
@@ -27,31 +29,80 @@ export interface FacialFeatureColors {
 }
 
 class AccurateFacialFeatureAnalysis {
+  private isInitialized = false;
+
   /**
-   * Analyze image to detect actual hair, eye, and skin colors
+   * Initializes face-api.js models if not already loaded.
+   */
+  private async initialize(): Promise<void> {
+    if (this.isInitialized) return;
+
+    try {
+      // Models should be placed in the public/models directory of your project
+      const modelPath = '/models';
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
+        faceapi.nets.faceLandmark68Net.loadFromUri(modelPath)
+      ]);
+      this.isInitialized = true;
+      console.log("✅ Facial analysis models loaded.");
+    } catch (error) {
+      console.error("❌ Failed to load facial analysis models:", error);
+      // This will cause detection to fail, which is handled in the main function.
+    }
+  }
+
+  /**
+   * Analyze image to detect actual hair, eye, and skin colors.
    */
   async detectFacialFeatureColors(imageInput: string | File | Blob): Promise<FacialFeatureColors> {
+    await this.initialize();
+
+    if (!this.isInitialized) {
+      console.error("Facial analysis models not loaded, returning fallback.");
+      return this.getFallbackFeatures();
+    }
+
     try {
       const img = await this.loadImage(imageInput);
-      
-      // Get different regions of the face
-      const regions = await this.analyzeImageRegions(img);
-      
-      // Detect skin tone from cheek/forehead area
-      const skinTone = this.detectSkinTone(regions.skinPixels);
-      
-      // Detect hair color from top region
-      const hairColor = this.detectHairColor(regions.hairPixels);
-      
-      // Detect eye color from eye region (simplified)
-      const eyeColor = this.detectEyeColor(regions.eyePixels);
-      
+      const canvas = faceapi.createCanvasFromMedia(img);
+      const displaySize = { width: img.width, height: img.height };
+      faceapi.matchDimensions(canvas, displaySize);
+
+      const detection = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+
+      if (!detection) {
+        console.warn("No face detected in the image.");
+        return this.getFallbackFeatures();
+      }
+
+      const landmarks = detection.landmarks;
+      const ctx = canvas.getContext('2d');
+      ctx!.drawImage(img, 0, 0, img.width, img.height);
+
+      const skinTone = this.detectRegionColor(ctx!, landmarks.getJawOutline(), { confidence: 0.3, type: 'skin' });
+      const hairColor = this.detectHairColor(ctx!, landmarks.getJawOutline(), landmarks.getLeftEyeBrow(), landmarks.getRightEyeBrow());
+      const eyeColor = this.detectRegionColor(ctx!, [...landmarks.getLeftEye(), ...landmarks.getRightEye()], { confidence: 0.3, type: 'eye' });
+
       const overallConfidence = (skinTone.confidence + hairColor.confidence + eyeColor.confidence) / 3;
 
       return {
-        skinTone,
-        hairColor,
-        eyeColor,
+        skinTone: {
+          color: skinTone.color,
+          confidence: skinTone.confidence,
+          lightness: this.classifySkinLightness(skinTone.r, skinTone.g, skinTone.b),
+          undertone: this.classifyUndertone(skinTone.r, skinTone.g, skinTone.b),
+        },
+        hairColor: {
+          color: hairColor.color,
+          confidence: hairColor.confidence,
+          description: this.classifyHairColor(hairColor.r, hairColor.g, hairColor.b),
+        },
+        eyeColor: {
+          color: eyeColor.color,
+          confidence: eyeColor.confidence,
+          description: this.classifyEyeColor(eyeColor.r, eyeColor.g, eyeColor.b),
+        },
         overallConfidence,
         detectedFeatures: true
       };
@@ -62,297 +113,224 @@ class AccurateFacialFeatureAnalysis {
   }
 
   /**
-   * Load image from various input types
+   * Gets the dominant color from a specific region of the canvas defined by landmarks.
    */
-  private async loadImage(input: string | File | Blob): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
+  private detectRegionColor(ctx: CanvasRenderingContext2D, points: faceapi.Point[], options: { confidence: number, type: 'skin' | 'eye' }) {
+    const pixels = this.getPixelsInPolygon(ctx, points);
+    let validPixels = pixels;
 
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Failed to load image"));
+    if (options.type === 'skin') {
+      validPixels = pixels.filter(p => this.isSkinColor(p.r, p.g, p.b));
+    } else if (options.type === 'eye') {
+      validPixels = pixels.filter(p => this.isEyeColor(p.r, p.g, p.b));
+    }
 
-      if (typeof input === "string") {
-        img.src = input;
-      } else {
-        const url = URL.createObjectURL(input);
-        img.src = url;
-        img.onload = () => {
-          URL.revokeObjectURL(url);
-          resolve(img);
-        };
-      }
-    });
-  }
+    if (validPixels.length < 10) { // Not enough data
+      return { r: 128, g: 128, b: 128, color: '#808080', confidence: 0.2 };
+    }
 
-  /**
-   * Analyze different regions of the image for facial features
-   */
-  private async analyzeImageRegions(img: HTMLImageElement) {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d")!;
-    
-    // Resize for consistent analysis
-    const size = 300;
-    canvas.width = size;
-    canvas.height = size;
-    ctx.drawImage(img, 0, 0, size, size);
-    
-    const imageData = ctx.getImageData(0, 0, size, size);
-    
-    // Define regions (simplified face layout)
-    const regions = {
-      // Hair region (top 30% of image)
-      hairPixels: this.extractRegionPixels(imageData, 0, 0, size, size * 0.3),
-      
-      // Skin region (middle area, avoiding hair and eyes)
-      skinPixels: this.extractRegionPixels(imageData, size * 0.2, size * 0.3, size * 0.6, size * 0.4),
-      
-      // Eye region (upper middle area)
-      eyePixels: this.extractRegionPixels(imageData, size * 0.3, size * 0.35, size * 0.4, size * 0.15)
+    const dominantColor = this.findDominantColor(validPixels);
+    return {
+      ...dominantColor,
+      color: this.rgbToHex(dominantColor.r, dominantColor.g, dominantColor.b),
+      confidence: Math.min(0.95, (validPixels.length / pixels.length) * 0.8 + 0.15)
     };
-    
-    return regions;
   }
 
   /**
-   * Extract pixels from a specific region
+   * Detects hair color from the region above the eyebrows.
    */
-  private extractRegionPixels(imageData: ImageData, x: number, y: number, width: number, height: number): Array<{r: number, g: number, b: number}> {
-    const pixels: Array<{r: number, g: number, b: number}> = [];
-    const data = imageData.data;
-    const imgWidth = imageData.width;
+  private detectHairColor(ctx: CanvasRenderingContext2D, jaw: faceapi.Point[], leftBrow: faceapi.Point[], rightBrow: faceapi.Point[]) {
+      const faceBox = new faceapi.Rect(
+          Math.min(...jaw.map(p => p.x)),
+          Math.min(...leftBrow.map(p => p.y), ...rightBrow.map(p => p.y)),
+          Math.max(...jaw.map(p => p.x)) - Math.min(...jaw.map(p => p.x)),
+          Math.max(...jaw.map(p => p.y)) - Math.min(...leftBrow.map(p => p.y), ...rightBrow.map(p => p.y))
+      );
+
+      const hairY = Math.max(0, faceBox.y - (faceBox.height * 0.4));
+      const hairHeight = faceBox.y - hairY;
+      const hairPoints = [
+        new faceapi.Point(faceBox.x, hairY),
+        new faceapi.Point(faceBox.x + faceBox.width, hairY),
+        new faceapi.Point(faceBox.x + faceBox.width, faceBox.y),
+        new faceapi.Point(faceBox.x, faceBox.y),
+      ];
+
+      const pixels = this.getPixelsInPolygon(ctx, hairPoints);
+      const validPixels = pixels.filter(p => this.isHairColor(p.r, p.g, p.b));
+
+      if (validPixels.length < 20) {
+        return { r: 60, g: 36, b: 21, color: '#3C2415', confidence: 0.2 };
+      }
+      
+      const dominantColor = this.findDominantColor(validPixels);
+      return {
+          ...dominantColor,
+          color: this.rgbToHex(dominantColor.r, dominantColor.g, dominantColor.b),
+          confidence: Math.min(0.9, (validPixels.length / pixels.length) * 0.7 + 0.2)
+      };
+  }
+
+  /**
+   * Extracts pixels from a polygon defined by landmark points.
+   */
+  private getPixelsInPolygon(ctx: CanvasRenderingContext2D, points: faceapi.Point[]): Array<{ r: number, g: number, b: number }> {
+    if (points.length === 0) return [];
     
-    for (let row = Math.floor(y); row < Math.floor(y + height); row++) {
-      for (let col = Math.floor(x); col < Math.floor(x + width); col++) {
-        if (row >= 0 && row < imageData.height && col >= 0 && col < imgWidth) {
-          const index = (row * imgWidth + col) * 4;
-          const r = data[index];
-          const g = data[index + 1];
-          const b = data[index + 2];
-          
-          if (r !== undefined && g !== undefined && b !== undefined) {
-            pixels.push({ r, g, b });
-          }
+    const boundingBox = faceapi.getMediaDimensions(new faceapi.Box(
+      Math.min(...points.map(p => p.x)), 
+      Math.min(...points.map(p => p.y)),
+      Math.max(...points.map(p => p.x)) - Math.min(...points.map(p => p.x)),
+      Math.max(...points.map(p => p.y)) - Math.min(...points.map(p => p.y))
+    ));
+    
+    const pixels: Array<{ r: number, g: number, b: number }> = [];
+    const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+    const { data, width } = imageData;
+
+    for (let y = Math.floor(boundingBox.y); y < boundingBox.y + boundingBox.height; y++) {
+      for (let x = Math.floor(boundingBox.x); x < boundingBox.x + boundingBox.width; x++) {
+        if (this.isPointInPolygon({ x, y }, points)) {
+          const index = (y * width + x) * 4;
+          pixels.push({ r: data[index], g: data[index + 1], b: data[index + 2] });
         }
       }
     }
-    
     return pixels;
   }
 
   /**
-   * Detect actual skin tone from skin pixels
+   * Finds the most dominant color from a list of pixels using clustering.
    */
-  private detectSkinTone(skinPixels: Array<{r: number, g: number, b: number}>) {
-    const validSkinPixels = skinPixels.filter(pixel => this.isSkinColor(pixel.r, pixel.g, pixel.b));
+  private findDominantColor(pixels: Array<{ r: number, g: number, b: number }>): { r: number, g: number, b: number } {
+    const colorBuckets = 5;
+    const bucketSize = Math.floor(256 / colorBuckets);
+    const colorMap: { [key: string]: { r: number[], g: number[], b: number[], count: number } } = {};
+
+    pixels.forEach(pixel => {
+      const r_bucket = Math.floor(pixel.r / bucketSize);
+      const g_bucket = Math.floor(pixel.g / bucketSize);
+      const b_bucket = Math.floor(pixel.b / bucketSize);
+      const key = `${r_bucket},${g_bucket},${b_bucket}`;
+
+      if (!colorMap[key]) {
+        colorMap[key] = { r: [], g: [], b: [], count: 0 };
+      }
+      colorMap[key].r.push(pixel.r);
+      colorMap[key].g.push(pixel.g);
+      colorMap[key].b.push(pixel.b);
+      colorMap[key].count++;
+    });
+
+    const dominantClusterKey = Object.keys(colorMap).sort((a, b) => colorMap[b].count - colorMap[a].count)[0];
+    const dominantCluster = colorMap[dominantClusterKey];
     
-    if (validSkinPixels.length === 0) {
-      return {
-        color: "#D4A574",
-        lightness: "medium" as const,
-        undertone: "neutral" as const,
-        confidence: 0.3
-      };
-    }
-    
-    // Get average skin color
-    const avgR = Math.round(validSkinPixels.reduce((sum, p) => sum + p.r, 0) / validSkinPixels.length);
-    const avgG = Math.round(validSkinPixels.reduce((sum, p) => sum + p.g, 0) / validSkinPixels.length);
-    const avgB = Math.round(validSkinPixels.reduce((sum, p) => sum + p.b, 0) / validSkinPixels.length);
-    
-    const skinColor = this.rgbToHex(avgR, avgG, avgB);
-    const lightness = this.classifySkinLightness(avgR, avgG, avgB);
-    const undertone = this.classifyUndertone(avgR, avgG, avgB);
-    
-    return {
-      color: skinColor,
-      lightness,
-      undertone,
-      confidence: Math.min(0.9, validSkinPixels.length / skinPixels.length + 0.3)
-    };
+    const avgR = Math.round(dominantCluster.r.reduce((sum, val) => sum + val, 0) / dominantCluster.count);
+    const avgG = Math.round(dominantCluster.g.reduce((sum, val) => sum + val, 0) / dominantCluster.count);
+    const avgB = Math.round(dominantCluster.b.reduce((sum, val) => sum + val, 0) / dominantCluster.count);
+
+    return { r: avgR, g: avgG, b: avgB };
   }
 
-  /**
-   * Detect actual hair color from hair pixels
-   */
-  private detectHairColor(hairPixels: Array<{r: number, g: number, b: number}>) {
-    const validHairPixels = hairPixels.filter(pixel => this.isHairColor(pixel.r, pixel.g, pixel.b));
-    
-    if (validHairPixels.length === 0) {
-      return {
-        color: "#3C2415",
-        description: "Dark Brown",
-        confidence: 0.3
-      };
-    }
-    
-    // Get average hair color
-    const avgR = Math.round(validHairPixels.reduce((sum, p) => sum + p.r, 0) / validHairPixels.length);
-    const avgG = Math.round(validHairPixels.reduce((sum, p) => sum + p.g, 0) / validHairPixels.length);
-    const avgB = Math.round(validHairPixels.reduce((sum, p) => sum + p.b, 0) / validHairPixels.length);
-    
-    const hairColor = this.rgbToHex(avgR, avgG, avgB);
-    const description = this.classifyHairColor(avgR, avgG, avgB);
-    
-    return {
-      color: hairColor,
-      description,
-      confidence: Math.min(0.9, validHairPixels.length / hairPixels.length + 0.4)
-    };
+  // Ray-casting algorithm to check if a point is inside a polygon
+  private isPointInPolygon(point: { x: number, y: number }, polygon: { x: number, y: number }[]): boolean {
+      let isInside = false;
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+          const xi = polygon[i].x, yi = polygon[i].y;
+          const xj = polygon[j].x, yj = polygon[j].y;
+
+          const intersect = ((yi > point.y) !== (yj > point.y))
+              && (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi);
+          if (intersect) isInside = !isInside;
+      }
+      return isInside;
   }
 
-  /**
-   * Detect actual eye color from eye pixels
-   */
-  private detectEyeColor(eyePixels: Array<{r: number, g: number, b: number}>) {
-    const validEyePixels = eyePixels.filter(pixel => this.isEyeColor(pixel.r, pixel.g, pixel.b));
-    
-    if (validEyePixels.length === 0) {
-      return {
-        color: "#654321",
-        description: "Dark Brown",
-        confidence: 0.3
-      };
-    }
-    
-    // Get average eye color
-    const avgR = Math.round(validEyePixels.reduce((sum, p) => sum + p.r, 0) / validEyePixels.length);
-    const avgG = Math.round(validEyePixels.reduce((sum, p) => sum + p.g, 0) / validEyePixels.length);
-    const avgB = Math.round(validEyePixels.reduce((sum, p) => sum + p.b, 0) / validEyePixels.length);
-    
-    const eyeColor = this.rgbToHex(avgR, avgG, avgB);
-    const description = this.classifyEyeColor(avgR, avgG, avgB);
-    
-    return {
-      color: eyeColor,
-      description,
-      confidence: Math.min(0.8, validEyePixels.length / eyePixels.length + 0.3)
-    };
-  }
-
-  /**
-   * Check if pixel is likely skin color
-   */
   private isSkinColor(r: number, g: number, b: number): boolean {
-    // Basic skin color detection
     return (r > 95 && g > 40 && b > 20) &&
            (Math.max(r, g, b) - Math.min(r, g, b) > 15) &&
-           (Math.abs(r - g) > 15) && (r > g) && (r > b) &&
-           (r + g + b > 80) && (r + g + b < 650);
+           (Math.abs(r - g) > 15) && (r > g) && (r > b);
   }
 
-  /**
-   * Check if pixel is likely hair color
-   */
   private isHairColor(r: number, g: number, b: number): boolean {
     const brightness = (r + g + b) / 3;
-    // Hair is typically darker and has less variation
-    return brightness < 150 && (Math.max(r, g, b) - Math.min(r, g, b) < 50);
+    const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+    // Hair is generally not brightly colored and has lower saturation than skin.
+    return brightness < 220 && saturation < 100;
   }
 
-  /**
-   * Check if pixel is likely eye color (excluding whites and lashes)
-   */
   private isEyeColor(r: number, g: number, b: number): boolean {
     const brightness = (r + g + b) / 3;
-    // Eyes have moderate brightness, not too bright (whites) or too dark (lashes)
-    return brightness > 30 && brightness < 180 && 
-           (Math.max(r, g, b) - Math.min(r, g, b) > 10);
+    // Filter out very dark (pupil) and very bright (sclera/reflections) pixels
+    return brightness > 25 && brightness < 200;
   }
-
-  /**
-   * Classify skin lightness based on RGB values
-   */
+  
   private classifySkinLightness(r: number, g: number, b: number): "very-light" | "light" | "medium" | "dark" | "very-dark" {
-    const brightness = (r + g + b) / 3;
-    
-    if (brightness > 200) return "very-light";
-    if (brightness > 160) return "light";
-    if (brightness > 120) return "medium";
-    if (brightness > 80) return "dark";
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000; // Perceived brightness
+    if (brightness > 190) return "very-light";
+    if (brightness > 150) return "light";
+    if (brightness > 110) return "medium";
+    if (brightness > 70) return "dark";
     return "very-dark";
   }
 
-  /**
-   * Classify undertone based on RGB ratios
-   */
   private classifyUndertone(r: number, g: number, b: number): "warm" | "cool" | "neutral" {
-    const ratio1 = r / g;
-    const ratio2 = r / b;
-    
-    if (ratio1 > 1.1 && ratio2 > 1.2) return "warm";   // More red
-    if (ratio1 < 0.95 && ratio2 < 1.1) return "cool";  // More blue/green
+    if (r > b && g > b) return "warm";   // More red/yellow than blue
+    if (b > r && b > g) return "cool";  // More blue than red/green
     return "neutral";
   }
 
-  /**
-   * Classify hair color based on RGB values
-   */
   private classifyHairColor(r: number, g: number, b: number): string {
     const brightness = (r + g + b) / 3;
-    const maxChannel = Math.max(r, g, b);
     
-    if (brightness < 30) return "Black";
-    if (brightness < 50) return "Very Dark Brown";
+    if (brightness < 40) return "Black";
     if (brightness < 70) return "Dark Brown";
-    if (brightness < 90) return "Medium Brown";
-    if (brightness < 110) return "Light Brown";
-    if (brightness < 140 && r > g && r > b) return "Auburn/Red";
-    if (brightness < 160) return "Dark Blonde";
-    if (brightness < 200) return "Blonde";
-    return "Light Blonde";
+    if (r > g + 10 && r > b + 10 && brightness < 150) return "Auburn/Red";
+    if (brightness < 120) return "Brown";
+    if (brightness < 180) return "Dark Blonde";
+    if (g > 80 && b < 80) return "Blonde";
+    return "Light Blonde / Grey";
   }
 
-  /**
-   * Classify eye color based on RGB values
-   */
   private classifyEyeColor(r: number, g: number, b: number): string {
     const brightness = (r + g + b) / 3;
     
-    if (brightness < 40) return "Very Dark Brown";
-    if (brightness < 60) return "Dark Brown";
-    if (brightness < 80) return "Brown";
-    if (brightness < 100 && r > b) return "Hazel";
-    if (brightness < 120 && g > r && g > b) return "Green";
-    if (brightness < 140 && b > r && b > g) return "Blue";
-    if (brightness < 160) return "Light Brown";
-    return "Light Eyes";
+    if (b > r && b > g && b > 80) return "Blue";
+    if (g > r && g > b && g > 70) return "Green";
+    if (r > 100 && g > 80 && b < 80) return "Hazel";
+    if (brightness < 65) return "Dark Brown";
+    return "Brown";
   }
 
-  /**
-   * Convert RGB to hex
-   */
   private rgbToHex(r: number, g: number, b: number): string {
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`.toUpperCase();
   }
+  
+  private loadImage(input: string | File | Blob): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = (err) => reject(new Error("Failed to load image: " + err));
+      if (typeof input === "string") {
+        img.src = input;
+      } else {
+        img.src = URL.createObjectURL(input);
+      }
+    });
+  }
 
-  /**
-   * Get fallback features when detection fails
-   */
   private getFallbackFeatures(): FacialFeatureColors {
     return {
-      skinTone: {
-        color: "#D4A574",
-        lightness: "medium",
-        undertone: "neutral",
-        confidence: 0.3
-      },
-      hairColor: {
-        color: "#3C2415",
-        description: "Dark Brown",
-        confidence: 0.3
-      },
-      eyeColor: {
-        color: "#654321",
-        description: "Dark Brown", 
-        confidence: 0.3
-      },
+      skinTone: { color: "#D4A574", lightness: "medium", undertone: "neutral", confidence: 0.3 },
+      hairColor: { color: "#3C2415", description: "Dark Brown", confidence: 0.3 },
+      eyeColor: { color: "#654321", description: "Dark Brown", confidence: 0.3 },
       overallConfidence: 0.3,
       detectedFeatures: false
     };
   }
 }
 
-// Export singleton instance
+// Export a singleton instance to manage the models efficiently
 export const accurateFacialFeatureAnalysis = new AccurateFacialFeatureAnalysis();
