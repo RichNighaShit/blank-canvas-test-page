@@ -114,48 +114,83 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     }
   };
 
-  // Enhanced color analysis using basic extraction for now
-  const analyzeImageColors = async (
+    // Facial color analysis using the new service
+  const analyzeFacialColors = async (
     imageFile: File,
-  ): Promise<{ colors: string[]; palette?: any }> => {
+  ): Promise<{ colors: string[]; palette?: ColorAnalysisResult }> => {
     try {
-      console.log("🎨 Starting enhanced color extraction...");
+      console.log("🎨 Starting facial color analysis...");
 
-      // Use the enhanced color extraction service
-      const enhancedColors = await extractEnhancedColors(imageFile);
+      // Use the facial color analysis service
+      const facialProfile = await facialColorAnalysisService.analyzeFacialColors(imageFile);
 
-      console.log("🎨 Enhanced color extraction complete:", enhancedColors);
+      console.log("🎨 Facial color analysis complete:", facialProfile);
+
+      // Use the flattering colors as the main palette
+      const colors = facialProfile.flatteringColors;
 
       return {
-        colors: enhancedColors,
+        colors,
         palette: {
-          colors: enhancedColors,
-          confidence: 0.85,
-          source: "enhanced" as const,
+          colors,
+          confidence: facialProfile.confidence,
+          source: "facial-analysis" as const,
+          facialProfile,
           metadata: {
-            faceDetected: false,
-            colorCount: enhancedColors.length,
-            dominantColor: enhancedColors[0] || "#000000",
+            faceDetected: true,
+            colorCount: colors.length,
+            dominantColor: facialProfile.skinTone.dominantTone,
+            analysisType: "facial-features" as const,
           },
         },
       };
     } catch (error) {
-      console.error("Failed to analyze image colors:", error);
-      // Enhanced fallback with better skin-tone colors
-      const fallbackColors = ["#8B7355", "#D4A574", "#F5E6D3", "#A0522D", "#CD853F", "#DEB887"];
-      return {
-        colors: fallbackColors,
-        palette: {
-          colors: fallbackColors,
-          confidence: 0.4,
-          source: "fallback" as const,
-          metadata: {
-            faceDetected: false,
-            colorCount: fallbackColors.length,
-            dominantColor: fallbackColors[0],
+      console.error("Failed to analyze facial colors:", error);
+
+      // Try enhanced extraction as fallback
+      try {
+        console.log("🔄 Falling back to enhanced color extraction...");
+        const enhancedColors = await extractEnhancedColors(imageFile);
+
+        return {
+          colors: enhancedColors,
+          palette: {
+            colors: enhancedColors,
+            confidence: 0.6,
+            source: "fallback" as const,
+            metadata: {
+              faceDetected: false,
+              colorCount: enhancedColors.length,
+              dominantColor: enhancedColors[0] || "#000000",
+              analysisType: "fallback" as const,
+            },
           },
-        },
-      };
+        };
+      } catch (fallbackError) {
+        console.error("Fallback color extraction failed:", fallbackError);
+
+        // Ultimate fallback with curated flattering colors
+        const fallbackColors = [
+          "#8B7355", "#D4A574", "#F5E6D3", "#A0522D",
+          "#CD853F", "#DEB887", "#E6E6FA", "#B0E0E6",
+          "#98FB98", "#FFB6C1", "#DDA0DD", "#F5DEB3"
+        ];
+
+        return {
+          colors: fallbackColors,
+          palette: {
+            colors: fallbackColors,
+            confidence: 0.4,
+            source: "fallback" as const,
+            metadata: {
+              faceDetected: false,
+              colorCount: fallbackColors.length,
+              dominantColor: fallbackColors[0],
+              analysisType: "fallback" as const,
+            },
+          },
+        };
+      }
     }
   };
 
