@@ -894,15 +894,15 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
                 </svg>
               )}
             </div>
-                        <h3 className="text-xl font-semibold mb-2">
+                                    <h3 className="text-xl font-semibold mb-2">
               {isAnalyzing
-                ? "🧬 Analyzing your facial features..."
+                ? "🔍 Detecting your facial features..."
                 : "Upload your photo"}
             </h3>
             <p className="text-muted-foreground mb-4">
               {isAnalyzing
-                ? "Detecting skin tone, hair & eye color to find your most flattering colors"
-                : "We'll analyze your face to find colors that complement you perfectly"}
+                ? "Analyzing your actual skin tone, hair color, and eye color"
+                : "We'll detect your real skin tone, hair color, and eye color from your photo"}
             </p>
           </>
         )}
