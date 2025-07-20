@@ -451,8 +451,13 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
       .from("user-photos")
       .getPublicUrl(fileName);
 
-    console.log("🔗 Public URL generated:", data.publicUrl);
-    return data.publicUrl;
+    const publicUrl = data.publicUrl;
+    // By adding a timestamp as a query parameter, we force browsers/CDNs to
+    // fetch the latest version of the image instead of serving a cached one.
+    // This is crucial because we overwrite the same file path for profile pictures.
+    const cacheBustedUrl = `${publicUrl}?t=${new Date().getTime()}`;
+    console.log("🔗 Public URL generated with cache buster:", cacheBustedUrl);
+    return cacheBustedUrl;
   };
 
   const validateTorsoInImage = async (file: File): Promise<boolean> => {
