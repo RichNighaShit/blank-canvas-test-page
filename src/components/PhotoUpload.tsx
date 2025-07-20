@@ -683,7 +683,31 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
   );
 
   return (
-    <div className="space-y-4">
+        <div className="space-y-4">
+      {/* Photo Upload Guidance */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0">
+            📸
+          </div>
+          <div className="flex-1">
+            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+              📸 For Best Results
+            </h4>
+            <p className="text-sm text-blue-700 dark:text-blue-200 mb-2">
+              Upload a close-up photo of your face with:
+            </p>
+            <ul className="text-sm text-blue-700 dark:text-blue-200 list-disc list-inside space-y-1">
+              <li><strong>Hair visible</strong> - so we can detect your real hair color</li>
+              <li><strong>Eyes clearly shown</strong> - for accurate eye color detection</li>
+              <li><strong>Skin exposed</strong> - to analyze your skin tone properly</li>
+              <li><strong>White/neutral background</strong> - prevents color interference</li>
+              <li><strong>Good lighting</strong> - natural light works best</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {/* Color Palette Extraction Prompt for Existing Users */}
       {showColorPalettePrompt && (
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4 mb-4">
