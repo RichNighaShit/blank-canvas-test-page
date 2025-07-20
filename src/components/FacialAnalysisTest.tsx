@@ -9,11 +9,11 @@ import { EnhancedColorPalette } from "./EnhancedColorPalette";
 export const FacialAnalysisTest: React.FC = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [results, setResults] = useState<{
+    const [results, setResults] = useState<{
     colors: string[];
-    facialProfile?: FacialColorProfile;
+    facialProfile?: SimplifiedColorProfile;
     analysisTime: number;
-    method: "standard" | "optimized" | "quick";
+    method: "simplified" | "fallback";
   } | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
