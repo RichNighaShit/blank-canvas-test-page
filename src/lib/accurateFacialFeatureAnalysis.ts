@@ -110,7 +110,7 @@ class AccurateFacialFeatureAnalysis {
     const allPixels = [...leftCheekPixels, ...rightCheekPixels];
 
     if (allPixels.length < 20) {
-        return { color: "#D4A574", lightness: "medium" as const, undertone: "neutral" as const, confidence: 0.2 };
+        return { color: "#D4A574", lightness: "medium" as const, undertone: "neutral" as const, confidence: 0.3 }; // Slightly increased confidence for fallback
     }
     
     const dominantColor = this.findDominantColor(allPixels);
@@ -120,7 +120,7 @@ class AccurateFacialFeatureAnalysis {
         color: colorHex,
         lightness: this.classifySkinLightness(dominantColor.r, dominantColor.g, dominantColor.b),
         undertone: this.classifyUndertone(dominantColor.r, dominantColor.g, dominantColor.b),
-        confidence: 0.9
+        confidence: 0.95
     };
   }
 
@@ -134,16 +134,16 @@ class AccurateFacialFeatureAnalysis {
 
       const hairRegion = {
           x: jaw[0].x,
-          y: Math.max(0, faceTopY - faceHeight * 0.3),
+          y: Math.max(0, faceTopY - faceHeight * 0.4), // Extend region upwards
           width: jaw[16].x - jaw[0].x,
-          height: faceHeight * 0.3,
+          height: faceHeight * 0.4, // Increase height to capture more hair
       };
 
       const pixels = this.getPixelsInRect(ctx, hairRegion);
       const validPixels = pixels.filter(p => this.isHairColor(p.r, p.g, p.b));
       
       if (validPixels.length < 50) {
-        return { color: "#3C2415", description: "Dark Brown", confidence: 0.2 };
+        return { color: "#3C2415", description: "Dark Brown", confidence: 0.3 }; // Slightly increased confidence for fallback
       }
 
       const dominantColor = this.findDominantColor(validPixels);
@@ -152,7 +152,7 @@ class AccurateFacialFeatureAnalysis {
       return {
           color: colorHex,
           description: this.classifyHairColor(dominantColor.r, dominantColor.g, dominantColor.b),
-          confidence: 0.8
+          confidence: 0.9
       };
   }
   
@@ -167,7 +167,7 @@ class AccurateFacialFeatureAnalysis {
       const validPixels = allPixels.filter(p => this.isEyeColor(p.r, p.g, p.b));
       
       if (validPixels.length < 10) {
-        return { color: "#654321", description: "Dark Brown", confidence: 0.2 };
+        return { color: "#654321", description: "Dark Brown", confidence: 0.3 }; // Slightly increased confidence for fallback
       }
 
       const dominantColor = this.findDominantColor(validPixels);
@@ -176,27 +176,59 @@ class AccurateFacialFeatureAnalysis {
       return {
           color: colorHex,
           description: this.classifyEyeColor(dominantColor.r, dominantColor.g, dominantColor.b),
-          confidence: 0.85
+          confidence: 0.95
       };
   }
 
   // --- Pixel Filtering and Classification ---
 
   private isSkinColor(r: number, g: number, b: number): boolean {
-    return r > 95 && g > 40 && b > 20 && (Math.max(r, g, b) - Math.min(r, g, b) > 15) && Math.abs(r - g) > 15 && r > g && r > b;
+    // A more robust skin color detection based on common skin tone ranges
+    // and less strict conditions for variations.
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const diff = max - min;
+
+    // Check for general skin tone hue (reddish-yellowish)
+    const isHueInRange = (r > 90 && g > 50 && b > 20);
+
+    // Check for reasonable saturation and lightness
+    const isSufficientlySaturated = diff > 10; // Ensure it's not too desaturated (grayish)
+    const isNotTooBrightOrDark = (max < 240 && min > 15); // Avoid pure white or pure black
+
+    // Check for r > g > b or similar relationships, but allow for variations
+    const isReddishDominant = r > g && g > b; // Typical Caucasian/Asian skin
+    const isYellowishDominant = r > g && b < g; // Some Asian/Mediterranean skin
+
+    return isHueInRange && isSufficientlySaturated && isNotTooBrightOrDark && (isReddishDominant || isYellowishDominant);
   }
 
   private isHairColor(r: number, g: number, b: number): boolean {
-      const brightness = (r + g + b) / 3;
-      const isGrayish = Math.abs(r - g) < 15 && Math.abs(g - b) < 15;
-      // Filter out obvious skin tones and very bright colors
-      return !this.isSkinColor(r,g,b) && brightness < 240 && !isGrayish;
+    const brightness = (r + g + b) / 3;
+    const isGrayish = Math.abs(r - g) < 15 && Math.abs(g - b) < 15;
+    const isBrownish = (r > 60 && g > 30 && b > 10 && r < 180 && g < 150 && b < 120); // Range for brown
+    const isBlonde = (r > 180 && g > 160 && b > 100); // Range for blonde
+    const isBlack = (brightness < 60); // Range for black
+    const isRed = (r > 100 && g < 80 && b < 80); // Range for red
+
+    // Filter out obvious skin tones and very bright/desaturated colors that are not hair
+    return !this.isSkinColor(r, g, b) && brightness < 240 && !isGrayish && (isBrownish || isBlonde || isBlack || isRed);
   }
 
   private isEyeColor(r: number, g: number, b: number): boolean {
-    const { s, l } = this.rgbToHsl(r, g, b);
-    // Filter out whites of the eye (low saturation, high lightness) and pupil (low lightness)
-    return s > 0.1 && l > 0.15 && l < 0.85;
+    const { h, s, l } = this.rgbToHsl(r, g, b);
+
+    // Filter out whites of the eye (low saturation, high lightness) and pupil (very low lightness)
+    // Also, filter out skin tones that might be picked up around the eyes.
+    const isNotWhiteOfEye = !(s < 0.15 && l > 0.8); // Avoid very desaturated and bright
+    const isNotPupil = !(l < 0.1); // Avoid very dark (pupil)
+    const isNotSkin = !this.isSkinColor(r, g, b); // Exclude skin tones
+
+    // Consider a broader range for saturation and lightness for various eye colors
+    const isSufficientlySaturated = s > 0.05; // Allow for less saturated eye colors like some grays
+    const isReasonableLightness = l > 0.1 && l < 0.9; // Broader range for lightness
+
+    return isNotWhiteOfEye && isNotPupil && isNotSkin && isSufficientlySaturated && isReasonableLightness;
   }
   
   private classifySkinLightness = (r: number, g: number, b: number): "very-light" | "light" | "medium" | "dark" | "very-dark" => {
