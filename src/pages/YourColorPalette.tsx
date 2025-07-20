@@ -236,29 +236,36 @@ const YourColorPalette = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                {/* Color Swatches Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-6">
-                  {colors.map((color, index) => (
-                    <div
-                      key={index}
-                      className="group cursor-pointer"
-                      onClick={() =>
-                        setSelectedColor(selectedColor === color ? null : color)
-                      }
-                    >
+                                {/* Facial Feature Color Display */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+                  {colors.map((color, index) => {
+                    const labels = ["Skin Tone", "Hair Color", "Eye Color"];
+                    const icons = ["👤", "💇", "👁️"];
+
+                    return (
                       <div
-                        className="w-full aspect-square rounded-lg border-2 border-border transition-all duration-200 group-hover:scale-105 group-hover:border-primary shadow-md"
-                        style={{ backgroundColor: color }}
-                        role="button"
-                        aria-label={`Color ${color}`}
-                      />
-                      <div className="mt-2 text-center">
-                        <code className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground group-hover:text-foreground transition-colors">
-                          {color}
-                        </code>
+                        key={index}
+                        className="group cursor-pointer text-center"
+                        onClick={() =>
+                          setSelectedColor(selectedColor === color ? null : color)
+                        }
+                      >
+                        <div className="text-2xl mb-2">{icons[index]}</div>
+                        <div
+                          className="w-24 h-24 mx-auto rounded-lg border-2 border-border transition-all duration-200 group-hover:scale-105 group-hover:border-primary shadow-md"
+                          style={{ backgroundColor: color }}
+                          role="button"
+                          aria-label={`${labels[index]}: ${color}`}
+                        />
+                        <div className="mt-3">
+                          <div className="font-semibold text-sm">{labels[index]}</div>
+                          <code className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground group-hover:text-foreground transition-colors">
+                            {color}
+                          </code>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Selected Color Details */}
