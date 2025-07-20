@@ -592,8 +592,18 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     [user, toast, previewUrl],
   );
 
-  const handleCropAndSave = useCallback(async () => {
-    if (!previewUrl || !croppedAreaPixels || !user) return;
+    const handleCropAndSave = useCallback(async () => {
+    console.log("🔍 handleCropAndSave called");
+    console.log("🖼️ Preview URL:", !!previewUrl);
+    console.log("✂️ Cropped area pixels:", !!croppedAreaPixels);
+    console.log("👤 User:", !!user);
+
+    if (!previewUrl || !croppedAreaPixels || !user) {
+      console.log("❌ Missing required data for crop and save");
+      return;
+    }
+
+    console.log("🔄 Setting isAnalyzing to true");
     setIsAnalyzing(true);
 
     try {
@@ -607,8 +617,10 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
         return;
       }
 
-      // Upload to storage first
+            // Upload to storage first
+      console.log("📤 Starting upload to storage...");
       const imageUrl = await uploadToStorage(croppedFile);
+      console.log("✅ Upload completed, image URL:", imageUrl);
 
             // Perform facial color analysis
       let aiAnalysis = null;
@@ -706,15 +718,17 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
       onAnalysisComplete({ imageUrl, colors, aiAnalysis });
       setPreviewUrl(imageUrl);
       setShowCropper(false);
-    } catch (error) {
-      console.error("Upload/analysis error:", error);
+        } catch (error) {
+      console.error("❌ Upload/analysis error:", error);
+      console.error("❌ Error details:", error?.message || error);
       toast({
         title: "Upload failed",
-        description: "Please try again with a different image",
+        description: `Please try again with a different image. Error: ${error?.message || 'Unknown error'}`,
         variant: "destructive",
       });
       setShowCropper(false);
     } finally {
+      console.log("🔄 Setting isAnalyzing to false");
       setIsAnalyzing(false);
     }
   }, [previewUrl, croppedAreaPixels, user, toast, onAnalysisComplete]);
