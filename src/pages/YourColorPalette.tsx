@@ -18,6 +18,8 @@ import {
   Sparkles,
   Heart,
 } from "lucide-react";
+import { colorExtractionService } from "@/lib/colorExtractionService";
+import { supabase } from "@/integrations/supabase/client";
 
 const YourColorPalette = () => {
   // Cache busting effect
@@ -120,14 +122,55 @@ const YourColorPalette = () => {
 
     setIsRegeneratingColors(true);
     try {
+      if (!profile?.face_photo_url) {
+        toast({
+          title: "No photo available",
+          description: "Please upload a profile picture first",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
-        title: "Feature coming soon!",
-        description: "Color regeneration will be available soon",
+        title: "Extracting colors",
+        description: "This might take a moment...",
       });
+
+      const extractedPalette = await colorExtractionService.extractPalette(profile.face_photo_url);
+
+      if (extractedPalette.colors.length > 0) {
+        // Update the user's profile with the new color palette
+        const { error } = await supabase
+          .from("profiles")
+          .update({ color_palette_colors: extractedPalette.colors })
+          .eq("id", profile.id);
+
+        if (error) {
+          console.error("Error updating profile color palette:", error);
+          toast({
+            title: "Update failed",
+            description: "Could not save new color palette.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Colors regenerated!",
+            description: "Your color palette has been updated.",
+          });
+          refetch(); // Refetch profile to update the UI
+        }
+      } else {
+        toast({
+          title: "No colors extracted",
+          description: "Could not extract colors from your photo. Try a different one.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
+      console.error("Regeneration error:", error);
       toast({
         title: "Regeneration failed",
-        description: "Unable to extract new colors from your photo",
+        description: "An unexpected error occurred during color extraction.",
         variant: "destructive",
       });
     } finally {
