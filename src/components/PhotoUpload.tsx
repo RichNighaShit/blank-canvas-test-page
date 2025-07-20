@@ -525,7 +525,13 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
           variant: "destructive",
         });
         return;
-      }
+            }
+
+      // Reset previous state when changing photo
+      setCroppedAreaPixels(null);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+
       setPreviewUrl(URL.createObjectURL(file));
       fileRef.current = file;
       setShowCropper(true);
