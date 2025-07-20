@@ -623,8 +623,13 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
             });
           }
         }
-      } catch (saveError) {
-        console.error("Error saving colors:", saveError);
+            } catch (saveError) {
+        console.error("Error saving colors:", saveError?.message || saveError);
+        toast({
+          title: "Save Error",
+          description: `Failed to save colors: ${saveError?.message || 'Unknown error'}`,
+          variant: "destructive",
+        });
       }
 
       onAnalysisComplete({ imageUrl, colors, aiAnalysis });
