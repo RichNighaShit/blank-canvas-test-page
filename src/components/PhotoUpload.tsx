@@ -900,8 +900,8 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
           className="shadow-button"
           onClick={() => document.getElementById("photo-input")?.click()}
         >
-          {isAnalyzing
-            ? "AI Processing..."
+                    {isAnalyzing
+            ? "Analyzing Features..."
             : previewUrl
               ? "Change Photo"
               : "Choose Photo"}
