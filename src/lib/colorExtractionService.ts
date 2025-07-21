@@ -100,20 +100,15 @@ class ColorExtractionService {
   ];
 
   /**
-   * Initialize face-api.js models (currently disabled)
+   * Initialize face-api.js models with robust error handling
    */
   async initializeFaceAPI(): Promise<void> {
     if (this.faceApiInitialized) return;
 
-    // Temporarily disable face-api model loading to avoid errors
-    console.log("ℹ️ Face-API models disabled - using advanced color extraction without face detection");
-    this.faceApiInitialized = false;
-
-    // TODO: Re-enable when model files are properly configured
-    /*
     const modelSources = [
+      'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@latest/model',
+      'https://raw.githubusercontent.com/vladmandic/face-api/master/model',
       this.modelBasePath,
-      'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights',
     ];
 
     for (const modelPath of modelSources) {
@@ -125,17 +120,22 @@ class ColorExtractionService {
           faceapi.nets.faceLandmark68Net.loadFromUri(modelPath),
         ]);
 
-        this.faceApiInitialized = true;
-        console.log(`✅ Face-API models loaded successfully from: ${modelPath}`);
-        return;
+        // Verify models loaded correctly
+        if (faceapi.nets.tinyFaceDetector.params && faceapi.nets.faceLandmark68Net.params) {
+          this.faceApiInitialized = true;
+          console.log(`✅ Face-API models loaded successfully from: ${modelPath}`);
+          return;
+        } else {
+          throw new Error('Models loaded but parameters are undefined');
+        }
       } catch (error) {
         console.warn(`⚠️ Failed to load Face-API models from ${modelPath}:`, error);
         continue;
       }
     }
 
-    console.error("❌ Failed to load Face-API models from all sources. Face detection disabled.");
-    */
+    console.warn("⚠️ Failed to load Face-API models from all sources. Using advanced color extraction without face detection.");
+    this.faceApiInitialized = false;
   }
 
   /**
