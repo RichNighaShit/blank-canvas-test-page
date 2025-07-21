@@ -487,12 +487,12 @@ class ColorExtractionService {
         
         const avgL = cluster.reduce((sum, p) => sum + p.l, 0) / cluster.length;
         const avgA = cluster.reduce((sum, p) => sum + p.a, 0) / cluster.length;
-        const avgB = cluster.reduce((sum, p) => sum + p.b, 0) / cluster.length;
-        
-        const rgb = this.labToRgb(avgL, avgA, avgB);
+        const avgBLab = cluster.reduce((sum, p) => sum + p.bLab, 0) / cluster.length;
+
+        const rgb = this.labToRgb(avgL, avgA, avgBLab);
         return {
           r: rgb.r, g: rgb.g, b: rgb.b,
-          l: avgL, a: avgA, b: avgB,
+          l: avgL, a: avgA, bLab: avgBLab,
           count: cluster.length,
           hex: this.rgbToHex(rgb.r, rgb.g, rgb.b)
         };
