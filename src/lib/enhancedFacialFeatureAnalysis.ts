@@ -255,12 +255,18 @@ class EnhancedFacialFeatureAnalysis {
     });
 
     if (allValidPixels.length < 40) {
-      return {
-        color: "#8B4513",
-        description: "Medium Brown",
-        category: "brown" as const,
-        confidence: 0.3
-      };
+      // Try broader sampling with more relaxed criteria
+      const broadPixels = this.getBroadHairSample(ctx, width, height, { isLowLight: false, isOverexposed: false });
+      if (broadPixels.length > 20) {
+        allValidPixels = broadPixels.map(p => ({ r: p.r, g: p.g, b: p.b }));
+      } else {
+        return {
+          color: "#D4A574",
+          description: "Light Brown",
+          category: "brown" as const,
+          confidence: 0.3
+        };
+      }
     }
 
     const dominantColor = this.findEnhancedDominantColor(allValidPixels);
@@ -306,12 +312,32 @@ class EnhancedFacialFeatureAnalysis {
     });
 
     if (allValidPixels.length < 8) {
-      return {
-        color: "#8B4513",
-        description: "Brown",
-        category: "brown" as const,
-        confidence: 0.2
-      };
+      // Try broader sampling for eye detection
+      const broadEyeRegions = [
+        { x: width * 0.15, y: height * 0.25, width: width * 0.7, height: height * 0.3, priority: 1 }
+      ];
+
+      let broadPixels: Array<{ r: number, g: number, b: number, weight: number }> = [];
+      broadEyeRegions.forEach(region => {
+        const pixels = this.getPixelsInRect(ctx, region);
+        const normalizedPixels = this.normalizeForLighting(pixels, lightingConditions);
+        const validPixels = normalizedPixels
+          .filter(p => p.r > 30 && p.g > 30 && p.b > 30) // Any non-dark pixel
+          .filter(p => !this.isEnhancedSkinColor(p.r, p.g, p.b))
+          .map(p => ({ ...p, weight: 1 }));
+        broadPixels = broadPixels.concat(validPixels);
+      });
+
+      if (broadPixels.length > 5) {
+        allValidPixels = broadPixels;
+      } else {
+        return {
+          color: "#4682B4",
+          description: "Blue",
+          category: "blue" as const,
+          confidence: 0.2
+        };
+      }
     }
 
     const dominantColor = this.findWeightedDominantColor(allValidPixels);
@@ -524,61 +550,80 @@ class EnhancedFacialFeatureAnalysis {
   private isEnhancedHairColor(r: number, g: number, b: number): boolean {
     const { h, s, l } = this.rgbToHsl(r, g, b);
     const brightness = (r + g + b) / 3;
-    
+
     // Exclude obvious non-hair colors
-    const isNotPureWhite = !(r > 240 && g > 240 && b > 240);
+    const isNotPureWhite = !(r > 245 && g > 245 && b > 245);
     const isNotSkinTone = !this.isEnhancedSkinColor(r, g, b);
-    const hasVariation = Math.abs(r - g) > 5 || Math.abs(g - b) > 5 || Math.abs(r - b) > 5;
-    
-    // Enhanced blonde detection - MUCH more inclusive
-    const isBlonde = (r > 140 && g > 110 && b > 70) && (r > g * 0.9) && (g > b * 0.8) && l > 0.4;
-    const isPlatinumBlonde = (r > 180 && g > 170 && b > 140) && Math.abs(r - g) < 25 && Math.abs(g - b) < 35;
-    const isStrawberryBlonde = (r > 160 && g > 120 && b > 80) && (r > g * 1.1) && (h >= 15 && h <= 45);
-    const isDirtyBlonde = (r > 120 && g > 100 && b > 70) && (r > g) && (g > b) && s > 0.2;
-    
+    const hasVariation = Math.abs(r - g) > 3 || Math.abs(g - b) > 3 || Math.abs(r - b) > 3;
+
+    // MUCH more aggressive blonde detection
+    const isVeryLightBlonde = (r > 200 && g > 180 && b > 130) && (r >= g) && (g > b) && l > 0.6;
+    const isPlatinumBlonde = (r > 180 && g > 170 && b > 140) && Math.abs(r - g) < 30 && Math.abs(g - b) < 40;
+    const isGoldenBlonde = (r > 160 && g > 130 && b > 80) && (r > g * 0.95) && (g > b * 0.85) && (h >= 25 && h <= 65);
+    const isStrawberryBlonde = (r > 150 && g > 110 && b > 70) && (r > g * 1.05) && (h >= 10 && h <= 50);
+    const isDirtyBlonde = (r > 130 && g > 100 && b > 60) && (r >= g) && (g > b) && brightness > 100;
+    const isLightBlonde = (r > 140 && g > 120 && b > 80) && (r >= g) && (g >= b) && l > 0.45;
+    const isAshBlonde = (r > 120 && g > 115 && b > 100) && Math.abs(r - g) < 20 && (g >= b) && l > 0.4;
+
+    // Any light-colored hair that's yellowish should be considered blonde
+    const isGeneralBlonde = (brightness > 120) && (r >= g) && (g >= b) && (h >= 30 && h <= 70) && s > 0.15;
+
     // Enhanced brown detection
-    const isBrown = (brightness > 30 && brightness < 160) && (r >= g * 0.8) && (g >= b * 0.7);
-    const isLightBrown = (r > 100 && g > 70 && b > 40) && (r > g) && (g > b) && brightness < 140;
-    
+    const isLightBrown = (r > 100 && g > 75 && b > 45) && (r > g) && (g > b) && brightness < 150 && brightness > 80;
+    const isMediumBrown = (brightness > 50 && brightness < 120) && (r >= g * 0.9) && (g >= b * 0.8);
+    const isDarkBrown = (brightness > 30 && brightness < 80) && (r >= g) && (g >= b);
+
     // Other hair colors
     const isBlack = brightness < 60 && hasVariation;
     const isRed = (h >= 0 && h <= 40) && s > 0.3 && l > 0.2 && l < 0.7;
     const isAuburn = (h >= 10 && h <= 50) && s > 0.25 && l > 0.2 && l < 0.6;
-    const isGray = Math.abs(r - g) < 30 && Math.abs(g - b) < 30 && brightness > 60 && brightness < 200;
-    const isWhiteHair = (r > 200 && g > 200 && b > 200) && Math.abs(r - g) < 20 && Math.abs(g - b) < 20;
-    
+    const isGray = Math.abs(r - g) < 25 && Math.abs(g - b) < 25 && brightness > 70 && brightness < 190;
+    const isWhiteHair = (r > 190 && g > 190 && b > 190) && Math.abs(r - g) < 25 && Math.abs(g - b) < 25;
+
     return isNotPureWhite && isNotSkinTone && (
-      isBlonde || isPlatinumBlonde || isStrawberryBlonde || isDirtyBlonde ||
-      isBrown || isLightBrown || isBlack || isRed || isAuburn || isGray || isWhiteHair
+      isVeryLightBlonde || isPlatinumBlonde || isGoldenBlonde || isStrawberryBlonde || isDirtyBlonde ||
+      isLightBlonde || isAshBlonde || isGeneralBlonde ||
+      isLightBrown || isMediumBrown || isDarkBrown || isBlack || isRed || isAuburn || isGray || isWhiteHair
     );
   }
 
   private isEnhancedEyeColor(r: number, g: number, b: number): boolean {
     const { h, s, l } = this.rgbToHsl(r, g, b);
-    
+
     // Exclude whites of the eye, pupils, and skin
-    const isNotWhite = !(s < 0.15 && l > 0.8);
-    const isNotPupil = l > 0.08;
+    const isNotWhite = !(s < 0.12 && l > 0.85);
+    const isNotPupil = l > 0.05;
     const isNotSkin = !this.isEnhancedSkinColor(r, g, b);
-    
-    // Much more inclusive for eye colors, especially blue eyes
-    const isBlue = (h >= 180 && h <= 270) && s > 0.15 && l > 0.2;
-    const isLightBlue = (b > r && b > g) && (b - Math.max(r, g) > 15) && l > 0.3;
-    const isGrayBlue = (h >= 180 && h <= 240) && s > 0.1 && l > 0.25 && l < 0.7;
-    
-    const isGreen = (h >= 60 && h <= 180) && s > 0.2 && l > 0.2;
-    const isBrown = (h >= 20 && h <= 60) && s > 0.1 && l > 0.1 && l < 0.6;
-    const isDarkBrown = l < 0.3 && s > 0.05;
+
+    // MUCH more aggressive blue eye detection
+    const isBrightBlue = (h >= 200 && h <= 250) && s > 0.3 && l > 0.3;
+    const isLightBlue = (b > r + 10 && b > g + 5) && l > 0.25;
+    const isMediumBlue = (h >= 180 && h <= 270) && s > 0.15 && l > 0.2;
+    const isGrayBlue = (h >= 180 && h <= 240) && s > 0.08 && l > 0.2 && l < 0.75;
+    const isBlueGreen = (h >= 160 && h <= 200) && s > 0.15 && l > 0.2;
+    const isPaleBlue = (b > Math.max(r, g)) && (h >= 180 && h <= 270) && l > 0.4;
+    const isDeepBlue = (h >= 200 && h <= 260) && s > 0.2 && l > 0.15 && l < 0.5;
+
+    // Any pixel where blue is dominant should be considered blue
+    const isBlueDominant = (b > r + 8 && b > g + 5) && (h >= 180 && h <= 300) && s > 0.1;
+
+    const isGreen = (h >= 80 && h <= 160) && s > 0.2 && l > 0.2;
+    const isBrightGreen = (g > r + 10 && g > b + 5) && (h >= 80 && h <= 140) && s > 0.25;
+
+    const isBrown = (h >= 15 && h <= 60) && s > 0.1 && l > 0.1 && l < 0.6;
+    const isLightBrown = (h >= 20 && h <= 50) && s > 0.15 && l > 0.3 && l < 0.65;
+    const isDarkBrown = l < 0.35 && s > 0.05 && (h >= 10 && h <= 70);
+
     const isHazel = (h >= 30 && h <= 120) && s > 0.15 && l > 0.2 && l < 0.6;
-    const isAmber = (h >= 30 && h <= 60) && s > 0.5 && l > 0.3 && l < 0.7;
-    const isGray = s < 0.3 && l > 0.2 && l < 0.7;
-    
-    const hasColorVariation = s > 0.08 || l < 0.4;
-    const isReasonableForEyes = l > 0.05 && l < 0.8;
-    
+    const isAmber = (h >= 30 && h <= 60) && s > 0.4 && l > 0.3 && l < 0.7;
+    const isGray = s < 0.25 && l > 0.2 && l < 0.7;
+
+    const hasColorVariation = s > 0.05 || l < 0.5;
+    const isReasonableForEyes = l > 0.03 && l < 0.85;
+
     return isNotWhite && isNotPupil && isNotSkin && hasColorVariation && isReasonableForEyes && (
-      isBlue || isLightBlue || isGrayBlue || isGreen || isBrown || isDarkBrown || 
-      isHazel || isAmber || isGray
+      isBrightBlue || isLightBlue || isMediumBlue || isGrayBlue || isBlueGreen || isPaleBlue || isDeepBlue || isBlueDominant ||
+      isGreen || isBrightGreen || isBrown || isLightBrown || isDarkBrown || isHazel || isAmber || isGray
     );
   }
 
@@ -690,25 +735,32 @@ class EnhancedFacialFeatureAnalysis {
   private classifyEnhancedHairColor(r: number, g: number, b: number): { description: string; category: "blonde" | "brown" | "black" | "red" | "auburn" | "gray" | "white" | "other" } {
     const { h, s, l } = this.rgbToHsl(r, g, b);
     const brightness = (r + g + b) / 3;
-    
-    // Blonde variations - much more comprehensive
-    if (brightness > 200 && s < 0.3 && (r > g && g > b)) {
+
+    // Much more aggressive blonde detection - prioritize blonde identification
+    if (brightness > 190 && s < 0.35 && (r >= g && g >= b)) {
       return { description: "Platinum Blonde", category: "blonde" };
     }
-    if (brightness > 180 && (r > g && g > b) && s < 0.5) {
+    if (brightness > 160 && (r >= g && g >= b) && s < 0.6) {
       return { description: "Light Blonde", category: "blonde" };
     }
-    if (brightness > 150 && (r > g && g > b) && h >= 30 && h <= 60) {
+    if (brightness > 130 && (r >= g && g >= b) && h >= 25 && h <= 70) {
       return { description: "Golden Blonde", category: "blonde" };
     }
-    if (brightness > 140 && (r > g * 1.1) && (h >= 15 && h <= 45) && s > 0.2) {
+    if (brightness > 120 && (r > g * 1.05) && (h >= 10 && h <= 50) && s > 0.15) {
       return { description: "Strawberry Blonde", category: "blonde" };
     }
-    if (brightness > 120 && (r > g && g > b) && s > 0.3) {
+    if (brightness > 110 && (r >= g && g >= b) && s > 0.2) {
       return { description: "Dirty Blonde", category: "blonde" };
     }
-    if ((r > 160 && g > 130 && b > 90) && (r > g && g > b)) {
+    if ((r > 140 && g > 115 && b > 75) && (r >= g && g >= b)) {
       return { description: "Honey Blonde", category: "blonde" };
+    }
+    if (brightness > 105 && (r >= g && g >= b) && (h >= 30 && h <= 65)) {
+      return { description: "Ash Blonde", category: "blonde" };
+    }
+    // Catch any other light hair that could be blonde
+    if (brightness > 100 && (r >= g && g >= b) && l > 0.4) {
+      return { description: "Light Blonde", category: "blonde" };
     }
     
     // Red hair variations
@@ -745,22 +797,29 @@ class EnhancedFacialFeatureAnalysis {
 
   private classifyEnhancedEyeColor(r: number, g: number, b: number): { description: string; category: "blue" | "green" | "brown" | "hazel" | "gray" | "amber" | "other" } {
     const { h, s, l } = this.rgbToHsl(r, g, b);
-    
-    // Blue eye variations - much more comprehensive
-    if (h >= 200 && h <= 260 && s > 0.3 && l > 0.3) {
+
+    // Much more aggressive blue eye detection - prioritize blue identification
+    if (h >= 200 && h <= 260 && s > 0.25 && l > 0.25) {
       return { description: "Bright Blue", category: "blue" };
     }
-    if (h >= 180 && h <= 240 && s > 0.2 && l > 0.25) {
+    if (h >= 180 && h <= 270 && s > 0.15 && l > 0.2) {
       return { description: "Blue", category: "blue" };
     }
-    if ((b > r && b > g) && (b - Math.max(r, g) > 10) && l > 0.25) {
+    if ((b > r + 5 && b > g) && l > 0.2) {
       return { description: "Light Blue", category: "blue" };
     }
-    if (h >= 180 && h <= 220 && s > 0.1 && l > 0.2 && l < 0.6) {
+    if (h >= 180 && h <= 240 && s > 0.08 && l > 0.15 && l < 0.7) {
       return { description: "Blue-Gray", category: "blue" };
     }
-    if (h >= 160 && h <= 200 && s > 0.2) {
+    if (h >= 160 && h <= 200 && s > 0.15) {
       return { description: "Blue-Green", category: "blue" };
+    }
+    if ((b > Math.max(r, g)) && (h >= 180 && h <= 300) && s > 0.1) {
+      return { description: "Deep Blue", category: "blue" };
+    }
+    // Catch any pixel where blue is dominant
+    if (b > r + 3 && b > g + 2 && l > 0.15) {
+      return { description: "Blue", category: "blue" };
     }
     
     // Green eye variations
