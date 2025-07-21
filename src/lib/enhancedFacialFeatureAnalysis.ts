@@ -118,6 +118,192 @@ class EnhancedFacialFeatureAnalysis {
   }
 
   /**
+   * Analyze image without face detection using advanced color sampling
+   */
+  private async analyzeImageWithoutFaceDetection(imageInput: string | File | Blob): Promise<EnhancedFacialFeatureColors> {
+    try {
+      const img = await this.loadImage(imageInput);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error("Could not get canvas context");
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+
+      // Smart region-based analysis without face landmarks
+      const skinToneResult = this.analyzeImageSkinTone(ctx, img.width, img.height);
+      const hairColorResult = this.analyzeImageHairColor(ctx, img.width, img.height);
+      const eyeColorResult = this.analyzeImageEyeColor(ctx, img.width, img.height);
+
+      const overallConfidence = (skinToneResult.confidence + hairColorResult.confidence + eyeColorResult.confidence) / 3;
+
+      return {
+        skinTone: skinToneResult,
+        hairColor: hairColorResult,
+        eyeColor: eyeColorResult,
+        overallConfidence: parseFloat((overallConfidence * 0.8).toFixed(2)), // Slightly lower confidence without face detection
+        detectedFeatures: true,
+        debugInfo: {
+          sampledPixels: {
+            skin: skinToneResult.confidence * 400,
+            hair: hairColorResult.confidence * 300,
+            eyes: eyeColorResult.confidence * 100
+          },
+          regions: {
+            hairRegions: 4,
+            skinRegions: 5,
+            eyeRegions: 2
+          }
+        }
+      };
+    } catch (error) {
+      console.error("Image analysis without face detection failed:", error);
+      return this.getFallbackFeatures();
+    }
+  }
+
+  /**
+   * Analyze skin tone from image regions without face landmarks
+   */
+  private analyzeImageSkinTone(ctx: CanvasRenderingContext2D, width: number, height: number) {
+    // Sample from center and common face regions
+    const regions = [
+      // Center face region
+      { x: width * 0.3, y: height * 0.3, w: width * 0.4, h: height * 0.4 },
+      // Upper center (forehead area)
+      { x: width * 0.35, y: height * 0.2, w: width * 0.3, h: height * 0.2 },
+      // Left cheek area
+      { x: width * 0.2, y: height * 0.4, w: width * 0.25, h: height * 0.25 },
+      // Right cheek area
+      { x: width * 0.55, y: height * 0.4, w: width * 0.25, h: height * 0.25 },
+      // Chin area
+      { x: width * 0.4, y: height * 0.6, w: width * 0.2, h: height * 0.15 }
+    ];
+
+    let allValidPixels: Array<{ r: number, g: number, b: number }> = [];
+
+    regions.forEach(region => {
+      const pixels = this.getPixelsInRect(ctx, region);
+      const validPixels = pixels.filter(p => this.isEnhancedSkinColor(p.r, p.g, p.b));
+      allValidPixels = allValidPixels.concat(validPixels);
+    });
+
+    if (allValidPixels.length < 30) {
+      return {
+        color: "#E4B48C",
+        lightness: "light" as const,
+        undertone: "neutral" as const,
+        confidence: 0.4,
+        description: "Light skin with neutral undertones"
+      };
+    }
+
+    const dominantColor = this.findEnhancedDominantColor(allValidPixels);
+    const colorHex = this.rgbToHex(dominantColor.r, dominantColor.g, dominantColor.b);
+    const lightness = this.classifyEnhancedSkinLightness(dominantColor.r, dominantColor.g, dominantColor.b);
+    const undertone = this.classifyEnhancedUndertone(dominantColor.r, dominantColor.g, dominantColor.b);
+
+    return {
+      color: colorHex,
+      lightness,
+      undertone,
+      confidence: Math.min(0.85, 0.6 + (allValidPixels.length / 400)),
+      description: this.getSkinDescription(lightness, undertone)
+    };
+  }
+
+  /**
+   * Analyze hair color from image regions without face landmarks
+   */
+  private analyzeImageHairColor(ctx: CanvasRenderingContext2D, width: number, height: number) {
+    // Hair detection regions - top and sides of image
+    const hairRegions = [
+      // Top region (main hair area)
+      { x: width * 0.1, y: 0, w: width * 0.8, h: height * 0.4 },
+      // Left side
+      { x: 0, y: height * 0.1, w: width * 0.3, h: height * 0.6 },
+      // Right side
+      { x: width * 0.7, y: height * 0.1, w: width * 0.3, h: height * 0.6 },
+      // Top-left corner
+      { x: 0, y: 0, w: width * 0.4, h: height * 0.3 },
+      // Top-right corner
+      { x: width * 0.6, y: 0, w: width * 0.4, h: height * 0.3 }
+    ];
+
+    let allValidPixels: Array<{ r: number, g: number, b: number }> = [];
+
+    hairRegions.forEach(region => {
+      const pixels = this.getPixelsInRect(ctx, region);
+      const validPixels = pixels.filter(p => this.isEnhancedHairColor(p.r, p.g, p.b));
+      allValidPixels = allValidPixels.concat(validPixels);
+    });
+
+    if (allValidPixels.length < 40) {
+      return {
+        color: "#8B4513",
+        description: "Medium Brown",
+        category: "brown" as const,
+        confidence: 0.3
+      };
+    }
+
+    const dominantColor = this.findEnhancedDominantColor(allValidPixels);
+    const colorHex = this.rgbToHex(dominantColor.r, dominantColor.g, dominantColor.b);
+    const { description, category } = this.classifyEnhancedHairColor(dominantColor.r, dominantColor.g, dominantColor.b);
+
+    return {
+      color: colorHex,
+      description,
+      category,
+      confidence: Math.min(0.85, 0.5 + (allValidPixels.length / 300))
+    };
+  }
+
+  /**
+   * Analyze eye color from image regions without face landmarks
+   */
+  private analyzeImageEyeColor(ctx: CanvasRenderingContext2D, width: number, height: number) {
+    // Eye regions - typical eye locations in portraits
+    const eyeRegions = [
+      // Left eye area
+      { x: width * 0.25, y: height * 0.35, w: width * 0.15, h: height * 0.1 },
+      // Right eye area
+      { x: width * 0.6, y: height * 0.35, w: width * 0.15, h: height * 0.1 },
+      // Center eye region (in case person is turned)
+      { x: width * 0.4, y: height * 0.35, w: width * 0.2, h: height * 0.12 }
+    ];
+
+    let allValidPixels: Array<{ r: number, g: number, b: number }> = [];
+
+    eyeRegions.forEach(region => {
+      const pixels = this.getPixelsInRect(ctx, region);
+      const validPixels = pixels.filter(p => this.isEnhancedEyeColor(p.r, p.g, p.b));
+      allValidPixels = allValidPixels.concat(validPixels);
+    });
+
+    if (allValidPixels.length < 10) {
+      return {
+        color: "#8B4513",
+        description: "Brown",
+        category: "brown" as const,
+        confidence: 0.3
+      };
+    }
+
+    const dominantColor = this.findEnhancedDominantColor(allValidPixels);
+    const colorHex = this.rgbToHex(dominantColor.r, dominantColor.g, dominantColor.b);
+    const { description, category } = this.classifyEnhancedEyeColor(dominantColor.r, dominantColor.g, dominantColor.b);
+
+    return {
+      color: colorHex,
+      description,
+      category,
+      confidence: Math.min(0.80, 0.5 + (allValidPixels.length / 80))
+    };
+  }
+
+  /**
    * Enhanced skin tone analysis with broader range and better sampling
    */
   private analyzeEnhancedSkinTone(ctx: CanvasRenderingContext2D, landmarks: faceapi.FaceLandmarks68) {
