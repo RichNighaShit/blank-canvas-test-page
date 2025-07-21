@@ -19,9 +19,9 @@ export interface ModelLoadResult {
  */
 export async function loadFaceApiModels(): Promise<ModelLoadResult> {
   const modelSources = [
-    '/models',
-    'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights',
     'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@latest/model',
+    'https://raw.githubusercontent.com/vladmandic/face-api/master/model',
+    '/models',
   ];
 
   const requiredModels = [
@@ -32,21 +32,22 @@ export async function loadFaceApiModels(): Promise<ModelLoadResult> {
   for (const source of modelSources) {
     try {
       console.log(`🔄 Attempting to load models from: ${source}`);
-      
-      const loadPromises = requiredModels.map(model => 
-        model.loader.loadFromUri(source)
-      );
-      
-      await Promise.all(loadPromises);
-      
-      // Verify models are actually loaded
+
+      // Load models one by one to better handle individual failures
       const loadedModels = [];
       for (const model of requiredModels) {
-        if (model.loader.params !== undefined) {
-          loadedModels.push(model.name);
+        try {
+          await model.loader.loadFromUri(source);
+          if (model.loader.params !== undefined) {
+            loadedModels.push(model.name);
+            console.log(`✅ Loaded ${model.name} from ${source}`);
+          }
+        } catch (modelError) {
+          console.warn(`⚠️ Failed to load ${model.name} from ${source}:`, modelError);
+          throw modelError; // Re-throw to try next source
         }
       }
-      
+
       if (loadedModels.length === requiredModels.length) {
         console.log(`✅ All models loaded successfully from: ${source}`);
         return {
@@ -58,7 +59,7 @@ export async function loadFaceApiModels(): Promise<ModelLoadResult> {
       } else {
         throw new Error(`Only ${loadedModels.length}/${requiredModels.length} models loaded`);
       }
-      
+
     } catch (error) {
       console.warn(`⚠️ Failed to load from ${source}:`, error);
       continue;
