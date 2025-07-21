@@ -996,6 +996,306 @@ class EnhancedFacialFeatureAnalysis {
     return inside;
   }
 
+  // === LIGHTING ANALYSIS AND NORMALIZATION METHODS ===
+
+  /**
+   * Analyze overall lighting conditions in the image
+   */
+  private analyzeLightingConditions(ctx: CanvasRenderingContext2D, width: number, height: number) {
+    // Sample multiple regions to understand lighting
+    const sampleRegions = [
+      { x: 0, y: 0, width: width * 0.5, height: height * 0.5 }, // Top-left
+      { x: width * 0.5, y: 0, width: width * 0.5, height: height * 0.5 }, // Top-right
+      { x: 0, y: height * 0.5, width: width * 0.5, height: height * 0.5 }, // Bottom-left
+      { x: width * 0.5, y: height * 0.5, width: width * 0.5, height: height * 0.5 }, // Bottom-right
+      { x: width * 0.25, y: height * 0.25, width: width * 0.5, height: height * 0.5 } // Center
+    ];
+
+    let totalBrightness = 0;
+    let totalContrast = 0;
+    let totalSaturation = 0;
+    let warmCoolBias = 0;
+    let regionCount = 0;
+
+    sampleRegions.forEach(region => {
+      const pixels = this.getPixelsInRect(ctx, region).slice(0, 100); // Sample 100 pixels max per region
+
+      if (pixels.length > 0) {
+        let regionBrightness = 0;
+        let regionSaturation = 0;
+        let minBrightness = 255;
+        let maxBrightness = 0;
+
+        pixels.forEach(pixel => {
+          const brightness = (pixel.r * 299 + pixel.g * 587 + pixel.b * 114) / 1000;
+          const { s } = this.rgbToHsl(pixel.r, pixel.g, pixel.b);
+
+          regionBrightness += brightness;
+          regionSaturation += s;
+          minBrightness = Math.min(minBrightness, brightness);
+          maxBrightness = Math.max(maxBrightness, brightness);
+
+          // Detect warm/cool bias
+          if (pixel.r > pixel.b + 10) warmCoolBias += 1; // Warm
+          else if (pixel.b > pixel.r + 10) warmCoolBias -= 1; // Cool
+        });
+
+        totalBrightness += regionBrightness / pixels.length;
+        totalSaturation += regionSaturation / pixels.length;
+        totalContrast += maxBrightness - minBrightness;
+        regionCount++;
+      }
+    });
+
+    const avgBrightness = totalBrightness / regionCount;
+    const avgContrast = totalContrast / regionCount;
+    const avgSaturation = totalSaturation / regionCount;
+
+    return {
+      brightness: avgBrightness,
+      contrast: avgContrast,
+      saturation: avgSaturation,
+      warmCoolBias: warmCoolBias / (regionCount * 100),
+      isLowLight: avgBrightness < 80,
+      isOverexposed: avgBrightness > 200,
+      isLowContrast: avgContrast < 50,
+      isDesaturated: avgSaturation < 0.3
+    };
+  }
+
+  /**
+   * Normalize colors based on lighting conditions
+   */
+  private normalizeForLighting(pixels: Array<{ r: number, g: number, b: number }>, lightingConditions: any): Array<{ r: number, g: number, b: number }> {
+    return pixels.map(pixel => {
+      let { r, g, b } = pixel;
+
+      // Brightness adjustment
+      if (lightingConditions.isLowLight) {
+        // Boost shadows, preserve midtones
+        const factor = 1.3;
+        r = Math.min(255, r * factor);
+        g = Math.min(255, g * factor);
+        b = Math.min(255, b * factor);
+      } else if (lightingConditions.isOverexposed) {
+        // Reduce highlights
+        const factor = 0.8;
+        r = Math.max(0, r * factor);
+        g = Math.max(0, g * factor);
+        b = Math.max(0, b * factor);
+      }
+
+      // Contrast enhancement for low contrast images
+      if (lightingConditions.isLowContrast) {
+        const factor = 1.2;
+        const midpoint = 128;
+        r = Math.min(255, Math.max(0, midpoint + (r - midpoint) * factor));
+        g = Math.min(255, Math.max(0, midpoint + (g - midpoint) * factor));
+        b = Math.min(255, Math.max(0, midpoint + (b - midpoint) * factor));
+      }
+
+      // White balance correction
+      if (Math.abs(lightingConditions.warmCoolBias) > 0.1) {
+        if (lightingConditions.warmCoolBias > 0) {
+          // Too warm, reduce red/yellow
+          r = Math.max(0, r * 0.95);
+          b = Math.min(255, b * 1.05);
+        } else {
+          // Too cool, reduce blue
+          b = Math.max(0, b * 0.95);
+          r = Math.min(255, r * 1.05);
+        }
+      }
+
+      // Saturation boost for desaturated images
+      if (lightingConditions.isDesaturated) {
+        const { h, s, l } = this.rgbToHsl(r, g, b);
+        const boostedS = Math.min(1, s * 1.3);
+        const rgb = this.hslToRgb(h, boostedS, l);
+        r = rgb.r;
+        g = rgb.g;
+        b = rgb.b;
+      }
+
+      return { r: Math.round(r), g: Math.round(g), b: Math.round(b) };
+    });
+  }
+
+  /**
+   * Get broader skin sample for difficult lighting conditions
+   */
+  private getBroadSkinSample(ctx: CanvasRenderingContext2D, width: number, height: number, lightingConditions: any): Array<{ r: number, g: number, b: number, weight: number }> {
+    // Use more aggressive sampling for poor lighting
+    const broadRegions = [
+      { x: width * 0.1, y: height * 0.1, width: width * 0.8, height: height * 0.8 },
+      { x: width * 0.2, y: height * 0.2, width: width * 0.6, height: height * 0.6 },
+      { x: width * 0.25, y: height * 0.15, width: width * 0.5, height: height * 0.7 }
+    ];
+
+    let allPixels: Array<{ r: number, g: number, b: number, weight: number }> = [];
+
+    broadRegions.forEach((region, index) => {
+      const pixels = this.getPixelsInRect(ctx, region);
+      const normalizedPixels = this.normalizeForLighting(pixels, lightingConditions);
+
+      // Use more relaxed skin detection for poor lighting
+      const validPixels = normalizedPixels
+        .filter(p => this.isRelaxedSkinColor(p.r, p.g, p.b, lightingConditions))
+        .map(p => ({ ...p, weight: 3 - index })); // Higher weight for more central regions
+
+      allPixels = allPixels.concat(validPixels);
+    });
+
+    return allPixels.slice(0, 200); // Limit to prevent performance issues
+  }
+
+  /**
+   * More relaxed skin color detection for poor lighting
+   */
+  private isRelaxedSkinColor(r: number, g: number, b: number, lightingConditions: any): boolean {
+    const { h, s, l } = this.rgbToHsl(r, g, b);
+
+    // More flexible ranges for poor lighting
+    const isInSkinHueRange = (h >= 0 && h <= 70) || (h >= 300 && h <= 360);
+    const hasReasonableSaturation = s >= 0.02 && s <= 0.95;
+    const hasReasonableLightness = l >= 0.1 && l <= 0.95;
+
+    // Adjust criteria based on lighting conditions
+    if (lightingConditions.isLowLight) {
+      // More lenient for dark images
+      return isInSkinHueRange && hasReasonableSaturation && l >= 0.05;
+    }
+
+    if (lightingConditions.isOverexposed) {
+      // More lenient for bright images
+      return isInSkinHueRange && hasReasonableSaturation && l <= 0.98;
+    }
+
+    // Standard skin detection with relaxed parameters
+    const rGreaterThanG = r >= g * 0.8;
+    const gGreaterThanB = g >= b * 0.7;
+    const notTooSaturated = s < 0.9;
+
+    return isInSkinHueRange && hasReasonableSaturation && hasReasonableLightness &&
+           rGreaterThanG && gGreaterThanB && notTooSaturated;
+  }
+
+  /**
+   * Find dominant color considering pixel weights
+   */
+  private findWeightedDominantColor(pixels: Array<{ r: number, g: number, b: number, weight: number }>): { r: number, g: number, b: number } {
+    if (pixels.length === 0) return { r: 0, g: 0, b: 0 };
+
+    // Use weighted k-means clustering
+    const clusters = this.weightedKMeansColor(pixels, 3);
+
+    // Return the cluster with the highest weighted count
+    return clusters.reduce((a, b) => a.weightedCount > b.weightedCount ? a : b);
+  }
+
+  /**
+   * Weighted k-means clustering for color detection
+   */
+  private weightedKMeansColor(pixels: Array<{ r: number, g: number, b: number, weight: number }>, k: number): Array<{ r: number, g: number, b: number, weightedCount: number }> {
+    if (pixels.length === 0) return [];
+
+    // Initialize centroids
+    let centroids = [];
+    for (let i = 0; i < k; i++) {
+      centroids.push({
+        r: Math.random() * 255,
+        g: Math.random() * 255,
+        b: Math.random() * 255,
+        weightedCount: 0
+      });
+    }
+
+    // Run iterations
+    for (let iter = 0; iter < 8; iter++) {
+      const clusters: Array<Array<{ r: number, g: number, b: number, weight: number }>> = Array.from({ length: k }, () => []);
+
+      // Assign pixels to nearest centroid
+      pixels.forEach(pixel => {
+        let minDistance = Infinity;
+        let nearestCluster = 0;
+
+        centroids.forEach((centroid, index) => {
+          const distance = Math.sqrt(
+            Math.pow(pixel.r - centroid.r, 2) +
+            Math.pow(pixel.g - centroid.g, 2) +
+            Math.pow(pixel.b - centroid.b, 2)
+          );
+          if (distance < minDistance) {
+            minDistance = distance;
+            nearestCluster = index;
+          }
+        });
+
+        clusters[nearestCluster].push(pixel);
+      });
+
+      // Update centroids with weighted averages
+      centroids = clusters.map(cluster => {
+        if (cluster.length === 0) {
+          return { r: 0, g: 0, b: 0, weightedCount: 0 };
+        }
+
+        let totalWeight = 0;
+        let weightedR = 0, weightedG = 0, weightedB = 0;
+
+        cluster.forEach(pixel => {
+          totalWeight += pixel.weight;
+          weightedR += pixel.r * pixel.weight;
+          weightedG += pixel.g * pixel.weight;
+          weightedB += pixel.b * pixel.weight;
+        });
+
+        return {
+          r: Math.round(weightedR / totalWeight),
+          g: Math.round(weightedG / totalWeight),
+          b: Math.round(weightedB / totalWeight),
+          weightedCount: totalWeight
+        };
+      });
+    }
+
+    return centroids.filter(c => c.weightedCount > 0);
+  }
+
+  /**
+   * Convert HSL to RGB
+   */
+  private hslToRgb(h: number, s: number, l: number): { r: number, g: number, b: number } {
+    h = h / 360;
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+    const m = l - c / 2;
+
+    let r = 0, g = 0, b = 0;
+
+    if (h < 1/6) {
+      r = c; g = x; b = 0;
+    } else if (h < 2/6) {
+      r = x; g = c; b = 0;
+    } else if (h < 3/6) {
+      r = 0; g = c; b = x;
+    } else if (h < 4/6) {
+      r = 0; g = x; b = c;
+    } else if (h < 5/6) {
+      r = x; g = 0; b = c;
+    } else {
+      r = c; g = 0; b = x;
+    }
+
+    return {
+      r: Math.round((r + m) * 255),
+      g: Math.round((g + m) * 255),
+      b: Math.round((b + m) * 255)
+    };
+  }
+
+  // === ORIGINAL UTILITY METHODS ===
+
   private rgbToHsl(r: number, g: number, blue: number) {
     r /= 255; g /= 255; blue /= 255;
     const max = Math.max(r, g, blue), min = Math.min(r, g, blue);
