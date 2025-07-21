@@ -548,3 +548,4 @@ class ImprovedFacialFeatureAnalysis {
 }
 
 export const improvedFacialFeatureAnalysis = new ImprovedFacialFeatureAnalysis();
+export const accurateFacialFeatureAnalysis = improvedFacialFeatureAnalysis;
