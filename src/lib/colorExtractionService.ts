@@ -47,7 +47,7 @@ interface ColorPoint {
   b: number;
   l: number;
   a: number;
-  b: number;
+  bLab: number;
   count: number;
   hex: string;
 }
