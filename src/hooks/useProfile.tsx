@@ -16,13 +16,36 @@ interface Profile {
   face_photo_url?: string;
 }
 
-// Add a simple in-memory cache for profile by user id
+// Add a simple in-memory cache for profile by user id with global invalidation
 const profileCache: { [userId: string]: Profile } = {};
+const profileCacheListeners: { [userId: string]: (() => void)[] } = {};
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  // Subscribe to global cache invalidation
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const updateProfile = () => {
+      if (profileCache[user.id]) {
+        setProfile(profileCache[user.id]);
+      }
+    };
+
+    if (!profileCacheListeners[user.id]) {
+      profileCacheListeners[user.id] = [];
+    }
+    profileCacheListeners[user.id].push(updateProfile);
+
+    return () => {
+      if (profileCacheListeners[user.id]) {
+        profileCacheListeners[user.id] = profileCacheListeners[user.id].filter(fn => fn !== updateProfile);
+      }
+    };
+  }, [user?.id]);
 
   const fetchProfile = async (forceRefresh = false) => {
     if (!user) {
@@ -77,6 +100,11 @@ export const useProfile = () => {
         console.log("Profile fetched successfully:", data);
         setProfile(data);
         profileCache[user.id] = data;
+
+        // Notify all listeners of the profile update
+        if (profileCacheListeners[user.id]) {
+          profileCacheListeners[user.id].forEach(fn => fn());
+        }
       }
     } catch (error) {
       console.error("Unexpected error fetching profile:", error);
@@ -95,6 +123,14 @@ export const useProfile = () => {
       delete profileCache[user.id];
     }
     await fetchProfile(true);
+  };
+
+  // Global function to invalidate cache for all components
+  const invalidateGlobalCache = (userId: string) => {
+    delete profileCache[userId];
+    if (profileCacheListeners[userId]) {
+      profileCacheListeners[userId].forEach(fn => fn());
+    }
   };
 
   return { profile, loading, refetch };
