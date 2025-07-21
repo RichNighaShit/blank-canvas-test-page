@@ -164,21 +164,53 @@ class ColorExtractionService {
         }
       }
 
-      // Advanced color extraction with CIELAB analysis
-      const extractedColors = await this.extractColorsAdvanced(croppedImage, {
-        colorCount,
-        quality,
-        minColorDistance,
-        includeSkinTones,
-      });
+      // Advanced color extraction with facial feature priority
+      let extractedColors: string[];
+      let confidence: number;
 
-      // Enhanced confidence calculation
-      const confidence = this.calculateAdvancedConfidence(
-        extractedColors,
-        faceDetected,
-        img.width,
-        img.height,
-      );
+      if (enhancedFeatures && enhancedFeatures.detectedFeatures && enhancedFeatures.overallConfidence > 0.4) {
+        // Prioritize facial feature colors for high-confidence detections
+        console.log('🎨 Using facial feature colors as primary palette...');
+
+        const facialColors = [
+          enhancedFeatures.skinTone.color,
+          enhancedFeatures.hairColor.color,
+          enhancedFeatures.eyeColor.color
+        ];
+
+        // Extract additional complementary colors from the image
+        const additionalColors = await this.extractColorsAdvanced(croppedImage, {
+          colorCount: colorCount - 3,
+          quality,
+          minColorDistance,
+          includeSkinTones: false, // We already have facial feature colors
+        });
+
+        // Combine facial features with complementary colors
+        extractedColors = [...facialColors, ...additionalColors].slice(0, colorCount);
+
+        // Higher confidence when using actual facial feature detection
+        confidence = Math.min(0.95, 0.7 + (enhancedFeatures.overallConfidence * 0.25));
+
+        console.log(`✅ Facial feature-based palette created with ${Math.round(confidence * 100)}% confidence`);
+      } else {
+        // Standard color extraction for low-confidence or failed facial detection
+        console.log('🎨 Using standard color extraction...');
+
+        extractedColors = await this.extractColorsAdvanced(croppedImage, {
+          colorCount,
+          quality,
+          minColorDistance,
+          includeSkinTones,
+        });
+
+        confidence = this.calculateAdvancedConfidence(
+          extractedColors,
+          faceDetected,
+          img.width,
+          img.height,
+        );
+      }
 
       // Color harmony analysis
       const colorHarmony = this.analyzeColorHarmony(extractedColors);
