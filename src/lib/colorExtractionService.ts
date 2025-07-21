@@ -777,7 +777,7 @@ class ColorExtractionService {
   private isInSkinToneRange(pixel: ColorPoint, range: SkinToneRange): boolean {
     return pixel.l >= range.labRange.l[0] && pixel.l <= range.labRange.l[1] &&
            pixel.a >= range.labRange.a[0] && pixel.a <= range.labRange.a[1] &&
-           pixel.b >= range.labRange.b[0] && pixel.b <= range.labRange.b[1];
+           pixel.bLab >= range.labRange.b[0] && pixel.bLab <= range.labRange.b[1];
   }
 
   /**
