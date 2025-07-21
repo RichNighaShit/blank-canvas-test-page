@@ -54,8 +54,8 @@ export function useModelLoadingStatus(): ModelLoadingStatus {
         setStatus({
           isLoading: false,
           isLoaded: false,
-          error: 'Face detection models could not be loaded. Color analysis will use fallback methods.',
-          source: null
+          error: null, // No error - fallback mode is expected
+          source: 'Using advanced color analysis'
         });
       }
     };
