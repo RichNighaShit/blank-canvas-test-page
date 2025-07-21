@@ -150,14 +150,8 @@ class FaceApiInitializer {
    * Check if all required models are loaded
    */
   areModelsLoaded(): boolean {
-    try {
-      return (
-        faceapi.nets.tinyFaceDetector.params !== undefined &&
-        faceapi.nets.faceLandmark68Net.params !== undefined
-      );
-    } catch {
-      return false;
-    }
+    // Always return false since we've disabled model loading
+    return false;
   }
 
   /**
@@ -170,10 +164,10 @@ class FaceApiInitializer {
     faceLandmark68Net: boolean;
   } {
     return {
-      initialized: this.initialized,
-      modelsLoaded: this.areModelsLoaded(),
-      tinyFaceDetector: this.isModelLoaded(faceapi.nets.tinyFaceDetector),
-      faceLandmark68Net: this.isModelLoaded(faceapi.nets.faceLandmark68Net)
+      initialized: false,
+      modelsLoaded: false,
+      tinyFaceDetector: false,
+      faceLandmark68Net: false
     };
   }
 
