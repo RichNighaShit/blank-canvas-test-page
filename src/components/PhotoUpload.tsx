@@ -8,7 +8,7 @@ import { useRef } from "react";
 import { Palette } from "lucide-react";
 
 import neutralBody from "@/assets/neutral-body.png";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, invalidateProfileCache } from "@/hooks/useProfile";
 import { accurateFacialFeatureAnalysis, FacialFeatureColors } from "@/lib/accurateFacialFeatureAnalysis";
 
 // Updated interface for facial color analysis
@@ -702,7 +702,8 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
             });
           } else {
             console.log("✅ Colors successfully saved to profile!");
-            // Force profile refetch to show updated colors immediately
+            // Force global profile cache invalidation to update all components
+            invalidateProfileCache(user.id);
             await refetchProfile();
             toast({
               title: "🎨 Colors saved!",
@@ -803,7 +804,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
             </div>
             <div className="flex-1">
               <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-1">
-                🎨 New Feature: Your Personal Color Palette!
+                ���� New Feature: Your Personal Color Palette!
               </h4>
               <p className="text-sm text-purple-700 dark:text-purple-200 mb-3">
                 Re-upload your profile picture to automatically extract your
