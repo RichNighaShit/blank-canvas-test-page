@@ -125,13 +125,23 @@ export const useProfile = () => {
     await fetchProfile(true);
   };
 
-  // Global function to invalidate cache for all components
-  const invalidateGlobalCache = (userId: string) => {
+  return { profile, loading, refetch };
+};
+
+// Export global cache invalidation function
+export const invalidateProfileCache = (userId: string) => {
+  delete profileCache[userId];
+  if (profileCacheListeners[userId]) {
+    profileCacheListeners[userId].forEach(fn => fn());
+  }
+};
+
+// Export function to clear all profile caches
+export const clearAllProfileCaches = () => {
+  Object.keys(profileCache).forEach(userId => {
     delete profileCache[userId];
     if (profileCacheListeners[userId]) {
       profileCacheListeners[userId].forEach(fn => fn());
     }
-  };
-
-  return { profile, loading, refetch };
+  });
 };
