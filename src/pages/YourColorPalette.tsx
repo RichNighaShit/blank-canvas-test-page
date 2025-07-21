@@ -32,6 +32,7 @@ const YourColorPalette = () => {
   const { toast } = useToast();
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [isRegeneratingColors, setIsRegeneratingColors] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -106,6 +107,25 @@ const YourColorPalette = () => {
       title: "Palette downloaded!",
       description: "Your color palette has been saved as JSON",
     });
+  };
+
+  const handleRefreshPalette = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+      toast({
+        title: "Palette refreshed!",
+        description: "Your color palette has been updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Refresh failed",
+        description: "Unable to refresh your palette",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleRegenerateColors = async () => {
