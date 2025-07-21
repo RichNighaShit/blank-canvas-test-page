@@ -170,15 +170,15 @@ class EnhancedFacialFeatureAnalysis {
     // Sample from center and common face regions
     const regions = [
       // Center face region
-      { x: width * 0.3, y: height * 0.3, w: width * 0.4, h: height * 0.4 },
+      { x: width * 0.3, y: height * 0.3, width: width * 0.4, height: height * 0.4 },
       // Upper center (forehead area)
-      { x: width * 0.35, y: height * 0.2, w: width * 0.3, h: height * 0.2 },
+      { x: width * 0.35, y: height * 0.2, width: width * 0.3, height: height * 0.2 },
       // Left cheek area
-      { x: width * 0.2, y: height * 0.4, w: width * 0.25, h: height * 0.25 },
+      { x: width * 0.2, y: height * 0.4, width: width * 0.25, height: height * 0.25 },
       // Right cheek area
-      { x: width * 0.55, y: height * 0.4, w: width * 0.25, h: height * 0.25 },
+      { x: width * 0.55, y: height * 0.4, width: width * 0.25, height: height * 0.25 },
       // Chin area
-      { x: width * 0.4, y: height * 0.6, w: width * 0.2, h: height * 0.15 }
+      { x: width * 0.4, y: height * 0.6, width: width * 0.2, height: height * 0.15 }
     ];
 
     let allValidPixels: Array<{ r: number, g: number, b: number }> = [];
@@ -220,15 +220,15 @@ class EnhancedFacialFeatureAnalysis {
     // Hair detection regions - top and sides of image
     const hairRegions = [
       // Top region (main hair area)
-      { x: width * 0.1, y: 0, w: width * 0.8, h: height * 0.4 },
+      { x: width * 0.1, y: 0, width: width * 0.8, height: height * 0.4 },
       // Left side
-      { x: 0, y: height * 0.1, w: width * 0.3, h: height * 0.6 },
+      { x: 0, y: height * 0.1, width: width * 0.3, height: height * 0.6 },
       // Right side
-      { x: width * 0.7, y: height * 0.1, w: width * 0.3, h: height * 0.6 },
+      { x: width * 0.7, y: height * 0.1, width: width * 0.3, height: height * 0.6 },
       // Top-left corner
-      { x: 0, y: 0, w: width * 0.4, h: height * 0.3 },
+      { x: 0, y: 0, width: width * 0.4, height: height * 0.3 },
       // Top-right corner
-      { x: width * 0.6, y: 0, w: width * 0.4, h: height * 0.3 }
+      { x: width * 0.6, y: 0, width: width * 0.4, height: height * 0.3 }
     ];
 
     let allValidPixels: Array<{ r: number, g: number, b: number }> = [];
@@ -267,11 +267,11 @@ class EnhancedFacialFeatureAnalysis {
     // Eye regions - typical eye locations in portraits
     const eyeRegions = [
       // Left eye area
-      { x: width * 0.25, y: height * 0.35, w: width * 0.15, h: height * 0.1 },
+      { x: width * 0.25, y: height * 0.35, width: width * 0.15, height: height * 0.1 },
       // Right eye area
-      { x: width * 0.6, y: height * 0.35, w: width * 0.15, h: height * 0.1 },
+      { x: width * 0.6, y: height * 0.35, width: width * 0.15, height: height * 0.1 },
       // Center eye region (in case person is turned)
-      { x: width * 0.4, y: height * 0.35, w: width * 0.2, h: height * 0.12 }
+      { x: width * 0.4, y: height * 0.35, width: width * 0.2, height: height * 0.12 }
     ];
 
     let allValidPixels: Array<{ r: number, g: number, b: number }> = [];
