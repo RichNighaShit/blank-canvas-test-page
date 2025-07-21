@@ -100,14 +100,20 @@ class ColorExtractionService {
   ];
 
   /**
-   * Initialize face-api.js models with fallback sources
+   * Initialize face-api.js models (currently disabled)
    */
   async initializeFaceAPI(): Promise<void> {
     if (this.faceApiInitialized) return;
 
+    // Temporarily disable face-api model loading to avoid errors
+    console.log("ℹ️ Face-API models disabled - using advanced color extraction without face detection");
+    this.faceApiInitialized = false;
+
+    // TODO: Re-enable when model files are properly configured
+    /*
     const modelSources = [
-      this.modelBasePath,  // Local models first
-      'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights', // CDN fallback
+      this.modelBasePath,
+      'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights',
     ];
 
     for (const modelPath of modelSources) {
@@ -129,6 +135,7 @@ class ColorExtractionService {
     }
 
     console.error("❌ Failed to load Face-API models from all sources. Face detection disabled.");
+    */
   }
 
   /**
