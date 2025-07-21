@@ -9,14 +9,14 @@ import { Palette } from "lucide-react";
 
 import neutralBody from "@/assets/neutral-body.png";
 import { useProfile, invalidateProfileCache } from "@/hooks/useProfile";
-import { accurateFacialFeatureAnalysis, FacialFeatureColors } from "@/lib/accurateFacialFeatureAnalysis";
+import { enhancedFacialFeatureAnalysis, EnhancedFacialFeatureColors } from "@/lib/enhancedFacialFeatureAnalysis";
 
 // Updated interface for facial color analysis
 interface ColorAnalysisResult {
   colors: string[];
   confidence: number;
   source: "facial-analysis" | "fallback";
-  facialFeatures?: FacialFeatureColors;
+  facialFeatures?: EnhancedFacialFeatureColors;
   metadata: {
     faceDetected: boolean;
     colorCount: number;
@@ -134,8 +134,8 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
     try {
       console.log("🎨 Starting facial color analysis...");
 
-                        // Use the accurate facial feature analysis service
-      const facialFeatures = await accurateFacialFeatureAnalysis.detectFacialFeatureColors(imageFile);
+                        // Use the enhanced facial feature analysis service
+      const facialFeatures = await enhancedFacialFeatureAnalysis.detectFacialFeatureColors(imageFile);
 
       console.log("🎨 Facial feature analysis complete:", facialFeatures);
 
@@ -804,7 +804,7 @@ export const PhotoUpload = ({ onAnalysisComplete }: PhotoUploadProps) => {
             </div>
             <div className="flex-1">
               <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-1">
-                ���� New Feature: Your Personal Color Palette!
+                🎨 New Feature: Your Personal Color Palette!
               </h4>
               <p className="text-sm text-purple-700 dark:text-purple-200 mb-3">
                 Re-upload your profile picture to automatically extract your
