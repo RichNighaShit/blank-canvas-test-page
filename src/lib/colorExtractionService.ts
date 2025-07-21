@@ -606,21 +606,21 @@ class ColorExtractionService {
   /**
    * Convert RGB to CIELAB color space
    */
-  private rgbToLab(r: number, g: number, b: number): { l: number; a: number; b: number } {
+  private rgbToLab(r: number, g: number, blue: number): { l: number; a: number; b: number } {
     // Convert RGB to XYZ
-    const xyz = this.rgbToXyz(r, g, b);
-    
+    const xyz = this.rgbToXyz(r, g, blue);
+
     // Convert XYZ to CIELAB
     const xn = 0.95047, yn = 1.00000, zn = 1.08883; // D65 illuminant
-    
+
     const xr = this.xyzToLab(xyz.x / xn);
     const yr = this.xyzToLab(xyz.y / yn);
     const zr = this.xyzToLab(xyz.z / zn);
-    
+
     const l = 116 * yr - 16;
     const a = 500 * (xr - yr);
     const b = 200 * (yr - zr);
-    
+
     return { l, a, b };
   }
 
