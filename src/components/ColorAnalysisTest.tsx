@@ -52,7 +52,13 @@ export default function ColorAnalysisTest({ onAnalysisComplete }: ColorAnalysisT
       onAnalysisComplete?.(result);
     } catch (err) {
       console.error('❌ Color analysis failed:', err);
-      setError('Failed to analyze colors. Please try again with a different image.');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+
+      if (errorMessage.includes('model') || errorMessage.includes('face-api')) {
+        setError('Face detection models are loading. The analysis will use fallback color extraction methods. Please try again in a moment.');
+      } else {
+        setError('Failed to analyze colors. Please try again with a different image.');
+      }
     } finally {
       setIsAnalyzing(false);
     }
