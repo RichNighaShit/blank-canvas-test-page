@@ -627,17 +627,17 @@ class ColorExtractionService {
   /**
    * Convert CIELAB to RGB
    */
-  private labToRgb(l: number, a: number, b: number): { r: number; g: number; b: number } {
+  private labToRgb(l: number, a: number, bLab: number): { r: number; g: number; b: number } {
     const xn = 0.95047, yn = 1.00000, zn = 1.08883;
-    
+
     const yr = (l + 16) / 116;
     const xr = a / 500 + yr;
-    const zr = yr - b / 200;
-    
+    const zr = yr - bLab / 200;
+
     const x = xn * this.labToXyz(xr);
     const y = yn * this.labToXyz(yr);
     const z = zn * this.labToXyz(zr);
-    
+
     return this.xyzToRgb(x, y, z);
   }
 
