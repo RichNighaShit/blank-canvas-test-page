@@ -1,6 +1,7 @@
 import React from 'react';
 import ModernHeader from '@/components/ModernHeader';
 import ColorAnalysisTest from '@/components/ColorAnalysisTest';
+import ModelStatusDebug from '@/components/ModelStatusDebug';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
@@ -105,6 +106,9 @@ export default function ColorAnalysisTestPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Model Status Debug */}
+        <ModelStatusDebug />
 
         {/* Main Test Component */}
         <ColorAnalysisTest onAnalysisComplete={handleAnalysisComplete} />
