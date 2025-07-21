@@ -16,25 +16,9 @@ export function useModelLoadingStatus(): ModelLoadingStatus {
   });
 
   useEffect(() => {
-    // Check if models are already loaded by looking for face-api in global scope
+    // Disable face-api model checking to prevent errors
     const checkModelStatus = () => {
-      if (typeof window !== 'undefined' && (window as any).faceapi) {
-        const faceapi = (window as any).faceapi;
-        
-        // Check if models are loaded
-        const tinyFaceDetectorLoaded = faceapi.nets.tinyFaceDetector.params !== undefined;
-        const faceLandmarkLoaded = faceapi.nets.faceLandmark68Net.params !== undefined;
-        
-        if (tinyFaceDetectorLoaded && faceLandmarkLoaded) {
-          setStatus({
-            isLoading: false,
-            isLoaded: true,
-            error: null,
-            source: 'Models loaded successfully'
-          });
-          return true;
-        }
-      }
+      // Always return false to indicate models are not loaded
       return false;
     };
 
