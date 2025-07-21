@@ -447,7 +447,7 @@ class ColorExtractionService {
       if (this.isValidColor(r, g, b)) {
         const lab = this.rgbToLab(r, g, b);
         pixels.push({
-          r, g, b,
+          r, g, b: b,
           l: lab.l, a: lab.a, b: lab.b,
           count: 1,
           hex: this.rgbToHex(r, g, b)
