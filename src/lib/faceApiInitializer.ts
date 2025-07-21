@@ -33,24 +33,17 @@ class FaceApiInitializer {
    * Initialize face-api models with multiple fallback sources
    */
   async initialize(): Promise<InitializationResult> {
-    // Return cached promise if initialization is already in progress
-    if (this.initializationPromise) {
-      return this.initializationPromise;
-    }
+    // Temporarily disable face-api model loading to prevent errors
+    // Return fallback mode immediately to avoid attempting to load missing models
+    console.log('ℹ️ Face-API model loading disabled - using advanced color analysis fallback');
 
-    // Return success if already initialized
-    if (this.initialized && this.areModelsLoaded()) {
-      return {
-        success: true,
-        source: 'cached',
-        error: null,
-        modelsLoaded: ['tinyFaceDetector', 'faceLandmark68Net'],
-        fallbackMode: false
-      };
-    }
-
-    this.initializationPromise = this.performInitialization();
-    return this.initializationPromise;
+    return {
+      success: false,
+      source: null,
+      error: 'Face-API models disabled to prevent loading errors',
+      modelsLoaded: [],
+      fallbackMode: true
+    };
   }
 
   private async performInitialization(): Promise<InitializationResult> {
