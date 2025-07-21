@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Upload, Camera, Palette, Eye, User } from 'lucide-react';
+import { Upload, Camera, Palette, Eye, User, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { analyzeUserColors, getAccuracyDescription, isColorWellDetected } from '@/lib/colorAnalysisUtils';
 import type { AccurateColorAnalysis } from '@/lib/accurateColorPaletteService';
+import { useModelLoadingStatus } from '@/hooks/useModelLoadingStatus';
 
 interface ColorAnalysisTestProps {
   onAnalysisComplete?: (analysis: AccurateColorAnalysis) => void;
@@ -16,6 +17,7 @@ export default function ColorAnalysisTest({ onAnalysisComplete }: ColorAnalysisT
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const modelStatus = useModelLoadingStatus();
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -97,6 +99,28 @@ export default function ColorAnalysisTest({ onAnalysisComplete }: ColorAnalysisT
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {/* Model Loading Status */}
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50">
+              {modelStatus.isLoading && (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                  <span className="text-sm text-gray-600">Loading face detection models...</span>
+                </>
+              )}
+              {modelStatus.isLoaded && (
+                <>
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-gray-600">Face detection ready ({modelStatus.source})</span>
+                </>
+              )}
+              {modelStatus.error && (
+                <>
+                  <AlertCircle className="w-4 h-4 text-orange-600" />
+                  <span className="text-sm text-gray-600">{modelStatus.error}</span>
+                </>
+              )}
+            </div>
+
             <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8">
               <div className="text-center">
                 <Upload className="mx-auto h-12 w-12 text-gray-400" />
