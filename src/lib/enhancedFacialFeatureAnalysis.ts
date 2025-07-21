@@ -80,7 +80,7 @@ class EnhancedFacialFeatureAnalysis {
         console.log(`✅ Enhanced facial analysis models loaded successfully from: ${modelPath}`);
         return;
       } catch (error) {
-        console.warn(`⚠�� Failed to load models from ${modelPath}:`, error);
+        console.warn(`⚠️ Failed to load models from ${modelPath}:`, error);
         continue;
       }
     }
@@ -93,9 +93,10 @@ class EnhancedFacialFeatureAnalysis {
   async detectFacialFeatureColors(imageInput: string | File | Blob): Promise<EnhancedFacialFeatureColors> {
     await this.initialize();
 
+    // Since face detection is disabled, use advanced image analysis instead
     if (!this.isInitialized) {
-      console.error("Models not loaded. Returning fallback features.");
-      return this.getFallbackFeatures();
+      console.log("ℹ️ Using advanced image analysis without face detection");
+      return this.analyzeImageWithoutFaceDetection(imageInput);
     }
 
     try {
