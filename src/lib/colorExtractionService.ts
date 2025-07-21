@@ -759,12 +759,12 @@ class ColorExtractionService {
     return groups.map(group => {
       const avgL = group.reduce((sum, c) => sum + c.l, 0) / group.length;
       const avgA = group.reduce((sum, c) => sum + c.a, 0) / group.length;
-      const avgB = group.reduce((sum, c) => sum + c.b, 0) / group.length;
-      
-      const rgb = this.labToRgb(avgL, avgA, avgB);
+      const avgBLab = group.reduce((sum, c) => sum + c.bLab, 0) / group.length;
+
+      const rgb = this.labToRgb(avgL, avgA, avgBLab);
       return {
         r: rgb.r, g: rgb.g, b: rgb.b,
-        l: avgL, a: avgA, b: avgB,
+        l: avgL, a: avgA, bLab: avgBLab,
         count: group.length,
         hex: this.rgbToHex(rgb.r, rgb.g, rgb.b)
       };
