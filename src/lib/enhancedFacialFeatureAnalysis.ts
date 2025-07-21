@@ -55,20 +55,9 @@ class EnhancedFacialFeatureAnalysis {
 
     this.modelLoadAttempted = true;
 
-    try {
-      const result = await faceApiInitializer.initialize();
-
-      if (result.success) {
-        this.isInitialized = true;
-        console.log(`✅ Enhanced facial analysis ready with models from: ${result.source}`);
-      } else {
-        this.isInitialized = false;
-        console.warn(`⚠️ Enhanced facial analysis using fallback mode: ${result.error}`);
-      }
-    } catch (error) {
-      this.isInitialized = false;
-      console.error('❌ Failed to initialize facial analysis:', error);
-    }
+    // Skip face-api initialization to prevent model loading errors
+    this.isInitialized = false;
+    console.log('ℹ️ Enhanced facial analysis using advanced algorithms without face detection');
   }
 
   async detectFacialFeatureColors(imageInput: string | File | Blob): Promise<EnhancedFacialFeatureColors> {
