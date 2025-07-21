@@ -31,7 +31,7 @@ const YourColorPalette = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [isRegeneratingColors, setIsRegeneratingColors] = useState(false);
+
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
@@ -128,32 +128,7 @@ const YourColorPalette = () => {
     }
   };
 
-  const handleRegenerateColors = async () => {
-    if (!profile?.face_photo_url) {
-      toast({
-        title: "No photo available",
-        description: "Please upload a profile picture first",
-        variant: "destructive",
-      });
-      return;
-    }
 
-    setIsRegeneratingColors(true);
-    try {
-      toast({
-        title: "Feature coming soon!",
-        description: "Color regeneration will be available soon",
-      });
-    } catch (error) {
-      toast({
-        title: "Regeneration failed",
-        description: "Unable to extract new colors from your photo",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRegeneratingColors(false);
-    }
-  };
 
     const getBasicColorAnalysis = () => {
     if (!hasColors || colors.length === 0) return null;
