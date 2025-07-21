@@ -18,58 +18,13 @@ export interface ModelLoadResult {
  * Manually load face-api models with multiple fallback sources
  */
 export async function loadFaceApiModels(): Promise<ModelLoadResult> {
-  const modelSources = [
-    'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@latest/model',
-    'https://raw.githubusercontent.com/vladmandic/face-api/master/model',
-    '/models',
-  ];
-
-  const requiredModels = [
-    { name: 'tinyFaceDetector', loader: faceapi.nets.tinyFaceDetector },
-    { name: 'faceLandmark68Net', loader: faceapi.nets.faceLandmark68Net },
-  ];
-
-  for (const source of modelSources) {
-    try {
-      console.log(`🔄 Attempting to load models from: ${source}`);
-
-      // Load models one by one to better handle individual failures
-      const loadedModels = [];
-      for (const model of requiredModels) {
-        try {
-          await model.loader.loadFromUri(source);
-          if (model.loader.params !== undefined) {
-            loadedModels.push(model.name);
-            console.log(`✅ Loaded ${model.name} from ${source}`);
-          }
-        } catch (modelError) {
-          console.warn(`⚠️ Failed to load ${model.name} from ${source}:`, modelError);
-          throw modelError; // Re-throw to try next source
-        }
-      }
-
-      if (loadedModels.length === requiredModels.length) {
-        console.log(`✅ All models loaded successfully from: ${source}`);
-        return {
-          success: true,
-          source,
-          error: null,
-          loadedModels
-        };
-      } else {
-        throw new Error(`Only ${loadedModels.length}/${requiredModels.length} models loaded`);
-      }
-
-    } catch (error) {
-      console.warn(`⚠️ Failed to load from ${source}:`, error);
-      continue;
-    }
-  }
+  // Disable face-api model loading to prevent errors
+  console.log('���️ Face-API model loading disabled to prevent loading errors');
 
   return {
     success: false,
     source: null,
-    error: 'Failed to load models from all sources',
+    error: 'Face-API model loading disabled to prevent errors',
     loadedModels: []
   };
 }
