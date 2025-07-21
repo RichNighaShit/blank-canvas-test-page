@@ -198,17 +198,23 @@ class EnhancedFacialFeatureAnalysis {
       allValidPixels = allValidPixels.concat(validPixels);
     });
 
-    if (allValidPixels.length < 30) {
-      return {
-        color: "#E4B48C",
-        lightness: "light" as const,
-        undertone: "neutral" as const,
-        confidence: 0.4,
-        description: "Light skin with neutral undertones"
-      };
+    if (allValidPixels.length < 20) {
+      // For poor lighting, try broader sampling
+      const broadPixels = this.getBroadSkinSample(ctx, width, height, lightingConditions);
+      if (broadPixels.length > 0) {
+        allValidPixels = broadPixels;
+      } else {
+        return {
+          color: "#E4B48C",
+          lightness: "light" as const,
+          undertone: "neutral" as const,
+          confidence: 0.3,
+          description: "Light skin with neutral undertones (estimated)"
+        };
+      }
     }
 
-    const dominantColor = this.findEnhancedDominantColor(allValidPixels);
+    const dominantColor = this.findWeightedDominantColor(allValidPixels);
     const colorHex = this.rgbToHex(dominantColor.r, dominantColor.g, dominantColor.b);
     const lightness = this.classifyEnhancedSkinLightness(dominantColor.r, dominantColor.g, dominantColor.b);
     const undertone = this.classifyEnhancedUndertone(dominantColor.r, dominantColor.g, dominantColor.b);
