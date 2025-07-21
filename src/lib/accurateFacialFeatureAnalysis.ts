@@ -40,7 +40,7 @@ class ImprovedFacialFeatureAnalysis {
     await this.initialize();
 
     if (!this.isInitialized) {
-      console.error("Models not loaded. Returning fallback features.");
+      console.log("ℹ️ Using fallback facial feature analysis (models not loaded)");
       return this.getFallbackFeatures();
     }
 
