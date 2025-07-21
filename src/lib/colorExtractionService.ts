@@ -598,8 +598,8 @@ class ColorExtractionService {
   private calculateLabDistance(color1: ColorPoint, color2: ColorPoint): number {
     const deltaL = color1.l - color2.l;
     const deltaA = color1.a - color2.a;
-    const deltaB = color1.b - color2.b;
-    
+    const deltaB = color1.bLab - color2.bLab;
+
     return Math.sqrt(deltaL * deltaL + deltaA * deltaA + deltaB * deltaB);
   }
 
