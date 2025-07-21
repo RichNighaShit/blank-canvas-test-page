@@ -132,29 +132,28 @@ class ColorExtractionService {
       let croppedImage = img;
       let faceDetected = false;
 
-      // Enhanced face detection and feature analysis
+      // Always use enhanced facial feature analysis (works without face-api models)
       let enhancedFeatures: EnhancedFacialFeatureColors | undefined;
-      if (this.faceApiInitialized) {
-        try {
-          // Use enhanced facial feature analysis
-          enhancedFeatures = await enhancedFacialFeatureAnalysis.detectFacialFeatureColors(imageInput);
-          if (enhancedFeatures.detectedFeatures) {
-            faceDetected = true;
-            // Use the enhanced analysis to guide cropping
+      try {
+        console.log('🎨 Using enhanced facial feature analysis for better color accuracy...');
+        enhancedFeatures = await enhancedFacialFeatureAnalysis.detectFacialFeatureColors(imageInput);
+
+        if (enhancedFeatures.detectedFeatures && enhancedFeatures.overallConfidence > 0.5) {
+          faceDetected = true;
+          console.log(`✅ Enhanced analysis successful with ${Math.round(enhancedFeatures.overallConfidence * 100)}% confidence`);
+
+          // Try to get face box if face-api is available
+          if (this.faceApiInitialized) {
             const faceBox = await this.detectFace(img);
             if (faceBox) {
               croppedImage = await this.cropToFace(img, faceBox);
             }
           }
-        } catch (error) {
-          console.warn("Enhanced face detection failed, using standard detection:", error);
-          // Fallback to standard face detection
-          const faceBox = await this.detectFace(img);
-          if (faceBox) {
-            croppedImage = await this.cropToFace(img, faceBox);
-            faceDetected = true;
-          }
+        } else {
+          console.log('⚠️ Enhanced analysis had low confidence, using full image approach');
         }
+      } catch (error) {
+        console.warn("⚠️ Enhanced facial analysis failed, falling back to full image:", error);
       }
 
       if (!faceDetected && !fallbackToFullImage) {
