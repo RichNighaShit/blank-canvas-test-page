@@ -33,14 +33,8 @@ export async function loadFaceApiModels(): Promise<ModelLoadResult> {
  * Check if face-api models are currently loaded
  */
 export function checkModelsLoaded(): boolean {
-  try {
-    return (
-      faceapi.nets.tinyFaceDetector.params !== undefined &&
-      faceapi.nets.faceLandmark68Net.params !== undefined
-    );
-  } catch {
-    return false;
-  }
+  // Always return false since we've disabled model loading
+  return false;
 }
 
 /**
@@ -51,22 +45,12 @@ export function getModelStatus(): {
   faceLandmark68Net: boolean;
   allLoaded: boolean;
 } {
-  try {
-    const tinyFaceDetector = faceapi.nets.tinyFaceDetector.params !== undefined;
-    const faceLandmark68Net = faceapi.nets.faceLandmark68Net.params !== undefined;
-    
-    return {
-      tinyFaceDetector,
-      faceLandmark68Net,
-      allLoaded: tinyFaceDetector && faceLandmark68Net
-    };
-  } catch {
-    return {
-      tinyFaceDetector: false,
-      faceLandmark68Net: false,
-      allLoaded: false
-    };
-  }
+  // Always return false since we've disabled model loading
+  return {
+    tinyFaceDetector: false,
+    faceLandmark68Net: false,
+    allLoaded: false
+  };
 }
 
 /**
