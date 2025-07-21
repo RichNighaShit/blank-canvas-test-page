@@ -583,7 +583,7 @@ class ColorExtractionService {
       
       complementary.push({
         r: rgb.r, g: rgb.g, b: rgb.b,
-        l: complementaryLab.l, a: complementaryLab.a, b: complementaryLab.b,
+        l: complementaryLab.l, a: complementaryLab.a, bLab: complementaryLab.b,
         count: 1,
         hex: this.rgbToHex(rgb.r, rgb.g, rgb.b)
       });
