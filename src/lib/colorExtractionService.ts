@@ -14,6 +14,7 @@ import * as faceapi from "face-api.js";
 import { extractColors } from "extract-colors";
 import SmartCrop from "smartcrop";
 import { enhancedFacialFeatureAnalysis, type EnhancedFacialFeatureColors } from "./enhancedFacialFeatureAnalysis";
+import { faceApiInitializer } from './faceApiInitializer';
 
 export interface ExtractedPalette {
   colors: string[]; // Hex color codes
@@ -100,42 +101,25 @@ class ColorExtractionService {
   ];
 
   /**
-   * Initialize face-api.js models with robust error handling
+   * Initialize face-api.js models using centralized initializer
    */
   async initializeFaceAPI(): Promise<void> {
     if (this.faceApiInitialized) return;
 
-    const modelSources = [
-      'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@latest/model',
-      'https://raw.githubusercontent.com/vladmandic/face-api/master/model',
-      this.modelBasePath,
-    ];
+    try {
+      const result = await faceApiInitializer.initialize();
 
-    for (const modelPath of modelSources) {
-      try {
-        console.log(`🔄 Loading Face-API models from: ${modelPath}`);
-
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
-          faceapi.nets.faceLandmark68Net.loadFromUri(modelPath),
-        ]);
-
-        // Verify models loaded correctly
-        if (faceapi.nets.tinyFaceDetector.params && faceapi.nets.faceLandmark68Net.params) {
-          this.faceApiInitialized = true;
-          console.log(`✅ Face-API models loaded successfully from: ${modelPath}`);
-          return;
-        } else {
-          throw new Error('Models loaded but parameters are undefined');
-        }
-      } catch (error) {
-        console.warn(`⚠️ Failed to load Face-API models from ${modelPath}:`, error);
-        continue;
+      if (result.success) {
+        this.faceApiInitialized = true;
+        console.log(`✅ Color extraction service ready with face detection from: ${result.source}`);
+      } else {
+        this.faceApiInitialized = false;
+        console.warn(`⚠️ Color extraction service using fallback mode: ${result.error}`);
       }
+    } catch (error) {
+      this.faceApiInitialized = false;
+      console.error('❌ Failed to initialize face-api for color extraction:', error);
     }
-
-    console.warn("⚠️ Failed to load Face-API models from all sources. Using advanced color extraction without face detection.");
-    this.faceApiInitialized = false;
   }
 
   /**
