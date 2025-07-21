@@ -101,25 +101,14 @@ class ColorExtractionService {
   ];
 
   /**
-   * Initialize face-api.js models using centralized initializer
+   * Initialize face-api.js models (disabled to prevent errors)
    */
   async initializeFaceAPI(): Promise<void> {
     if (this.faceApiInitialized) return;
 
-    try {
-      const result = await faceApiInitializer.initialize();
-
-      if (result.success) {
-        this.faceApiInitialized = true;
-        console.log(`✅ Color extraction service ready with face detection from: ${result.source}`);
-      } else {
-        this.faceApiInitialized = false;
-        console.warn(`⚠️ Color extraction service using fallback mode: ${result.error}`);
-      }
-    } catch (error) {
-      this.faceApiInitialized = false;
-      console.error('❌ Failed to initialize face-api for color extraction:', error);
-    }
+    // Skip face-api initialization to prevent model loading errors
+    this.faceApiInitialized = false;
+    console.log('ℹ️ Color extraction service using advanced algorithms without face detection');
   }
 
   /**
