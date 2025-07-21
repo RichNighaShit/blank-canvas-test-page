@@ -13,6 +13,7 @@
 import * as faceapi from "face-api.js";
 import { extractColors } from "extract-colors";
 import SmartCrop from "smartcrop";
+import { enhancedFacialFeatureAnalysis, type EnhancedFacialFeatureColors } from "./enhancedFacialFeatureAnalysis";
 
 export interface ExtractedPalette {
   colors: string[]; // Hex color codes
@@ -27,6 +28,7 @@ export interface ExtractedPalette {
     accessibilityScore: number;
     colorTemperature: "warm" | "cool" | "neutral";
     colorSeason: "spring" | "summer" | "autumn" | "winter" | "neutral";
+    enhancedFeatures?: EnhancedFacialFeatureColors;
   };
 }
 
@@ -137,16 +139,28 @@ class ColorExtractionService {
       let croppedImage = img;
       let faceDetected = false;
 
-      // Advanced face detection and cropping
+      // Enhanced face detection and feature analysis
+      let enhancedFeatures: EnhancedFacialFeatureColors | undefined;
       if (this.faceApiInitialized) {
         try {
+          // Use enhanced facial feature analysis
+          enhancedFeatures = await enhancedFacialFeatureAnalysis.detectFacialFeatureColors(imageInput);
+          if (enhancedFeatures.detectedFeatures) {
+            faceDetected = true;
+            // Use the enhanced analysis to guide cropping
+            const faceBox = await this.detectFace(img);
+            if (faceBox) {
+              croppedImage = await this.cropToFace(img, faceBox);
+            }
+          }
+        } catch (error) {
+          console.warn("Enhanced face detection failed, using standard detection:", error);
+          // Fallback to standard face detection
           const faceBox = await this.detectFace(img);
           if (faceBox) {
             croppedImage = await this.cropToFace(img, faceBox);
             faceDetected = true;
           }
-        } catch (error) {
-          console.warn("Face detection failed, using full image:", error);
         }
       }
 
@@ -188,9 +202,9 @@ class ColorExtractionService {
       // Seasonal color analysis
       const colorSeason = this.analyzeSeasonalColors(extractedColors);
 
-      // Skin tone detection
-      const skinTones = includeSkinTones 
-        ? this.detectSkinTones(extractedColors)
+      // Enhanced skin tone detection
+      const skinTones = includeSkinTones
+        ? this.detectEnhancedSkinTones(extractedColors, enhancedFeatures)
         : [];
 
       const result: ExtractedPalette = {
@@ -206,6 +220,7 @@ class ColorExtractionService {
           accessibilityScore,
           colorTemperature,
           colorSeason,
+          enhancedFeatures,
         },
       };
 
@@ -914,24 +929,55 @@ class ColorExtractionService {
   }
 
   /**
-   * Detect skin tones in color palette
+   * Enhanced skin tone detection using facial feature analysis
    */
-  private detectSkinTones(colors: string[]): string[] {
+  private detectEnhancedSkinTones(colors: string[], enhancedFeatures?: EnhancedFacialFeatureColors): string[] {
     const skinTones: string[] = [];
-    
-    for (const color of colors) {
-      const rgb = this.hexToRgb(color);
-      const lab = this.rgbToLab(rgb.r, rgb.g, rgb.b);
-      
-      for (const range of this.skinToneRanges) {
-        if (this.isInSkinToneRange({ r: rgb.r, g: rgb.g, b: rgb.b, l: lab.l, a: lab.a, b: lab.b, count: 1, hex: color }, range)) {
+
+    // If we have enhanced facial analysis, use that as primary source
+    if (enhancedFeatures?.detectedFeatures) {
+      skinTones.push(enhancedFeatures.skinTone.color);
+
+      // Also add similar tones from the general palette
+      const targetRgb = this.hexToRgb(enhancedFeatures.skinTone.color);
+      const targetLab = this.rgbToLab(targetRgb.r, targetRgb.g, targetRgb.b);
+
+      for (const color of colors) {
+        const rgb = this.hexToRgb(color);
+        const lab = this.rgbToLab(rgb.r, rgb.g, rgb.b);
+        const distance = this.calculateLabDistance(
+          { l: targetLab.l, a: targetLab.a, b: targetLab.b },
+          { l: lab.l, a: lab.a, b: lab.b }
+        );
+
+        // Include colors that are similar to the detected skin tone
+        if (distance < 25 && !skinTones.includes(color)) {
           skinTones.push(color);
-          break;
+        }
+      }
+    } else {
+      // Fallback to traditional detection
+      for (const color of colors) {
+        const rgb = this.hexToRgb(color);
+        const lab = this.rgbToLab(rgb.r, rgb.g, rgb.b);
+
+        for (const range of this.skinToneRanges) {
+          if (this.isInSkinToneRange({ r: rgb.r, g: rgb.g, b: rgb.b, l: lab.l, a: lab.a, b: lab.b, count: 1, hex: color }, range)) {
+            skinTones.push(color);
+            break;
+          }
         }
       }
     }
-    
+
     return skinTones;
+  }
+
+  /**
+   * Detect skin tones in color palette (legacy method)
+   */
+  private detectSkinTones(colors: string[]): string[] {
+    return this.detectEnhancedSkinTones(colors);
   }
 
   /**
@@ -1011,7 +1057,7 @@ class ColorExtractionService {
         faceDetected: false,
         colorCount: 6,
         dominantColor: "#8B7355",
-        skinTones: ["#8B7355", "#D4A574"],
+        skinTones: ["#E4B48C", "#D4A574"],
         colorHarmony: "neutral",
         accessibilityScore: 0.7,
         colorTemperature: "warm",
