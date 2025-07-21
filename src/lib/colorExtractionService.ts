@@ -664,18 +664,18 @@ class ColorExtractionService {
    * Convert XYZ to RGB
    */
   private xyzToRgb(x: number, y: number, z: number): { r: number; g: number; b: number } {
-    const r = x * 3.2406 + y * -1.5372 + z * -0.4986;
-    const g = x * -0.9689 + y * 1.8758 + z * 0.0415;
-    const b = x * 0.0557 + y * -0.2040 + z * 1.0570;
-    
-    const rNorm = Math.max(0, Math.min(1, r));
-    const gNorm = Math.max(0, Math.min(1, g));
-    const bNorm = Math.max(0, Math.min(1, b));
-    
+    const rCalc = x * 3.2406 + y * -1.5372 + z * -0.4986;
+    const gCalc = x * -0.9689 + y * 1.8758 + z * 0.0415;
+    const bCalc = x * 0.0557 + y * -0.2040 + z * 1.0570;
+
+    const rNorm = Math.max(0, Math.min(1, rCalc));
+    const gNorm = Math.max(0, Math.min(1, gCalc));
+    const bNorm = Math.max(0, Math.min(1, bCalc));
+
     const rFinal = rNorm > 0.0031308 ? 1.055 * Math.pow(rNorm, 1/2.4) - 0.055 : 12.92 * rNorm;
     const gFinal = gNorm > 0.0031308 ? 1.055 * Math.pow(gNorm, 1/2.4) - 0.055 : 12.92 * gNorm;
     const bFinal = bNorm > 0.0031308 ? 1.055 * Math.pow(bNorm, 1/2.4) - 0.055 : 12.92 * bNorm;
-    
+
     return {
       r: Math.round(rFinal * 255),
       g: Math.round(gFinal * 255),
