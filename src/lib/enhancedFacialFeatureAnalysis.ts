@@ -232,25 +232,27 @@ class EnhancedFacialFeatureAnalysis {
    * Analyze hair color from image regions without face landmarks
    */
   private analyzeImageHairColor(ctx: CanvasRenderingContext2D, width: number, height: number) {
-    // Hair detection regions - top and sides of image
+    // Enhanced hair detection regions - more strategic sampling
     const hairRegions = [
-      // Top region (main hair area)
-      { x: width * 0.1, y: 0, width: width * 0.8, height: height * 0.4 },
-      // Left side
-      { x: 0, y: height * 0.1, width: width * 0.3, height: height * 0.6 },
-      // Right side
-      { x: width * 0.7, y: height * 0.1, width: width * 0.3, height: height * 0.6 },
-      // Top-left corner
-      { x: 0, y: 0, width: width * 0.4, height: height * 0.3 },
-      // Top-right corner
-      { x: width * 0.6, y: 0, width: width * 0.4, height: height * 0.3 }
+      // Primary hair regions with priority weighting
+      { x: width * 0.05, y: 0, width: width * 0.9, height: height * 0.45, priority: 5 }, // Top region
+      { x: width * 0.1, y: 0, width: width * 0.8, height: height * 0.35, priority: 4 }, // Central top
+      { x: 0, y: height * 0.05, width: width * 0.35, height: height * 0.65, priority: 3 }, // Left side
+      { x: width * 0.65, y: height * 0.05, width: width * 0.35, height: height * 0.65, priority: 3 }, // Right side
+      { x: 0, y: 0, width: width * 0.45, height: height * 0.4, priority: 2 }, // Top-left
+      { x: width * 0.55, y: 0, width: width * 0.45, height: height * 0.4, priority: 2 }, // Top-right
+      // Additional sampling for blonde detection
+      { x: width * 0.2, y: height * 0.05, width: width * 0.6, height: height * 0.3, priority: 4 }, // Crown area
+      { x: width * 0.15, y: height * 0.1, width: width * 0.7, height: height * 0.25, priority: 3 } // Forehead area
     ];
 
-    let allValidPixels: Array<{ r: number, g: number, b: number }> = [];
+    let allValidPixels: Array<{ r: number, g: number, b: number, weight: number }> = [];
 
     hairRegions.forEach(region => {
       const pixels = this.getPixelsInRect(ctx, region);
-      const validPixels = pixels.filter(p => this.isEnhancedHairColor(p.r, p.g, p.b));
+      const validPixels = pixels
+        .filter(p => this.isEnhancedHairColor(p.r, p.g, p.b))
+        .map(p => ({ ...p, weight: region.priority }));
       allValidPixels = allValidPixels.concat(validPixels);
     });
 
@@ -269,7 +271,7 @@ class EnhancedFacialFeatureAnalysis {
       }
     }
 
-    const dominantColor = this.findEnhancedDominantColor(allValidPixels);
+    const dominantColor = this.findWeightedDominantColor(allValidPixels);
     const colorHex = this.rgbToHex(dominantColor.r, dominantColor.g, dominantColor.b);
     const { description, category } = this.classifyEnhancedHairColor(dominantColor.r, dominantColor.g, dominantColor.b);
 
@@ -277,7 +279,7 @@ class EnhancedFacialFeatureAnalysis {
       color: colorHex,
       description,
       category,
-      confidence: Math.min(0.85, 0.5 + (allValidPixels.length / 300))
+      confidence: Math.min(0.85, 0.5 + (allValidPixels.length / 250))
     };
   }
 
@@ -288,16 +290,21 @@ class EnhancedFacialFeatureAnalysis {
     // Analyze lighting conditions first
     const lightingConditions = this.analyzeLightingConditions(ctx, width, height);
 
-    // Eye regions - typical eye locations in portraits with multiple sampling areas
+    // Enhanced eye regions - more precise targeting for iris detection
     const eyeRegions = [
-      // Left eye area
-      { x: width * 0.25, y: height * 0.35, width: width * 0.15, height: height * 0.1, priority: 3 },
-      // Right eye area
-      { x: width * 0.6, y: height * 0.35, width: width * 0.15, height: height * 0.1, priority: 3 },
-      // Center eye region (in case person is turned)
-      { x: width * 0.4, y: height * 0.35, width: width * 0.2, height: height * 0.12, priority: 2 },
-      // Broader eye area for difficult lighting
-      { x: width * 0.2, y: height * 0.3, width: width * 0.6, height: height * 0.2, priority: 1 }
+      // Left eye - multiple sampling points
+      { x: width * 0.23, y: height * 0.33, width: width * 0.12, height: height * 0.08, priority: 5 },
+      { x: width * 0.25, y: height * 0.35, width: width * 0.1, height: height * 0.06, priority: 4 },
+      // Right eye - multiple sampling points
+      { x: width * 0.65, y: height * 0.33, width: width * 0.12, height: height * 0.08, priority: 5 },
+      { x: width * 0.65, y: height * 0.35, width: width * 0.1, height: height * 0.06, priority: 4 },
+      // Center eye region (for different angles)
+      { x: width * 0.42, y: height * 0.34, width: width * 0.16, height: height * 0.08, priority: 3 },
+      // Additional precise regions
+      { x: width * 0.27, y: height * 0.37, width: width * 0.08, height: height * 0.04, priority: 4 },
+      { x: width * 0.65, y: height * 0.37, width: width * 0.08, height: height * 0.04, priority: 4 },
+      // Broader fallback area
+      { x: width * 0.2, y: height * 0.3, width: width * 0.6, height: height * 0.18, priority: 1 }
     ];
 
     let allValidPixels: Array<{ r: number, g: number, b: number, weight: number }> = [];
@@ -1436,29 +1443,42 @@ class EnhancedFacialFeatureAnalysis {
    */
   private getBroadHairSample(ctx: CanvasRenderingContext2D, width: number, height: number, lightingConditions: any): Array<{ r: number, g: number, b: number, weight: number }> {
     const broadRegions = [
-      // Very top of image
-      { x: 0, y: 0, width: width, height: height * 0.5 },
-      // Top and sides
-      { x: 0, y: 0, width: width * 0.4, height: height * 0.7 },
-      { x: width * 0.6, y: 0, width: width * 0.4, height: height * 0.7 },
-      // Extended top region
-      { x: width * 0.05, y: 0, width: width * 0.9, height: height * 0.6 }
+      // Comprehensive hair coverage
+      { x: 0, y: 0, width: width, height: height * 0.5, priority: 3 },
+      { x: 0, y: 0, width: width * 0.4, height: height * 0.7, priority: 2 },
+      { x: width * 0.6, y: 0, width: width * 0.4, height: height * 0.7, priority: 2 },
+      { x: width * 0.05, y: 0, width: width * 0.9, height: height * 0.6, priority: 3 },
+      // Focus on likely blonde hair areas
+      { x: width * 0.1, y: 0, width: width * 0.8, height: height * 0.4, priority: 4 },
+      { x: width * 0.15, y: height * 0.05, width: width * 0.7, height: height * 0.3, priority: 4 }
     ];
 
     let allPixels: Array<{ r: number, g: number, b: number, weight: number }> = [];
 
-    broadRegions.forEach((region, index) => {
+    broadRegions.forEach((region) => {
       const pixels = this.getPixelsInRect(ctx, region);
       const normalizedPixels = this.normalizeForLighting(pixels, lightingConditions);
 
+      // Use more aggressive detection for broader sampling
       const validPixels = normalizedPixels
-        .filter(p => this.isEnhancedHairColorWithLighting(p.r, p.g, p.b, lightingConditions))
-        .map(p => ({ ...p, weight: 4 - index }));
+        .filter(p => {
+          // More inclusive hair detection
+          const brightness = (p.r + p.g + p.b) / 3;
+          const isNotSkin = !this.isEnhancedSkinColor(p.r, p.g, p.b);
+          const isNotBackground = brightness > 25 && brightness < 250;
+          const hasVariation = Math.abs(p.r - p.g) > 2 || Math.abs(p.g - p.b) > 2;
+
+          // Special blonde detection
+          const couldBeBlonde = (p.r >= p.g && p.g >= p.b) && brightness > 80;
+
+          return isNotSkin && isNotBackground && (hasVariation || couldBeBlonde);
+        })
+        .map(p => ({ ...p, weight: region.priority }));
 
       allPixels = allPixels.concat(validPixels);
     });
 
-    return allPixels.slice(0, 150);
+    return allPixels.slice(0, 200);
   }
 
   // === ORIGINAL UTILITY METHODS ===
