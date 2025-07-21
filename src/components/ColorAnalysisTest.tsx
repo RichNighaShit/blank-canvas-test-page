@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Upload, Camera, Palette, Eye, User } from 'lucide-react';
-import { analyzeUserColors, getAccuracyDescription, isColorWellDetected } from '@/lib/utils';
+import { analyzeUserColors, getAccuracyDescription, isColorWellDetected } from '@/lib/colorAnalysisUtils';
 import type { AccurateColorAnalysis } from '@/lib/accurateColorPaletteService';
 
 interface ColorAnalysisTestProps {
