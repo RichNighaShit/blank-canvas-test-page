@@ -164,28 +164,37 @@ class EnhancedFacialFeatureAnalysis {
   }
 
   /**
-   * Analyze skin tone from image regions without face landmarks
+   * Analyze skin tone from image regions without face landmarks with lighting compensation
    */
   private analyzeImageSkinTone(ctx: CanvasRenderingContext2D, width: number, height: number) {
-    // Sample from center and common face regions
+    // First analyze overall image lighting conditions
+    const lightingConditions = this.analyzeLightingConditions(ctx, width, height);
+
+    // Sample from center and common face regions with multiple strategies
     const regions = [
       // Center face region
-      { x: width * 0.3, y: height * 0.3, width: width * 0.4, height: height * 0.4 },
+      { x: width * 0.3, y: height * 0.3, width: width * 0.4, height: height * 0.4, priority: 3 },
       // Upper center (forehead area)
-      { x: width * 0.35, y: height * 0.2, width: width * 0.3, height: height * 0.2 },
+      { x: width * 0.35, y: height * 0.2, width: width * 0.3, height: height * 0.2, priority: 2 },
       // Left cheek area
-      { x: width * 0.2, y: height * 0.4, width: width * 0.25, height: height * 0.25 },
+      { x: width * 0.2, y: height * 0.4, width: width * 0.25, height: height * 0.25, priority: 3 },
       // Right cheek area
-      { x: width * 0.55, y: height * 0.4, width: width * 0.25, height: height * 0.25 },
+      { x: width * 0.55, y: height * 0.4, width: width * 0.25, height: height * 0.25, priority: 3 },
       // Chin area
-      { x: width * 0.4, y: height * 0.6, width: width * 0.2, height: height * 0.15 }
+      { x: width * 0.4, y: height * 0.6, width: width * 0.2, height: height * 0.15, priority: 2 },
+      // Additional regions for poor lighting
+      { x: width * 0.25, y: height * 0.25, width: width * 0.5, height: height * 0.5, priority: 1 },
+      { x: width * 0.1, y: height * 0.1, width: width * 0.8, height: height * 0.8, priority: 1 }
     ];
 
-    let allValidPixels: Array<{ r: number, g: number, b: number }> = [];
+    let allValidPixels: Array<{ r: number, g: number, b: number, weight: number }> = [];
 
     regions.forEach(region => {
       const pixels = this.getPixelsInRect(ctx, region);
-      const validPixels = pixels.filter(p => this.isEnhancedSkinColor(p.r, p.g, p.b));
+      const normalizedPixels = this.normalizeForLighting(pixels, lightingConditions);
+      const validPixels = normalizedPixels
+        .filter(p => this.isEnhancedSkinColor(p.r, p.g, p.b))
+        .map(p => ({ ...p, weight: region.priority }));
       allValidPixels = allValidPixels.concat(validPixels);
     });
 
