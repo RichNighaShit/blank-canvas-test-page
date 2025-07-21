@@ -644,19 +644,19 @@ class ColorExtractionService {
   /**
    * Convert RGB to XYZ
    */
-  private rgbToXyz(r: number, g: number, b: number): { x: number; y: number; z: number } {
+  private rgbToXyz(r: number, g: number, blue: number): { x: number; y: number; z: number } {
     r = r / 255;
     g = g / 255;
-    b = b / 255;
-    
+    blue = blue / 255;
+
     r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
     g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
-    b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
-    
-    const x = r * 0.4124 + g * 0.3576 + b * 0.1805;
-    const y = r * 0.2126 + g * 0.7152 + b * 0.0722;
-    const z = r * 0.0193 + g * 0.1192 + b * 0.9505;
-    
+    blue = blue > 0.04045 ? Math.pow((blue + 0.055) / 1.055, 2.4) : blue / 12.92;
+
+    const x = r * 0.4124 + g * 0.3576 + blue * 0.1805;
+    const y = r * 0.2126 + g * 0.7152 + blue * 0.0722;
+    const z = r * 0.0193 + g * 0.1192 + blue * 0.9505;
+
     return { x, y, z };
   }
 
