@@ -276,37 +276,45 @@ class EnhancedFacialFeatureAnalysis {
   }
 
   /**
-   * Analyze eye color from image regions without face landmarks
+   * Analyze eye color from image regions without face landmarks with lighting compensation
    */
   private analyzeImageEyeColor(ctx: CanvasRenderingContext2D, width: number, height: number) {
-    // Eye regions - typical eye locations in portraits
+    // Analyze lighting conditions first
+    const lightingConditions = this.analyzeLightingConditions(ctx, width, height);
+
+    // Eye regions - typical eye locations in portraits with multiple sampling areas
     const eyeRegions = [
       // Left eye area
-      { x: width * 0.25, y: height * 0.35, width: width * 0.15, height: height * 0.1 },
+      { x: width * 0.25, y: height * 0.35, width: width * 0.15, height: height * 0.1, priority: 3 },
       // Right eye area
-      { x: width * 0.6, y: height * 0.35, width: width * 0.15, height: height * 0.1 },
+      { x: width * 0.6, y: height * 0.35, width: width * 0.15, height: height * 0.1, priority: 3 },
       // Center eye region (in case person is turned)
-      { x: width * 0.4, y: height * 0.35, width: width * 0.2, height: height * 0.12 }
+      { x: width * 0.4, y: height * 0.35, width: width * 0.2, height: height * 0.12, priority: 2 },
+      // Broader eye area for difficult lighting
+      { x: width * 0.2, y: height * 0.3, width: width * 0.6, height: height * 0.2, priority: 1 }
     ];
 
-    let allValidPixels: Array<{ r: number, g: number, b: number }> = [];
+    let allValidPixels: Array<{ r: number, g: number, b: number, weight: number }> = [];
 
     eyeRegions.forEach(region => {
       const pixels = this.getPixelsInRect(ctx, region);
-      const validPixels = pixels.filter(p => this.isEnhancedEyeColor(p.r, p.g, p.b));
+      const normalizedPixels = this.normalizeForLighting(pixels, lightingConditions);
+      const validPixels = normalizedPixels
+        .filter(p => this.isEnhancedEyeColorWithLighting(p.r, p.g, p.b, lightingConditions))
+        .map(p => ({ ...p, weight: region.priority }));
       allValidPixels = allValidPixels.concat(validPixels);
     });
 
-    if (allValidPixels.length < 10) {
+    if (allValidPixels.length < 8) {
       return {
         color: "#8B4513",
         description: "Brown",
         category: "brown" as const,
-        confidence: 0.3
+        confidence: 0.2
       };
     }
 
-    const dominantColor = this.findEnhancedDominantColor(allValidPixels);
+    const dominantColor = this.findWeightedDominantColor(allValidPixels);
     const colorHex = this.rgbToHex(dominantColor.r, dominantColor.g, dominantColor.b);
     const { description, category } = this.classifyEnhancedEyeColor(dominantColor.r, dominantColor.g, dominantColor.b);
 
