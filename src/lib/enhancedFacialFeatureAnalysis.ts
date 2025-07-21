@@ -8,6 +8,7 @@
  * - Better region detection and sampling algorithms
  */
 import * as faceapi from 'face-api.js';
+import { faceApiInitializer } from './faceApiInitializer';
 
 export interface EnhancedFacialFeatureColors {
   skinTone: {
@@ -54,38 +55,20 @@ class EnhancedFacialFeatureAnalysis {
 
     this.modelLoadAttempted = true;
 
-    // Try to load face-api models with robust error handling
-    const modelSources = [
-      'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@latest/model',
-      'https://raw.githubusercontent.com/vladmandic/face-api/master/model',
-      '/models',
-    ];
+    try {
+      const result = await faceApiInitializer.initialize();
 
-    for (const modelPath of modelSources) {
-      try {
-        console.log(`🔄 Attempting to load facial analysis models from: ${modelPath}`);
-
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
-          faceapi.nets.faceLandmark68Net.loadFromUri(modelPath)
-        ]);
-
-        // Verify models loaded correctly
-        if (faceapi.nets.tinyFaceDetector.params && faceapi.nets.faceLandmark68Net.params) {
-          this.isInitialized = true;
-          console.log(`✅ Enhanced facial analysis models loaded successfully from: ${modelPath}`);
-          return;
-        } else {
-          throw new Error('Models loaded but parameters are undefined');
-        }
-      } catch (error) {
-        console.warn(`⚠️ Failed to load models from ${modelPath}:`, error);
-        continue;
+      if (result.success) {
+        this.isInitialized = true;
+        console.log(`✅ Enhanced facial analysis ready with models from: ${result.source}`);
+      } else {
+        this.isInitialized = false;
+        console.warn(`⚠️ Enhanced facial analysis using fallback mode: ${result.error}`);
       }
+    } catch (error) {
+      this.isInitialized = false;
+      console.error('❌ Failed to initialize facial analysis:', error);
     }
-
-    console.warn("⚠️ Failed to load facial analysis models from all sources. Using advanced color extraction without face detection.");
-    this.isInitialized = false;
   }
 
   async detectFacialFeatureColors(imageInput: string | File | Blob): Promise<EnhancedFacialFeatureColors> {
