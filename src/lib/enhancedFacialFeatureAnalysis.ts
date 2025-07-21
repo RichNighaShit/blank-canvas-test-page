@@ -799,24 +799,24 @@ class EnhancedFacialFeatureAnalysis {
     return inside;
   }
 
-  private rgbToHsl(r: number, g: number, b: number) {
-    r /= 255; g /= 255; b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  private rgbToHsl(r: number, g: number, blue: number) {
+    r /= 255; g /= 255; blue /= 255;
+    const max = Math.max(r, g, blue), min = Math.min(r, g, blue);
     let h = 0, s = 0, l = (max + min) / 2;
     if (max !== min) {
       const d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
       switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
+        case r: h = (g - blue) / d + (g < blue ? 6 : 0); break;
+        case g: h = (blue - r) / d + 2; break;
+        case blue: h = (r - g) / d + 4; break;
       }
       h /= 6;
     }
     return { h: h * 360, s, l };
   }
   
-  private rgbToHex = (r: number, g: number, b: number): string => '#' + [r, g, b].map(x => Math.round(x).toString(16).padStart(2, '0')).join('').toUpperCase();
+  private rgbToHex = (r: number, g: number, blue: number): string => '#' + [r, g, blue].map(x => Math.round(x).toString(16).padStart(2, '0')).join('').toUpperCase();
   
   private loadImage(input: string | File | Blob): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
