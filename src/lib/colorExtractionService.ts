@@ -100,22 +100,35 @@ class ColorExtractionService {
   ];
 
   /**
-   * Initialize face-api.js models
+   * Initialize face-api.js models with fallback sources
    */
   async initializeFaceAPI(): Promise<void> {
     if (this.faceApiInitialized) return;
 
-    try {
-      await Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri(this.modelBasePath),
-        faceapi.nets.faceLandmark68Net.loadFromUri(this.modelBasePath),
-      ]);
+    const modelSources = [
+      this.modelBasePath,  // Local models first
+      'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights', // CDN fallback
+    ];
 
-      this.faceApiInitialized = true;
-      console.log("Face-API models loaded successfully");
-    } catch (error) {
-      console.warn("Failed to load Face-API models:", error);
+    for (const modelPath of modelSources) {
+      try {
+        console.log(`🔄 Loading Face-API models from: ${modelPath}`);
+
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
+          faceapi.nets.faceLandmark68Net.loadFromUri(modelPath),
+        ]);
+
+        this.faceApiInitialized = true;
+        console.log(`✅ Face-API models loaded successfully from: ${modelPath}`);
+        return;
+      } catch (error) {
+        console.warn(`⚠️ Failed to load Face-API models from ${modelPath}:`, error);
+        continue;
+      }
     }
+
+    console.error("❌ Failed to load Face-API models from all sources. Face detection disabled.");
   }
 
   /**
