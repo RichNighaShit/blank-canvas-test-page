@@ -47,22 +47,39 @@ export interface EnhancedFacialFeatureColors {
 
 class EnhancedFacialFeatureAnalysis {
   private isInitialized = false;
+  private modelLoadAttempted = false;
 
   private async initialize(): Promise<void> {
-    if (this.isInitialized) return;
-    
-    try {
-      const modelPath = '/models';
-      await Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
-        faceapi.nets.faceLandmark68Net.loadFromUri(modelPath)
-      ]);
-      this.isInitialized = true;
-      console.log("✅ Enhanced facial analysis models loaded successfully.");
-    } catch (error) {
-      console.error("❌ Failed to load facial analysis models:", error);
-      this.isInitialized = false;
+    if (this.isInitialized || this.modelLoadAttempted) return;
+
+    this.modelLoadAttempted = true;
+
+    // Try multiple model sources
+    const modelSources = [
+      '/models',  // Local models
+      'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights', // CDN fallback
+    ];
+
+    for (const modelPath of modelSources) {
+      try {
+        console.log(`🔄 Attempting to load models from: ${modelPath}`);
+
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
+          faceapi.nets.faceLandmark68Net.loadFromUri(modelPath)
+        ]);
+
+        this.isInitialized = true;
+        console.log(`✅ Enhanced facial analysis models loaded successfully from: ${modelPath}`);
+        return;
+      } catch (error) {
+        console.warn(`⚠️ Failed to load models from ${modelPath}:`, error);
+        continue;
+      }
     }
+
+    console.error("❌ Failed to load facial analysis models from all sources. Using fallback mode.");
+    this.isInitialized = false;
   }
 
   async detectFacialFeatureColors(imageInput: string | File | Blob): Promise<EnhancedFacialFeatureColors> {
