@@ -256,14 +256,14 @@ const YourColorPalette = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={handleRegenerateColors}
-                      disabled={isRegeneratingColors}
+                      onClick={handleRefreshPalette}
+                      disabled={isRefreshing}
                       className="text-xs"
                     >
                       <RefreshCw
-                        className={`h-3 w-3 mr-1 ${isRegeneratingColors ? "animate-spin" : ""}`}
+                        className={`h-3 w-3 mr-1 ${isRefreshing ? "animate-spin" : ""}`}
                       />
-                      {isRegeneratingColors ? "Extracting..." : "Regenerate"}
+                      {isRefreshing ? "Refreshing..." : "Refresh"}
                     </Button>
                   </div>
                 </div>
