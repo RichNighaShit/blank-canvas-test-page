@@ -19,6 +19,7 @@ import {
   Sparkles,
   Shirt,
   Palette,
+  TestTube,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -277,6 +278,15 @@ const ModernHeader = () => {
                   <Palette className="mr-3 h-4 w-4" />
                   Your Color Palette
                 </DropdownMenuItem>
+                {import.meta.env.DEV && (
+                  <DropdownMenuItem
+                    onClick={() => navigate("/color-analysis-test")}
+                    className="py-3"
+                  >
+                    <TestTube className="mr-3 h-4 w-4" />
+                    Color Analysis Test
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="py-3">
                   <LogOut className="mr-3 h-4 w-4" />
