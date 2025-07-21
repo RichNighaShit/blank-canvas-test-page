@@ -20,7 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Shirt, Palette, Target, Shuffle, Check, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, invalidateProfileCache } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { SimplePhotoUploadTest } from "@/components/SimplePhotoUploadTest";
@@ -199,7 +199,8 @@ const EditProfile = () => {
           title: "Success!",
           description: "Your profile has been updated successfully.",
         });
-        // Force refetch to see updated data immediately
+        // Force global cache invalidation and refetch
+        invalidateProfileCache(user.id);
         await refetch();
         navigate("/dashboard");
       }
