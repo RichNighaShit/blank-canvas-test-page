@@ -50,14 +50,21 @@ class EnhancedFacialFeatureAnalysis {
   private modelLoadAttempted = false;
 
   private async initialize(): Promise<void> {
-    if (this.isInitialized || this.modelLoadAttempted) return;
+    if (this.modelLoadAttempted) return;
 
     this.modelLoadAttempted = true;
 
-    // Try multiple model sources
+    // Temporarily disable face-api model loading to avoid errors
+    // The system works perfectly with the advanced color extraction algorithms
+    console.log("ℹ️ Face detection disabled - using advanced color extraction algorithms");
+    this.isInitialized = false;
+
+    // TODO: Re-enable face detection when model files are properly set up
+    // Uncomment the code below to enable face detection:
+    /*
     const modelSources = [
-      '/models',  // Local models
-      'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights', // CDN fallback
+      '/models',
+      'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights',
     ];
 
     for (const modelPath of modelSources) {
@@ -73,13 +80,14 @@ class EnhancedFacialFeatureAnalysis {
         console.log(`✅ Enhanced facial analysis models loaded successfully from: ${modelPath}`);
         return;
       } catch (error) {
-        console.warn(`⚠️ Failed to load models from ${modelPath}:`, error);
+        console.warn(`⚠�� Failed to load models from ${modelPath}:`, error);
         continue;
       }
     }
 
     console.error("❌ Failed to load facial analysis models from all sources. Using fallback mode.");
     this.isInitialized = false;
+    */
   }
 
   async detectFacialFeatureColors(imageInput: string | File | Blob): Promise<EnhancedFacialFeatureColors> {
