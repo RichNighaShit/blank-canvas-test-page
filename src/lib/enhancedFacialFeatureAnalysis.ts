@@ -1302,6 +1302,106 @@ class EnhancedFacialFeatureAnalysis {
     };
   }
 
+  /**
+   * Enhanced hair color detection with lighting awareness
+   */
+  private isEnhancedHairColorWithLighting(r: number, g: number, b: number, lightingConditions: any): boolean {
+    // Use base hair color detection but with relaxed parameters for poor lighting
+    if (this.isEnhancedHairColor(r, g, b)) return true;
+
+    // More relaxed detection for challenging lighting
+    const { h, s, l } = this.rgbToHsl(r, g, b);
+    const brightness = (r + g + b) / 3;
+
+    // Adjust thresholds based on lighting conditions
+    let minBrightness = 20;
+    let maxBrightness = 200;
+    let minSaturation = 0.1;
+
+    if (lightingConditions.isLowLight) {
+      minBrightness = 10;
+      maxBrightness = 120;
+      minSaturation = 0.05;
+    } else if (lightingConditions.isOverexposed) {
+      minBrightness = 50;
+      maxBrightness = 255;
+      minSaturation = 0.05;
+    }
+
+    // Check if it could be hair color under these conditions
+    const isInRange = brightness >= minBrightness && brightness <= maxBrightness;
+    const hasSomeVariation = s >= minSaturation || Math.abs(r - g) > 3 || Math.abs(g - b) > 3;
+    const notSkin = !this.isRelaxedSkinColor(r, g, b, lightingConditions);
+
+    return isInRange && hasSomeVariation && notSkin;
+  }
+
+  /**
+   * Enhanced eye color detection with lighting awareness
+   */
+  private isEnhancedEyeColorWithLighting(r: number, g: number, b: number, lightingConditions: any): boolean {
+    // Use base eye color detection but with relaxed parameters for poor lighting
+    if (this.isEnhancedEyeColor(r, g, b)) return true;
+
+    const { h, s, l } = this.rgbToHsl(r, g, b);
+
+    // More lenient detection for poor lighting
+    const isNotWhite = !(s < 0.2 && l > 0.85);
+    const isNotPupil = l > 0.05;
+    const isNotSkin = !this.isRelaxedSkinColor(r, g, b, lightingConditions);
+
+    // Adjust criteria based on lighting
+    if (lightingConditions.isLowLight) {
+      // More permissive for dark images
+      const hasColor = s > 0.05 || l < 0.4;
+      const isReasonable = l > 0.02 && l < 0.9;
+      return isNotWhite && isNotPupil && isNotSkin && hasColor && isReasonable;
+    }
+
+    if (lightingConditions.isOverexposed) {
+      // More permissive for bright images
+      const hasColor = s > 0.03 || (h >= 180 && h <= 270); // Include blue range
+      const isReasonable = l > 0.1 && l < 0.95;
+      return isNotWhite && isNotPupil && isNotSkin && hasColor && isReasonable;
+    }
+
+    // Standard detection with slightly relaxed parameters
+    const hasColorVariation = s > 0.05 || l < 0.5;
+    const isReasonableForEyes = l > 0.05 && l < 0.85;
+
+    return isNotWhite && isNotPupil && isNotSkin && hasColorVariation && isReasonableForEyes;
+  }
+
+  /**
+   * Get broader hair sample for difficult lighting conditions
+   */
+  private getBroadHairSample(ctx: CanvasRenderingContext2D, width: number, height: number, lightingConditions: any): Array<{ r: number, g: number, b: number, weight: number }> {
+    const broadRegions = [
+      // Very top of image
+      { x: 0, y: 0, width: width, height: height * 0.5 },
+      // Top and sides
+      { x: 0, y: 0, width: width * 0.4, height: height * 0.7 },
+      { x: width * 0.6, y: 0, width: width * 0.4, height: height * 0.7 },
+      // Extended top region
+      { x: width * 0.05, y: 0, width: width * 0.9, height: height * 0.6 }
+    ];
+
+    let allPixels: Array<{ r: number, g: number, b: number, weight: number }> = [];
+
+    broadRegions.forEach((region, index) => {
+      const pixels = this.getPixelsInRect(ctx, region);
+      const normalizedPixels = this.normalizeForLighting(pixels, lightingConditions);
+
+      const validPixels = normalizedPixels
+        .filter(p => this.isEnhancedHairColorWithLighting(p.r, p.g, p.b, lightingConditions))
+        .map(p => ({ ...p, weight: 4 - index }));
+
+      allPixels = allPixels.concat(validPixels);
+    });
+
+    return allPixels.slice(0, 150);
+  }
+
   // === ORIGINAL UTILITY METHODS ===
 
   private rgbToHsl(r: number, g: number, blue: number) {
