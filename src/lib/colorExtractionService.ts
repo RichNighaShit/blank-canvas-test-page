@@ -962,7 +962,7 @@ class ColorExtractionService {
         const lab = this.rgbToLab(rgb.r, rgb.g, rgb.b);
 
         for (const range of this.skinToneRanges) {
-          if (this.isInSkinToneRange({ r: rgb.r, g: rgb.g, b: rgb.b, l: lab.l, a: lab.a, b: lab.b, count: 1, hex: color }, range)) {
+          if (this.isInSkinToneRange({ r: rgb.r, g: rgb.g, b: rgb.b, l: lab.l, a: lab.a, bLab: lab.b, count: 1, hex: color }, range)) {
             skinTones.push(color);
             break;
           }
