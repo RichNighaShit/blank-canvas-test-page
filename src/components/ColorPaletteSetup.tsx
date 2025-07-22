@@ -51,15 +51,29 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
 
   const handleContinueToAnalysis = () => {
     if (!selectedPalette) return;
-    
+
     // Generate color season analysis
     const analysis = colorSeasonAnalysisService.analyzeColorSeason(selectedPalette);
     setColorAnalysis(analysis);
+
+    // If embedded (like in dialog), skip analysis display and save directly
+    if (embedded) {
+      handleSaveProfile();
+      return;
+    }
+
     setStep('analysis');
   };
 
   const handleSaveProfile = async () => {
-    if (!selectedPalette || !colorAnalysis || !user) return;
+    if (!selectedPalette || !user) return;
+
+    // Generate analysis if not already done
+    let analysisToSave = colorAnalysis;
+    if (!analysisToSave) {
+      analysisToSave = colorSeasonAnalysisService.analyzeColorSeason(selectedPalette);
+      setColorAnalysis(analysisToSave);
+    }
 
     setSaving(true);
     try {
