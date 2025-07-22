@@ -112,7 +112,7 @@ export const useProfile = () => {
       }
     } catch (error) {
       console.error("Unexpected error fetching profile:", error);
-      const errorMessage = error?.message || error?.toString() || 'Unknown error';
+      const errorMessage = getErrorMessage(error);
       console.error("Unexpected error details:", errorMessage);
     } finally {
       setLoading(false);
