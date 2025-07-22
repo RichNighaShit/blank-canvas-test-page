@@ -147,6 +147,10 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
       });
     } finally {
       setSaving(false);
+      // Reset progress after a brief delay to show completion
+      setTimeout(() => {
+        setSaveProgress({ step: '', progress: 0 });
+      }, 1000);
     }
   };
 
