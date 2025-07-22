@@ -104,20 +104,41 @@ class ColorSeasonAnalysisService {
   }
 
   private determineClarity(palette: ColorPalette): 'clear' | 'soft' | 'muted' {
-    // Clear: bright, saturated colors
-    // Soft: gentle, blended colors
-    // Muted: dusty, grayed colors
-    
-    if (palette.hairColor.category === 'blonde' && palette.eyeColor.category === 'blue') {
+    // More sophisticated clarity analysis based on color intensity and saturation
+    const { skinTone, hairColor, eyeColor } = palette;
+
+    // Calculate color saturation levels
+    const skinSaturation = this.getColorSaturation(skinTone.color);
+    const hairSaturation = this.getColorSaturation(hairColor.color);
+    const eyeSaturation = this.getColorSaturation(eyeColor.color);
+
+    const avgSaturation = (skinSaturation + hairSaturation + eyeSaturation) / 3;
+
+    // Clear types: high contrast, bright colors
+    if (avgSaturation > 0.6 ||
+        (hairColor.category === 'black' && eyeColor.category === 'blue') ||
+        (hairColor.category === 'blonde' && eyeColor.category === 'blue') ||
+        (hairColor.category === 'red' || hairColor.category === 'auburn')) {
       return 'clear';
     }
-    if (palette.hairColor.category === 'auburn' || palette.hairColor.category === 'red') {
-      return 'clear';
-    }
-    if (palette.eyeColor.category === 'hazel' || palette.skinTone.undertone === 'neutral') {
+
+    // Soft types: medium saturation, blended colors
+    if (avgSaturation > 0.3 ||
+        skinTone.undertone === 'neutral' ||
+        eyeColor.category === 'hazel' ||
+        hairColor.category === 'brown') {
       return 'soft';
     }
+
+    // Muted types: low saturation, grayed colors
     return 'muted';
+  }
+
+  private getColorSaturation(hexColor: string): number {
+    const rgb = this.hexToRgb(hexColor);
+    const max = Math.max(rgb.r, rgb.g, rgb.b) / 255;
+    const min = Math.min(rgb.r, rgb.g, rgb.b) / 255;
+    return max === 0 ? 0 : (max - min) / max;
   }
 
   private determineDepth(category: string): 'light' | 'medium' | 'deep' {
