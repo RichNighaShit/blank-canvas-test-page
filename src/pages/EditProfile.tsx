@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Shirt, Palette, Target, Shuffle, Check, Loader2 } from "lucide-react";
+import { SimpleProfilePhotoUpload } from "@/components/SimpleProfilePhotoUpload";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, invalidateProfileCache } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -283,10 +284,12 @@ const EditProfile = () => {
                   </div>
                 </div>
                                                 <div className="flex-1 space-y-4">
-                  <Label>Profile Photo</Label>
-                  <div className="text-sm text-gray-600">
-                    Profile photo management has been moved to the main dashboard.
-                  </div>
+                  <SimpleProfilePhotoUpload
+                    currentPhotoUrl={form.face_photo_url}
+                    onUploadComplete={(imageUrl) => {
+                      setForm(prev => ({ ...prev, face_photo_url: imageUrl }));
+                    }}
+                  />
                 </div>
               </div>
               <div>
