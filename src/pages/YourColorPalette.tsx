@@ -454,78 +454,131 @@ const YourColorPalette = () => {
               </CardContent>
             </Card>
 
-            {/* Color Season Analysis Section */}
+            {/* Enhanced Color Season Analysis Section */}
             {hasFullAnalysis && (
               <>
-                <Card className="card-premium bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Star className="h-5 w-5 text-purple-600" />
-                      Your Professional Color Analysis
-                    </CardTitle>
-                    <p className="text-muted-foreground">
-                      Based on your selected palette: <strong>{selectedPalette.name}</strong>
+                {/* Main Season Analysis Card */}
+                <Card className="card-premium bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-purple-200 shadow-lg">
+                  <CardHeader className="text-center pb-4">
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                      <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                        <Star className="h-6 w-6 text-white" />
+                      </div>
+                      <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent">
+                        Your Professional Color Analysis
+                      </CardTitle>
+                    </div>
+                    <p className="text-muted-foreground text-lg">
+                      Based on your palette: <strong className="text-purple-700">{selectedPalette.name}</strong>
                     </p>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-6">
-                      {/* Color Season Badge */}
-                      <div className="text-center">
-                        <Badge variant="secondary" className="text-lg px-4 py-2 bg-purple-100 text-purple-800">
-                          {colorAnalysis.season.charAt(0).toUpperCase() + colorAnalysis.season.slice(1)} - {colorAnalysis.subSeason}
-                        </Badge>
-                        <p className="text-sm text-muted-foreground mt-2">
+                    <div className="space-y-8">
+                      {/* Enhanced Color Season Badge */}
+                      <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100">
+                        <div className="mb-4">
+                          <Badge className="text-xl px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold">
+                            {colorAnalysis.season.charAt(0).toUpperCase() + colorAnalysis.season.slice(1)} - {colorAnalysis.subSeason}
+                          </Badge>
+                        </div>
+                        <p className="text-gray-700 text-base leading-relaxed max-w-2xl mx-auto">
                           {colorAnalysis.description}
                         </p>
                       </div>
 
-                      {/* Characteristics Grid */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div className="text-center p-3 bg-white rounded-lg">
-                          <p className="font-medium text-gray-700">Contrast</p>
-                          <p className="capitalize text-purple-600">{colorAnalysis.characteristics.contrast}</p>
-                        </div>
-                        <div className="text-center p-3 bg-white rounded-lg">
-                          <p className="font-medium text-gray-700">Warmth</p>
-                          <p className="capitalize text-purple-600">{colorAnalysis.characteristics.warmth}</p>
-                        </div>
-                        <div className="text-center p-3 bg-white rounded-lg">
-                          <p className="font-medium text-gray-700">Clarity</p>
-                          <p className="capitalize text-purple-600">{colorAnalysis.characteristics.clarity}</p>
-                        </div>
-                        <div className="text-center p-3 bg-white rounded-lg">
-                          <p className="font-medium text-gray-700">Depth</p>
-                          <p className="capitalize text-purple-600">{colorAnalysis.characteristics.depth}</p>
+                      {/* Enhanced Natural Features Showcase */}
+                      <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100">
+                        <h4 className="text-lg font-semibold text-center mb-6 text-gray-800">Your Natural Color Harmony</h4>
+                        <div className="flex gap-8 justify-center items-center">
+                          <div className="text-center">
+                            <div className="relative">
+                              <div
+                                className="w-20 h-20 rounded-full border-4 border-white shadow-xl mx-auto mb-3 relative overflow-hidden"
+                                style={{ backgroundColor: selectedPalette.skinTone.color }}
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
+                              </div>
+                              <div className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full">{selectedPalette.skinTone.undertone}</div>
+                            </div>
+                            <p className="text-sm font-semibold text-gray-800 mt-2">{selectedPalette.skinTone.name}</p>
+                            <p className="text-xs text-gray-500">Skin Tone</p>
+                          </div>
+                          <div className="text-center">
+                            <div className="relative">
+                              <div
+                                className="w-20 h-20 rounded-full border-4 border-white shadow-xl mx-auto mb-3 relative overflow-hidden"
+                                style={{ backgroundColor: selectedPalette.hairColor.color }}
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
+                              </div>
+                              <div className="text-xs font-medium text-pink-600 bg-pink-50 px-2 py-1 rounded-full">{selectedPalette.hairColor.category}</div>
+                            </div>
+                            <p className="text-sm font-semibold text-gray-800 mt-2">{selectedPalette.hairColor.name}</p>
+                            <p className="text-xs text-gray-500">Hair Color</p>
+                          </div>
+                          <div className="text-center">
+                            <div className="relative">
+                              <div
+                                className="w-20 h-20 rounded-full border-4 border-white shadow-xl mx-auto mb-3 relative overflow-hidden"
+                                style={{ backgroundColor: selectedPalette.eyeColor.color }}
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
+                              </div>
+                              <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{selectedPalette.eyeColor.category}</div>
+                            </div>
+                            <p className="text-sm font-semibold text-gray-800 mt-2">{selectedPalette.eyeColor.name}</p>
+                            <p className="text-xs text-gray-500">Eye Color</p>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Your Natural Features */}
-                      <div>
-                        <h4 className="font-medium mb-3">Your Natural Features</h4>
-                        <div className="flex gap-6 justify-center">
-                          <div className="text-center">
-                            <div
-                              className="w-16 h-16 rounded-full border-4 border-white shadow-lg mx-auto mb-2"
-                              style={{ backgroundColor: selectedPalette.skinTone.color }}
-                            />
-                            <p className="text-sm font-medium">{selectedPalette.skinTone.name}</p>
-                            <p className="text-xs text-gray-500">Skin</p>
+                      {/* Enhanced Characteristics Grid */}
+                      <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100">
+                        <h4 className="text-lg font-semibold text-center mb-6 text-gray-800">Your Color Characteristics</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+                            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">C</span>
+                            </div>
+                            <p className="font-semibold text-gray-700 text-sm">Contrast</p>
+                            <p className="capitalize text-purple-700 font-medium text-lg">{colorAnalysis.characteristics.contrast}</p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {colorAnalysis.characteristics.contrast === 'high' ? 'Bold differences' :
+                               colorAnalysis.characteristics.contrast === 'medium' ? 'Balanced blend' : 'Subtle harmony'}
+                            </p>
                           </div>
-                          <div className="text-center">
-                            <div
-                              className="w-16 h-16 rounded-full border-4 border-white shadow-lg mx-auto mb-2"
-                              style={{ backgroundColor: selectedPalette.hairColor.color }}
-                            />
-                            <p className="text-sm font-medium">{selectedPalette.hairColor.name}</p>
-                            <p className="text-xs text-gray-500">Hair</p>
+                          <div className="text-center p-4 bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl border border-pink-200">
+                            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">W</span>
+                            </div>
+                            <p className="font-semibold text-gray-700 text-sm">Warmth</p>
+                            <p className="capitalize text-pink-700 font-medium text-lg">{colorAnalysis.characteristics.warmth}</p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {colorAnalysis.characteristics.warmth === 'warm' ? 'Golden undertones' :
+                               colorAnalysis.characteristics.warmth === 'cool' ? 'Blue undertones' : 'Balanced tones'}
+                            </p>
                           </div>
-                          <div className="text-center">
-                            <div
-                              className="w-16 h-16 rounded-full border-4 border-white shadow-lg mx-auto mb-2"
-                              style={{ backgroundColor: selectedPalette.eyeColor.color }}
-                            />
-                            <p className="text-sm font-medium">{selectedPalette.eyeColor.name}</p>
-                            <p className="text-xs text-gray-500">Eyes</p>
+                          <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">CL</span>
+                            </div>
+                            <p className="font-semibold text-gray-700 text-sm">Clarity</p>
+                            <p className="capitalize text-blue-700 font-medium text-lg">{colorAnalysis.characteristics.clarity}</p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {colorAnalysis.characteristics.clarity === 'clear' ? 'Bright & vibrant' :
+                               colorAnalysis.characteristics.clarity === 'soft' ? 'Gentle & blended' : 'Dusty & muted'}
+                            </p>
+                          </div>
+                          <div className="text-center p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200">
+                            <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">D</span>
+                            </div>
+                            <p className="font-semibold text-gray-700 text-sm">Depth</p>
+                            <p className="capitalize text-indigo-700 font-medium text-lg">{colorAnalysis.characteristics.depth}</p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {colorAnalysis.characteristics.depth === 'light' ? 'Delicate tones' :
+                               colorAnalysis.characteristics.depth === 'medium' ? 'Balanced depth' : 'Rich & intense'}
+                            </p>
                           </div>
                         </div>
                       </div>
