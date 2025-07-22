@@ -782,6 +782,53 @@ const YourColorPalette = () => {
                           )}
                         </div>
                       </div>
+
+                      {/* Professional Wardrobe Formula */}
+                      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-indigo-500 rounded-full"></div>
+                          Wardrobe Formula
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">Professional color distribution for a balanced wardrobe</p>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="text-center p-3 bg-white/70 rounded-lg">
+                            <div className="text-2xl font-bold text-indigo-600">{colorAnalysis.clothingRecommendations.wardrobeFormula.neutrals}%</div>
+                            <div className="text-xs text-gray-600">Neutrals</div>
+                          </div>
+                          <div className="text-center p-3 bg-white/70 rounded-lg">
+                            <div className="text-2xl font-bold text-purple-600">{colorAnalysis.clothingRecommendations.wardrobeFormula.accents}%</div>
+                            <div className="text-xs text-gray-600">Accents</div>
+                          </div>
+                          <div className="text-center p-3 bg-white/70 rounded-lg">
+                            <div className="text-2xl font-bold text-pink-600">{colorAnalysis.clothingRecommendations.wardrobeFormula.statement}%</div>
+                            <div className="text-xs text-gray-600">Statement</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Style Personality */}
+                      <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-rose-500 rounded-full"></div>
+                          Your Style Personality
+                        </h4>
+                        <p className="text-sm text-gray-700 leading-relaxed">{colorAnalysis.clothingRecommendations.stylePersonality}</p>
+                      </div>
+
+                      {/* Best Fabrics */}
+                      <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
+                          Recommended Fabrics
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {colorAnalysis.clothingRecommendations.bestFabrics.map((fabric, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {fabric}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
 
