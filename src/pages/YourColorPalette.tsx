@@ -904,6 +904,66 @@ const YourColorPalette = () => {
                             ))}
                           </div>
                         </div>
+
+                        {/* Eyebrow Color */}
+                        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Eyebrow Color</h4>
+                          <p className="text-sm text-gray-600 mb-3">Perfect brow shade to frame your eyes</p>
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-16 h-8 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                              style={{ backgroundColor: colorAnalysis.makeupRecommendations.eyebrowColor }}
+                              title={`Copy ${colorAnalysis.makeupRecommendations.eyebrowColor}`}
+                              onClick={() => handleCopyColor(colorAnalysis.makeupRecommendations.eyebrowColor)}
+                            />
+                            <span className="text-xs text-gray-500 font-mono">{colorAnalysis.makeupRecommendations.eyebrowColor}</span>
+                          </div>
+                        </div>
+
+                        {/* Mascara & Eye Basics */}
+                        <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Eye Basics</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-gray-600 mb-2">Mascara</p>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-8 h-8 rounded border-2 border-white shadow-md"
+                                  style={{ backgroundColor: colorAnalysis.makeupRecommendations.mascara }}
+                                />
+                                <span className="text-xs text-gray-500 font-mono">{colorAnalysis.makeupRecommendations.mascara}</span>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600 mb-2">Highlighter</p>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-8 h-8 rounded border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                  style={{ backgroundColor: colorAnalysis.makeupRecommendations.highlighter }}
+                                  onClick={() => handleCopyColor(colorAnalysis.makeupRecommendations.highlighter)}
+                                />
+                                <span className="text-xs text-gray-500 font-mono">{colorAnalysis.makeupRecommendations.highlighter}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Nail Colors */}
+                        <div className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Nail Colors</h4>
+                          <p className="text-sm text-gray-600 mb-3">Flattering nail polish shades</p>
+                          <div className="grid grid-cols-4 gap-2">
+                            {colorAnalysis.makeupRecommendations.nailColors.map((color, index) => (
+                              <div
+                                key={index}
+                                className="w-full h-8 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                style={{ backgroundColor: color }}
+                                title={`Copy ${color}`}
+                                onClick={() => handleCopyColor(color)}
+                              />
+                            ))}
+                          </div>
+                        </div>
                       </CardContent>
                     </Card>
                   )}
