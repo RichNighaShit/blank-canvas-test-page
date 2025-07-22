@@ -99,11 +99,15 @@ class ColorSeasonAnalysisService {
       characteristics,
       idealColors: seasonAnalysis.idealColors,
       avoidColors: seasonAnalysis.avoidColors,
-      clothingRecommendations: seasonAnalysis.clothingRecommendations,
-      makeupRecommendations: this.getMakeupRecommendations(palette),
+      clothingRecommendations: this.getEnhancedClothingRecommendations(seasonAnalysis.clothingRecommendations, palette),
+      makeupRecommendations: this.getEnhancedMakeupRecommendations(palette),
       personalityTraits: seasonAnalysis.personalityTraits,
       description: seasonAnalysis.description,
-      tips: seasonAnalysis.tips
+      tips: seasonAnalysis.tips,
+      professionalInsights: this.getProfessionalInsights(palette, characteristics),
+      detailedAnalysis: this.getDetailedAnalysis(palette),
+      lifestyleRecommendations: this.getLifestyleRecommendations(palette.colorSeason),
+      colorCombinations: this.getColorCombinations(palette.colorSeason)
     };
   }
 
