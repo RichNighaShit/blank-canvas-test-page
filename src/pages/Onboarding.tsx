@@ -217,6 +217,8 @@ const Onboarding = () => {
             color_palette_colors: profileData.color_palette_colors,
             goals: profileData.goals,
             face_photo_url: profileData.face_photo_url,
+            selected_palette_id: profileData.selected_palette_id,
+            color_season_analysis: profileData.color_season_analysis,
           })
           .eq("user_id", user.id);
 
