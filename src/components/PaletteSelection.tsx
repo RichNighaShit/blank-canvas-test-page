@@ -14,6 +14,8 @@ interface PaletteSelectionProps {
   onPaletteSelect: (palette: ColorPalette) => void;
   onContinue: () => void;
   showContinueButton?: boolean;
+  saving?: boolean;
+  saveProgress?: { step: string; progress: number };
 }
 
 export const PaletteSelection: React.FC<PaletteSelectionProps> = ({
