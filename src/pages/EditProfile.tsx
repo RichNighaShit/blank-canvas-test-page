@@ -22,9 +22,7 @@ import { Shirt, Palette, Target, Shuffle, Check, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, invalidateProfileCache } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
-import { ColorPaletteSetup } from "@/components/ColorPaletteSetup";
-import type { ColorPalette } from "@/data/predefinedColorPalettes";
-import type { ColorSeasonAnalysis } from "@/lib/colorSeasonAnalysis";
+
 
 const styleOptions = [
   { id: "streetwear", label: "Streetwear", icon: Shirt },
@@ -87,8 +85,7 @@ const EditProfile = () => {
     color_palette_colors: [] as string[],
     goals: [] as string[],
     face_photo_url: "",
-    selected_palette_id: "",
-    color_season_analysis: null as any,
+
   });
 
   useEffect(() => {
@@ -107,8 +104,7 @@ const EditProfile = () => {
           : [],
         goals: Array.isArray(profile.goals) ? profile.goals : [],
         face_photo_url: profile.face_photo_url || "",
-        selected_palette_id: profile.selected_palette_id || "",
-        color_season_analysis: profile.color_season_analysis || null,
+
       });
     }
   }, [profile]);
@@ -182,8 +178,7 @@ const EditProfile = () => {
         color_palette_colors: form.color_palette_colors,
         goals: form.goals,
         face_photo_url: form.face_photo_url || null,
-        selected_palette_id: form.selected_palette_id || null,
-        color_season_analysis: form.color_season_analysis || null,
+
       };
 
       console.log("Updating profile with data:", updateData);
@@ -288,20 +283,10 @@ const EditProfile = () => {
                   </div>
                 </div>
                                                 <div className="flex-1 space-y-4">
-                  <Label>Color Palette</Label>
-                  <ColorPaletteSetup
-                    onComplete={(palette: ColorPalette, analysis: ColorSeasonAnalysis) => {
-                      console.log('Color palette updated:', palette);
-                      setForm(prev => ({
-                        ...prev,
-                        color_palette_colors: palette.complementaryColors,
-                        selected_palette_id: palette.id,
-                        color_season_analysis: analysis
-                      }));
-                    }}
-                    showTitle={false}
-                    embedded={true}
-                  />
+                  <Label>Profile Photo</Label>
+                  <div className="text-sm text-gray-600">
+                    Profile photo management has been moved to the main dashboard.
+                  </div>
                 </div>
               </div>
               <div>
