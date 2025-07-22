@@ -43,6 +43,7 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
   const [selectedPalette, setSelectedPalette] = useState<ColorPalette | null>(null);
   const [colorAnalysis, setColorAnalysis] = useState<ColorSeasonAnalysis | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveProgress, setSaveProgress] = useState({ step: '', progress: 0 });
   const { user } = useAuth();
   const { profile, refetch } = useProfile();
   const { toast } = useToast();
