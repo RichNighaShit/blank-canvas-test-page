@@ -87,6 +87,8 @@ const EditProfile = () => {
     color_palette_colors: [] as string[],
     goals: [] as string[],
     face_photo_url: "",
+    selected_palette_id: "",
+    color_season_analysis: null as any,
   });
 
   useEffect(() => {
@@ -105,6 +107,8 @@ const EditProfile = () => {
           : [],
         goals: Array.isArray(profile.goals) ? profile.goals : [],
         face_photo_url: profile.face_photo_url || "",
+        selected_palette_id: profile.selected_palette_id || "",
+        color_season_analysis: profile.color_season_analysis || null,
       });
     }
   }, [profile]);
