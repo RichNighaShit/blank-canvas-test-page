@@ -17,7 +17,14 @@ import {
   Info,
   Sparkles,
   Heart,
+  Edit,
+  Star,
+  AlertTriangle,
 } from "lucide-react";
+import { ColorPaletteSetup } from "@/components/ColorPaletteSetup";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PREDEFINED_COLOR_PALETTES, getPaletteById } from "@/data/predefinedColorPalettes";
+import type { ColorSeasonAnalysis } from "@/lib/colorSeasonAnalysis";
 
 const YourColorPalette = () => {
   // Cache busting effect
@@ -26,12 +33,14 @@ const YourColorPalette = () => {
     const cacheVersion = new Date().getTime();
     console.log('YourColorPalette loaded at:', cacheVersion);
   }, []);
+  const [showPaletteSelection, setShowPaletteSelection] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, refetch } = useProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [isRegeneratingColors, setIsRegeneratingColors] = useState(false);
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -54,10 +63,24 @@ const YourColorPalette = () => {
     );
   }
 
-      const rawColors = Array.isArray(profile?.color_palette_colors) ? profile.color_palette_colors : [];
-  const colors = rawColors.filter(color =>
+  // Get selected palette and analysis first
+  const selectedPalette = profile?.selected_palette_id ? getPaletteById(profile.selected_palette_id) : null;
+  const colorAnalysis: ColorSeasonAnalysis | null = profile?.color_season_analysis || null;
+  const hasFullAnalysis = selectedPalette && colorAnalysis;
+
+  // Use selected palette colors if available, otherwise fall back to extracted colors
+  const rawColors = Array.isArray(profile?.color_palette_colors) ? profile.color_palette_colors : [];
+  const extractedColors = rawColors.filter(color =>
     color && typeof color === 'string' && color.match(/^#[0-9A-Fa-f]{6}$/)
   );
+
+  // Prefer selected palette colors over extracted colors
+  const colors = selectedPalette ? [
+    selectedPalette.skinTone.color,
+    selectedPalette.hairColor.color,
+    selectedPalette.eyeColor.color
+  ] : extractedColors;
+
   const hasColors = colors.length > 0;
 
     const handleCopyColor = async (color: string) => {
@@ -108,32 +131,26 @@ const YourColorPalette = () => {
     });
   };
 
-  const handleRegenerateColors = async () => {
-    if (!profile?.face_photo_url) {
-      toast({
-        title: "No photo available",
-        description: "Please upload a profile picture first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsRegeneratingColors(true);
+  const handleRefreshPalette = async () => {
+    setIsRefreshing(true);
     try {
+      await refetch();
       toast({
-        title: "Feature coming soon!",
-        description: "Color regeneration will be available soon",
+        title: "Palette refreshed!",
+        description: "Your color palette has been updated",
       });
     } catch (error) {
       toast({
-        title: "Regeneration failed",
-        description: "Unable to extract new colors from your photo",
+        title: "Refresh failed",
+        description: "Unable to refresh your palette",
         variant: "destructive",
       });
     } finally {
-      setIsRegeneratingColors(false);
+      setIsRefreshing(false);
     }
   };
+
+
 
     const getBasicColorAnalysis = () => {
     if (!hasColors || colors.length === 0) return null;
@@ -207,8 +224,11 @@ const YourColorPalette = () => {
             <h1 className="text-3xl md:text-4xl font-heading bg-gradient-to-r from-purple-900 dark:from-purple-400 to-pink-700 dark:to-pink-400 bg-clip-text text-transparent mb-3">
               Your Color Palette
             </h1>
-                                    <p className="text-muted-foreground text-lg">
-              Your actual skin tone, hair color, and eye color detected from your photo
+            <p className="text-muted-foreground text-lg">
+              {selectedPalette ?
+                `Your chosen color palette: ${selectedPalette.name}` :
+                "Your actual skin tone, hair color, and eye color detected from your photo"
+              }
             </p>
           </div>
         </div>
@@ -224,6 +244,32 @@ const YourColorPalette = () => {
                     Your Facial Feature Colors
                   </CardTitle>
                   <div className="flex flex-wrap gap-2">
+                    <Dialog open={showPaletteSelection} onOpenChange={setShowPaletteSelection}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Change Palette
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-5xl max-h-[90vh] overflow-auto">
+                        <DialogHeader>
+                          <DialogTitle>Update Your Color Palette</DialogTitle>
+                        </DialogHeader>
+                        <ColorPaletteSetup
+                          onComplete={async () => {
+                            setShowPaletteSelection(false);
+                            // Refresh profile data without page reload
+                            await refetch();
+                          }}
+                          showTitle={false}
+                          embedded={true}
+                        />
+                      </DialogContent>
+                    </Dialog>
                     <Button
                       variant="outline"
                       size="sm"
@@ -236,14 +282,14 @@ const YourColorPalette = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={handleRegenerateColors}
-                      disabled={isRegeneratingColors}
+                      onClick={handleRefreshPalette}
+                      disabled={isRefreshing}
                       className="text-xs"
                     >
                       <RefreshCw
-                        className={`h-3 w-3 mr-1 ${isRegeneratingColors ? "animate-spin" : ""}`}
+                        className={`h-3 w-3 mr-1 ${isRefreshing ? "animate-spin" : ""}`}
                       />
-                      {isRegeneratingColors ? "Extracting..." : "Regenerate"}
+                      {isRefreshing ? "Refreshing..." : "Refresh"}
                     </Button>
                   </div>
                 </div>
@@ -257,9 +303,16 @@ const YourColorPalette = () => {
                       return null; // Skip invalid colors
                     }
 
-                    const labels = ["Skin Tone", "Hair Color", "Eye Color"];
+                    // Use palette names if available, otherwise use generic labels
+                    const defaultLabels = ["Skin Tone", "Hair Color", "Eye Color"];
+                    const paletteLabels = selectedPalette ? [
+                      selectedPalette.skinTone.name,
+                      selectedPalette.hairColor.name,
+                      selectedPalette.eyeColor.name
+                    ] : defaultLabels;
+
                     const icons = ["👤", "💇", "👁️"];
-                    const label = labels[index] || `Color ${index + 1}`;
+                    const label = paletteLabels[index] || defaultLabels[index] || `Color ${index + 1}`;
                     const icon = icons[index] || "🎨";
 
                     return (
@@ -371,10 +424,11 @@ const YourColorPalette = () => {
                   <Heart className="h-5 w-5 text-pink-500 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="font-semibold">Outfit Recommendations</h4>
-                                                            <p className="text-sm text-muted-foreground">
-                      These are your actual detected facial feature colors: skin tone,
-                      hair color, and eye color. Use these as reference for choosing
-                      clothing and makeup that complements your natural coloring.
+                    <p className="text-sm text-muted-foreground">
+                      {selectedPalette ?
+                        "These are your chosen palette colors that match your natural coloring. Use these as reference for choosing clothing and makeup that complements your features." :
+                        "These are your actual detected facial feature colors: skin tone, hair color, and eye color. Use these as reference for choosing clothing and makeup that complements your natural coloring."
+                      }
                     </p>
                   </div>
                 </div>
@@ -400,28 +454,438 @@ const YourColorPalette = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Enhanced Color Season Analysis Section */}
+            {hasFullAnalysis && (
+              <>
+                {/* Main Season Analysis Card */}
+                <Card className="card-premium bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-purple-200 shadow-lg">
+                  <CardHeader className="text-center pb-4">
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                      <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                        <Star className="h-6 w-6 text-white" />
+                      </div>
+                      <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent">
+                        Your Professional Color Analysis
+                      </CardTitle>
+                    </div>
+                    <p className="text-muted-foreground text-lg">
+                      Based on your palette: <strong className="text-purple-700">{selectedPalette.name}</strong>
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-8">
+                      {/* Enhanced Color Season Badge */}
+                      <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100">
+                        <div className="mb-4">
+                          <Badge className="text-xl px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold">
+                            {colorAnalysis.season.charAt(0).toUpperCase() + colorAnalysis.season.slice(1)} - {colorAnalysis.subSeason}
+                          </Badge>
+                        </div>
+                        <p className="text-gray-700 text-base leading-relaxed max-w-2xl mx-auto">
+                          {colorAnalysis.description}
+                        </p>
+                      </div>
+
+                      {/* Enhanced Natural Features Showcase */}
+                      <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100">
+                        <h4 className="text-lg font-semibold text-center mb-6 text-gray-800">Your Natural Color Harmony</h4>
+                        <div className="flex gap-8 justify-center items-center">
+                          <div className="text-center">
+                            <div className="relative">
+                              <div
+                                className="w-20 h-20 rounded-full border-4 border-white shadow-xl mx-auto mb-3 relative overflow-hidden"
+                                style={{ backgroundColor: selectedPalette.skinTone.color }}
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
+                              </div>
+                              <div className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full">{selectedPalette.skinTone.undertone}</div>
+                            </div>
+                            <p className="text-sm font-semibold text-gray-800 mt-2">{selectedPalette.skinTone.name}</p>
+                            <p className="text-xs text-gray-500">Skin Tone</p>
+                          </div>
+                          <div className="text-center">
+                            <div className="relative">
+                              <div
+                                className="w-20 h-20 rounded-full border-4 border-white shadow-xl mx-auto mb-3 relative overflow-hidden"
+                                style={{ backgroundColor: selectedPalette.hairColor.color }}
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
+                              </div>
+                              <div className="text-xs font-medium text-pink-600 bg-pink-50 px-2 py-1 rounded-full">{selectedPalette.hairColor.category}</div>
+                            </div>
+                            <p className="text-sm font-semibold text-gray-800 mt-2">{selectedPalette.hairColor.name}</p>
+                            <p className="text-xs text-gray-500">Hair Color</p>
+                          </div>
+                          <div className="text-center">
+                            <div className="relative">
+                              <div
+                                className="w-20 h-20 rounded-full border-4 border-white shadow-xl mx-auto mb-3 relative overflow-hidden"
+                                style={{ backgroundColor: selectedPalette.eyeColor.color }}
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
+                              </div>
+                              <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{selectedPalette.eyeColor.category}</div>
+                            </div>
+                            <p className="text-sm font-semibold text-gray-800 mt-2">{selectedPalette.eyeColor.name}</p>
+                            <p className="text-xs text-gray-500">Eye Color</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Enhanced Characteristics Grid */}
+                      <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100">
+                        <h4 className="text-lg font-semibold text-center mb-6 text-gray-800">Your Color Characteristics</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+                            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">C</span>
+                            </div>
+                            <p className="font-semibold text-gray-700 text-sm">Contrast</p>
+                            <p className="capitalize text-purple-700 font-medium text-lg">{colorAnalysis.characteristics.contrast}</p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {colorAnalysis.characteristics.contrast === 'high' ? 'Bold differences' :
+                               colorAnalysis.characteristics.contrast === 'medium' ? 'Balanced blend' : 'Subtle harmony'}
+                            </p>
+                          </div>
+                          <div className="text-center p-4 bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl border border-pink-200">
+                            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">W</span>
+                            </div>
+                            <p className="font-semibold text-gray-700 text-sm">Warmth</p>
+                            <p className="capitalize text-pink-700 font-medium text-lg">{colorAnalysis.characteristics.warmth}</p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {colorAnalysis.characteristics.warmth === 'warm' ? 'Golden undertones' :
+                               colorAnalysis.characteristics.warmth === 'cool' ? 'Blue undertones' : 'Balanced tones'}
+                            </p>
+                          </div>
+                          <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">CL</span>
+                            </div>
+                            <p className="font-semibold text-gray-700 text-sm">Clarity</p>
+                            <p className="capitalize text-blue-700 font-medium text-lg">{colorAnalysis.characteristics.clarity}</p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {colorAnalysis.characteristics.clarity === 'clear' ? 'Bright & vibrant' :
+                               colorAnalysis.characteristics.clarity === 'soft' ? 'Gentle & blended' : 'Dusty & muted'}
+                            </p>
+                          </div>
+                          <div className="text-center p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200">
+                            <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">D</span>
+                            </div>
+                            <p className="font-semibold text-gray-700 text-sm">Depth</p>
+                            <p className="capitalize text-indigo-700 font-medium text-lg">{colorAnalysis.characteristics.depth}</p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {colorAnalysis.characteristics.depth === 'light' ? 'Delicate tones' :
+                               colorAnalysis.characteristics.depth === 'medium' ? 'Balanced depth' : 'Rich & intense'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Enhanced Ideal Colors Section */}
+                <Card className="card-premium">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <Palette className="h-6 w-6 text-blue-600" />
+                      Your Perfect Color Palette
+                    </CardTitle>
+                    <p className="text-muted-foreground">Colors that enhance your natural beauty and make you glow</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {colorAnalysis.idealColors.map((category, index) => (
+                        <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                            <h3 className="font-semibold text-gray-800">{category.category}</h3>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-4 leading-relaxed">{category.description}</p>
+                          <div className="grid grid-cols-6 gap-2">
+                            {category.colors.map((color, colorIndex) => (
+                              <div key={colorIndex} className="group relative">
+                                <div
+                                  className="w-full h-12 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200 hover:shadow-lg"
+                                  style={{ backgroundColor: color }}
+                                  title={`Click to copy ${color}`}
+                                  onClick={() => handleCopyColor(color)}
+                                />
+                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <Copy className="w-2 h-2 text-gray-600" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Colors to Avoid Section */}
+                {colorAnalysis.avoidColors && colorAnalysis.avoidColors.length > 0 && (
+                  <Card className="card-premium border-red-200 bg-gradient-to-br from-red-50 to-orange-50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-xl text-red-700">
+                        <AlertTriangle className="h-6 w-6" />
+                        Colors to Avoid
+                      </CardTitle>
+                      <p className="text-red-600">These colors may wash you out or clash with your natural coloring</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {colorAnalysis.avoidColors.map((category, index) => (
+                          <div key={index} className="bg-white/70 rounded-lg p-4 border border-red-100">
+                            <h4 className="font-medium text-red-800 mb-2">{category.category}</h4>
+                            <p className="text-sm text-red-700 mb-3">{category.reason}</p>
+                            <div className="flex flex-wrap gap-2">
+                              {category.colors.map((color, colorIndex) => (
+                                <div
+                                  key={colorIndex}
+                                  className="w-8 h-8 rounded border-2 border-red-200 opacity-75"
+                                  style={{ backgroundColor: color }}
+                                  title={`Avoid: ${color}`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Enhanced Professional Style Tips */}
+                <Card className="card-premium bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl text-green-800">
+                      <Sparkles className="h-6 w-6 text-green-600" />
+                      Professional Styling Advice
+                    </CardTitle>
+                    <p className="text-green-700">Expert tips to maximize your color harmony</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4">
+                      {colorAnalysis.tips.map((tip, index) => (
+                        <div key={index} className="flex items-start gap-3 p-4 bg-white/70 rounded-lg border border-green-100">
+                          <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                          </div>
+                          <p className="text-gray-700 leading-relaxed">{tip}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Enhanced Clothing & Makeup Recommendations */}
+                <div className="grid lg:grid-cols-2 gap-6">
+                  {/* Clothing Recommendations */}
+                  <Card className="card-premium">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-xl">
+                        <Heart className="h-6 w-6 text-pink-600" />
+                        Wardrobe Colors
+                      </CardTitle>
+                      <p className="text-muted-foreground">Your perfect clothing color palette</p>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
+                          Foundation Neutrals
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">Your wardrobe building blocks - use for 60% of your outfits</p>
+                        <div className="grid grid-cols-8 gap-2">
+                          {colorAnalysis.clothingRecommendations.neutrals.map((color, index) => (
+                            <div key={index} className="group relative">
+                              <div
+                                className="w-full h-10 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200"
+                                style={{ backgroundColor: color }}
+                                title={`Copy ${color}`}
+                                onClick={() => handleCopyColor(color)}
+                              />
+                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Copy className="w-2 h-2 text-gray-600" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
+                          Statement Accents
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">Bold colors that make you shine - use for 30% of your outfits</p>
+                        <div className="grid grid-cols-8 gap-2">
+                          {colorAnalysis.clothingRecommendations.accents.map((color, index) => (
+                            <div key={index} className="group relative">
+                              <div
+                                className="w-full h-10 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200"
+                                style={{ backgroundColor: color }}
+                                title={`Copy ${color}`}
+                                onClick={() => handleCopyColor(color)}
+                              />
+                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Copy className="w-2 h-2 text-gray-600" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                          Metallic Finishes
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">Jewelry and accessories that complement your coloring</p>
+                        <div className="flex gap-3">
+                          {colorAnalysis.clothingRecommendations.metallics === 'gold' && (
+                            <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900 px-4 py-2">
+                              🥇 Gold Tones
+                            </Badge>
+                          )}
+                          {colorAnalysis.clothingRecommendations.metallics === 'silver' && (
+                            <Badge className="bg-gradient-to-r from-gray-300 to-gray-500 text-gray-800 px-4 py-2">
+                              🥈 Silver Tones
+                            </Badge>
+                          )}
+                          {colorAnalysis.clothingRecommendations.metallics === 'both' && (
+                            <>
+                              <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900 px-3 py-2">
+                                🥇 Gold
+                              </Badge>
+                              <Badge className="bg-gradient-to-r from-gray-300 to-gray-500 text-gray-800 px-3 py-2">
+                                🥈 Silver
+                              </Badge>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Makeup Recommendations */}
+                  {colorAnalysis.makeupRecommendations && (
+                    <Card className="card-premium">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-xl">
+                          <Sparkles className="h-6 w-6 text-rose-600" />
+                          Makeup Colors
+                        </CardTitle>
+                        <p className="text-muted-foreground">Cosmetic shades that enhance your features</p>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {/* Foundation */}
+                        <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Foundation Match</h4>
+                          <p className="text-sm text-gray-600 mb-3">Your ideal foundation tone</p>
+                          <div
+                            className="w-full h-8 rounded-lg border-2 border-white shadow-md"
+                            style={{ backgroundColor: colorAnalysis.makeupRecommendations.foundation }}
+                          />
+                          <p className="text-xs text-gray-500 mt-2">{colorAnalysis.makeupRecommendations.foundation}</p>
+                        </div>
+
+                        {/* Lip Colors */}
+                        <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Lip Colors</h4>
+                          <p className="text-sm text-gray-600 mb-3">Flattering lip shades</p>
+                          <div className="grid grid-cols-4 gap-2">
+                            {colorAnalysis.makeupRecommendations.lipColors.map((color, index) => (
+                              <div
+                                key={index}
+                                className="w-full h-8 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                style={{ backgroundColor: color }}
+                                title={`Copy ${color}`}
+                                onClick={() => handleCopyColor(color)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Eye Colors */}
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Eye Colors</h4>
+                          <p className="text-sm text-gray-600 mb-3">Eyeshadow and liner shades</p>
+                          <div className="grid grid-cols-4 gap-2">
+                            {colorAnalysis.makeupRecommendations.eyeColors.map((color, index) => (
+                              <div
+                                key={index}
+                                className="w-full h-8 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                style={{ backgroundColor: color }}
+                                title={`Copy ${color}`}
+                                onClick={() => handleCopyColor(color)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Blush Colors */}
+                        <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Blush Colors</h4>
+                          <p className="text-sm text-gray-600 mb-3">Cheek colors that add natural glow</p>
+                          <div className="grid grid-cols-4 gap-2">
+                            {colorAnalysis.makeupRecommendations.blushColors.map((color, index) => (
+                              <div
+                                key={index}
+                                className="w-full h-8 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                style={{ backgroundColor: color }}
+                                title={`Copy ${color}`}
+                                onClick={() => handleCopyColor(color)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </>
+            )}
           </>
         ) : (
           /* No Colors State */
           <Card className="card-premium text-center">
             <CardContent className="p-12">
               <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Camera className="h-10 w-10 text-white" />
+                <Palette className="h-10 w-10 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-4">
-                No Color Palette Yet
+                Choose Your Color Palette
               </h3>
-                                                        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Upload a profile picture to detect your actual skin tone, hair color, and eye color.
-                We'll show you the real colors from your photo for accurate reference.
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Select the color palette that best matches your natural coloring to get personalized style recommendations.
               </p>
-              <Button
-                onClick={() => navigate("/edit-profile")}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Upload Profile Picture
-              </Button>
+              <Dialog open={showPaletteSelection} onOpenChange={setShowPaletteSelection}>
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                    <Palette className="h-4 w-4 mr-2" />
+                    Choose Color Palette
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-5xl max-h-[90vh] overflow-auto">
+                  <DialogHeader>
+                    <DialogTitle>Choose Your Color Palette</DialogTitle>
+                  </DialogHeader>
+                  <ColorPaletteSetup
+                    onComplete={async () => {
+                      setShowPaletteSelection(false);
+                      // Refresh profile data without page reload
+                      await refetch();
+                    }}
+                    showTitle={false}
+                    embedded={true}
+                  />
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         )}

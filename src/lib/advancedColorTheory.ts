@@ -319,57 +319,57 @@ export class AdvancedColorTheory {
   /**
    * Convert RGB to CIELAB color space
    */
-  private rgbToLab(r: number, g: number, b: number): { l: number; a: number; b: number } {
+  private rgbToLab(r: number, g: number, blue: number): { l: number; a: number; b: number } {
     // Convert RGB to XYZ
-    const xyz = this.rgbToXyz(r, g, b);
-    
+    const xyz = this.rgbToXyz(r, g, blue);
+
     // Convert XYZ to CIELAB
     const xn = 0.95047, yn = 1.00000, zn = 1.08883; // D65 illuminant
-    
+
     const xr = this.xyzToLab(xyz.x / xn);
     const yr = this.xyzToLab(xyz.y / yn);
     const zr = this.xyzToLab(xyz.z / zn);
-    
+
     const l = 116 * yr - 16;
     const a = 500 * (xr - yr);
-    const bValue = 200 * (yr - zr);
-    
-    return { l, a, b: bValue };
+    const b = 200 * (yr - zr);
+
+    return { l, a, b };
   }
 
   /**
    * Convert CIELAB to RGB
    */
-  private labToRgb(l: number, a: number, b: number): { r: number; g: number; b: number } {
+  private labToRgb(l: number, a: number, bLab: number): { r: number; g: number; b: number } {
     const xn = 0.95047, yn = 1.00000, zn = 1.08883;
-    
+
     const yr = (l + 16) / 116;
     const xr = a / 500 + yr;
-    const zr = yr - b / 200;
-    
+    const zr = yr - bLab / 200;
+
     const x = xn * this.labToXyz(xr);
     const y = yn * this.labToXyz(yr);
     const z = zn * this.labToXyz(zr);
-    
+
     return this.xyzToRgb(x, y, z);
   }
 
   /**
    * Convert RGB to XYZ
    */
-  private rgbToXyz(r: number, g: number, b: number): { x: number; y: number; z: number } {
+  private rgbToXyz(r: number, g: number, blue: number): { x: number; y: number; z: number } {
     r = r / 255;
     g = g / 255;
-    b = b / 255;
-    
+    blue = blue / 255;
+
     r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
     g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
-    b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
-    
-    const x = r * 0.4124 + g * 0.3576 + b * 0.1805;
-    const y = r * 0.2126 + g * 0.7152 + b * 0.0722;
-    const z = r * 0.0193 + g * 0.1192 + b * 0.9505;
-    
+    blue = blue > 0.04045 ? Math.pow((blue + 0.055) / 1.055, 2.4) : blue / 12.92;
+
+    const x = r * 0.4124 + g * 0.3576 + blue * 0.1805;
+    const y = r * 0.2126 + g * 0.7152 + blue * 0.0722;
+    const z = r * 0.0193 + g * 0.1192 + blue * 0.9505;
+
     return { x, y, z };
   }
 
@@ -377,18 +377,18 @@ export class AdvancedColorTheory {
    * Convert XYZ to RGB
    */
   private xyzToRgb(x: number, y: number, z: number): { r: number; g: number; b: number } {
-    const r = x * 3.2406 + y * -1.5372 + z * -0.4986;
-    const g = x * -0.9689 + y * 1.8758 + z * 0.0415;
-    const b = x * 0.0557 + y * -0.2040 + z * 1.0570;
-    
-    const rNorm = Math.max(0, Math.min(1, r));
-    const gNorm = Math.max(0, Math.min(1, g));
-    const bNorm = Math.max(0, Math.min(1, b));
-    
+    const rCalc = x * 3.2406 + y * -1.5372 + z * -0.4986;
+    const gCalc = x * -0.9689 + y * 1.8758 + z * 0.0415;
+    const bCalc = x * 0.0557 + y * -0.2040 + z * 1.0570;
+
+    const rNorm = Math.max(0, Math.min(1, rCalc));
+    const gNorm = Math.max(0, Math.min(1, gCalc));
+    const bNorm = Math.max(0, Math.min(1, bCalc));
+
     const rFinal = rNorm > 0.0031308 ? 1.055 * Math.pow(rNorm, 1/2.4) - 0.055 : 12.92 * rNorm;
     const gFinal = gNorm > 0.0031308 ? 1.055 * Math.pow(gNorm, 1/2.4) - 0.055 : 12.92 * gNorm;
     const bFinal = bNorm > 0.0031308 ? 1.055 * Math.pow(bNorm, 1/2.4) - 0.055 : 12.92 * bNorm;
-    
+
     return {
       r: Math.round(rFinal * 255),
       g: Math.round(gFinal * 255),
@@ -473,8 +473,8 @@ export class AdvancedColorTheory {
   /**
    * Convert RGB to hex
    */
-  private rgbToHex(r: number, g: number, b: number): string {
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`.toUpperCase();
+  private rgbToHex(r: number, g: number, blue: number): string {
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${blue.toString(16).padStart(2, '0')}`.toUpperCase();
   }
 
   /**
@@ -492,13 +492,13 @@ export class AdvancedColorTheory {
   /**
    * Convert RGB to HSL
    */
-  private rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
+  private rgbToHsl(r: number, g: number, blue: number): { h: number; s: number; l: number } {
     r /= 255;
     g /= 255;
-    b /= 255;
+    blue /= 255;
 
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
+    const max = Math.max(r, g, blue);
+    const min = Math.min(r, g, blue);
     let h = 0, s = 0, l = (max + min) / 2;
 
     if (max !== min) {
@@ -507,12 +507,12 @@ export class AdvancedColorTheory {
 
       switch (max) {
         case r:
-          h = (g - b) / d + (g < b ? 6 : 0);
+          h = (g - blue) / d + (g < blue ? 6 : 0);
           break;
         case g:
-          h = (b - r) / d + 2;
+          h = (blue - r) / d + 2;
           break;
-        case b:
+        case blue:
           h = (r - g) / d + 4;
           break;
       }

@@ -19,11 +19,11 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Shirt, Palette, Target, Shuffle, Check, Loader2 } from "lucide-react";
+import { SimpleProfilePhotoUpload } from "@/components/SimpleProfilePhotoUpload";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, invalidateProfileCache } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
-import { PhotoUpload } from "@/components/PhotoUpload";
-import { SimplePhotoUploadTest } from "@/components/SimplePhotoUploadTest";
+
 
 const styleOptions = [
   { id: "streetwear", label: "Streetwear", icon: Shirt },
@@ -86,6 +86,7 @@ const EditProfile = () => {
     color_palette_colors: [] as string[],
     goals: [] as string[],
     face_photo_url: "",
+
   });
 
   useEffect(() => {
@@ -104,6 +105,7 @@ const EditProfile = () => {
           : [],
         goals: Array.isArray(profile.goals) ? profile.goals : [],
         face_photo_url: profile.face_photo_url || "",
+
       });
     }
   }, [profile]);
@@ -126,20 +128,7 @@ const EditProfile = () => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handlePhotoAnalysis = (analysisResult: any) => {
-    console.log("Photo analysis result:", analysisResult);
-    if (analysisResult?.imageUrl) {
-      setForm((prev) => ({
-        ...prev,
-        face_photo_url: analysisResult.imageUrl,
-        // Store extracted colors in color_palette_colors, not favorite_colors
-        color_palette_colors:
-          analysisResult.colors && Array.isArray(analysisResult.colors)
-            ? analysisResult.colors.slice(0, 6)
-            : prev.color_palette_colors || [],
-      }));
-    }
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,6 +166,7 @@ const EditProfile = () => {
         color_palette_colors: form.color_palette_colors,
         goals: form.goals,
         face_photo_url: form.face_photo_url || null,
+
       };
 
       console.log("Updating profile with data:", updateData);
@@ -199,7 +189,8 @@ const EditProfile = () => {
           title: "Success!",
           description: "Your profile has been updated successfully.",
         });
-        // Force refetch to see updated data immediately
+        // Force global cache invalidation and refetch
+        invalidateProfileCache(user.id);
         await refetch();
         navigate("/dashboard");
       }
@@ -280,11 +271,12 @@ const EditProfile = () => {
                   </div>
                 </div>
                                                 <div className="flex-1 space-y-4">
-                  <Label>Profile Photo</Label>
-                  <PhotoUpload onAnalysisComplete={handlePhotoAnalysis} />
-
-                  {/* DEBUG: Simple upload test */}
-                  <SimplePhotoUploadTest />
+                  <SimpleProfilePhotoUpload
+                    currentPhotoUrl={form.face_photo_url}
+                    onUploadComplete={(imageUrl) => {
+                      setForm(prev => ({ ...prev, face_photo_url: imageUrl }));
+                    }}
+                  />
                 </div>
               </div>
               <div>

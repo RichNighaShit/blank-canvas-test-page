@@ -248,6 +248,8 @@ export type Database = {
           last_accessed: string | null;
           location: string | null;
           preferred_style: string | null;
+          selected_palette_id: string | null;
+          color_season_analysis: Json | null;
           updated_at: string | null;
           user_id: string;
         };
@@ -266,6 +268,8 @@ export type Database = {
           last_accessed?: string | null;
           location?: string | null;
           preferred_style?: string | null;
+          selected_palette_id?: string | null;
+          color_season_analysis?: Json | null;
           updated_at?: string | null;
           user_id: string;
         };
@@ -284,6 +288,8 @@ export type Database = {
           last_accessed?: string | null;
           location?: string | null;
           preferred_style?: string | null;
+          selected_palette_id?: string | null;
+          color_season_analysis?: Json | null;
           updated_at?: string | null;
           user_id?: string;
         };
