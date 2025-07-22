@@ -586,30 +586,77 @@ const YourColorPalette = () => {
                   </CardContent>
                 </Card>
 
-                {/* Ideal Colors Grid */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  {colorAnalysis.idealColors.map((category, index) => (
-                    <Card key={index}>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg">{category.category}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{category.description}</p>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-2">
-                          {category.colors.map((color, colorIndex) => (
-                            <div
-                              key={colorIndex}
-                              className="w-8 h-8 rounded border-2 border-white shadow-sm cursor-pointer hover:scale-110 transition-transform"
-                              style={{ backgroundColor: color }}
-                              title={color}
-                              onClick={() => handleCopyColor(color)}
-                            />
-                          ))}
+                {/* Enhanced Ideal Colors Section */}
+                <Card className="card-premium">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <Palette className="h-6 w-6 text-blue-600" />
+                      Your Perfect Color Palette
+                    </CardTitle>
+                    <p className="text-muted-foreground">Colors that enhance your natural beauty and make you glow</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {colorAnalysis.idealColors.map((category, index) => (
+                        <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                            <h3 className="font-semibold text-gray-800">{category.category}</h3>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-4 leading-relaxed">{category.description}</p>
+                          <div className="grid grid-cols-6 gap-2">
+                            {category.colors.map((color, colorIndex) => (
+                              <div key={colorIndex} className="group relative">
+                                <div
+                                  className="w-full h-12 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200 hover:shadow-lg"
+                                  style={{ backgroundColor: color }}
+                                  title={`Click to copy ${color}`}
+                                  onClick={() => handleCopyColor(color)}
+                                />
+                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <Copy className="w-2 h-2 text-gray-600" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Colors to Avoid Section */}
+                {colorAnalysis.avoidColors && colorAnalysis.avoidColors.length > 0 && (
+                  <Card className="card-premium border-red-200 bg-gradient-to-br from-red-50 to-orange-50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-xl text-red-700">
+                        <AlertTriangle className="h-6 w-6" />
+                        Colors to Avoid
+                      </CardTitle>
+                      <p className="text-red-600">These colors may wash you out or clash with your natural coloring</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {colorAnalysis.avoidColors.map((category, index) => (
+                          <div key={index} className="bg-white/70 rounded-lg p-4 border border-red-100">
+                            <h4 className="font-medium text-red-800 mb-2">{category.category}</h4>
+                            <p className="text-sm text-red-700 mb-3">{category.reason}</p>
+                            <div className="flex flex-wrap gap-2">
+                              {category.colors.map((color, colorIndex) => (
+                                <div
+                                  key={colorIndex}
+                                  className="w-8 h-8 rounded border-2 border-red-200 opacity-75"
+                                  style={{ backgroundColor: color }}
+                                  title={`Avoid: ${color}`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Professional Style Tips */}
                 <Card>
