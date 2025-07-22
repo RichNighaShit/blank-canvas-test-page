@@ -31,16 +31,53 @@ export interface ColorSeasonAnalysis {
     accents: string[];
     metallics: 'gold' | 'silver' | 'both';
     patterns: string[];
+    wardrobeFormula: {
+      neutrals: number;
+      accents: number;
+      statement: number;
+    };
+    bestFabrics: string[];
+    stylePersonality: string;
   };
   makeupRecommendations: {
     foundation: string;
     lipColors: string[];
     eyeColors: string[];
     blushColors: string[];
+    eyebrowColor: string;
+    mascara: string;
+    highlighter: string;
+    bronzer: string;
+    nailColors: string[];
   };
   personalityTraits: string[];
   description: string;
   tips: string[];
+  professionalInsights: {
+    colorHarmony: string;
+    personalBranding: string;
+    seasonalAdjustments: string;
+    photographyTips: string;
+    shoppingStrategy: string;
+  };
+  detailedAnalysis: {
+    skinToneAnalysis: string;
+    hairColorAnalysis: string;
+    eyeColorAnalysis: string;
+    overallHarmony: string;
+  };
+  lifestyleRecommendations: {
+    business: string[];
+    casual: string[];
+    evening: string[];
+    travel: string[];
+  };
+  colorCombinations: {
+    name: string;
+    colors: string[];
+    occasion: string;
+    description: string;
+  }[];
 }
 
 class ColorSeasonAnalysisService {
