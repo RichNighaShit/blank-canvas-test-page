@@ -111,7 +111,6 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
 
       if (error) {
         console.error('Error saving palette:', error);
-        console.error('Error saving palette:', error);
         toast({
           title: "Error",
           description: "Failed to save your color palette. Please try again.",
@@ -122,8 +121,13 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
 
       setSaveProgress({ step: 'Updating your profile...', progress: 75 });
 
-      // Invalidate cache and refetch profile
+      // Force clear cache and wait for refetch to complete
       invalidateProfileCache(user.id);
+
+      // Wait a bit to ensure database consistency
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Force refetch from database
       await refetch();
 
       setSaveProgress({ step: 'Complete!', progress: 100 });

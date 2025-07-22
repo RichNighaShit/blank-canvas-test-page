@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, invalidateProfileCache } from "@/hooks/useProfile";
 import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import {
 import { ColorPaletteSetup } from "@/components/ColorPaletteSetup";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PREDEFINED_COLOR_PALETTES, getPaletteById } from "@/data/predefinedColorPalettes";
-import type { ColorSeasonAnalysis } from "@/lib/colorSeasonAnalysis";
+import { colorSeasonAnalysisService, type ColorSeasonAnalysis } from "@/lib/colorSeasonAnalysis";
 
 const YourColorPalette = () => {
   // Cache busting effect
@@ -65,7 +65,11 @@ const YourColorPalette = () => {
 
   // Get selected palette and analysis first
   const selectedPalette = profile?.selected_palette_id ? getPaletteById(profile.selected_palette_id) : null;
-  const colorAnalysis: ColorSeasonAnalysis | null = profile?.color_season_analysis || null;
+
+  // Always recalculate color analysis based on current palette to ensure consistency
+  const colorAnalysis: ColorSeasonAnalysis | null = selectedPalette
+    ? colorSeasonAnalysisService.analyzeColorSeason(selectedPalette)
+    : null;
   const hasFullAnalysis = selectedPalette && colorAnalysis;
 
   // Use selected palette colors if available, otherwise fall back to extracted colors
@@ -134,6 +138,10 @@ const YourColorPalette = () => {
   const handleRefreshPalette = async () => {
     setIsRefreshing(true);
     try {
+      // Force a hard refresh by invalidating cache first
+      if (user?.id) {
+        invalidateProfileCache(user.id);
+      }
       await refetch();
       toast({
         title: "Palette refreshed!",
@@ -262,7 +270,12 @@ const YourColorPalette = () => {
                         <ColorPaletteSetup
                           onComplete={async () => {
                             setShowPaletteSelection(false);
-                            // Refresh profile data without page reload
+                            // Force cache invalidation and refresh
+                            if (user?.id) {
+                              invalidateProfileCache(user.id);
+                            }
+                            // Wait a moment for state to settle
+                            await new Promise(resolve => setTimeout(resolve, 100));
                             await refetch();
                           }}
                           showTitle={false}
@@ -769,6 +782,53 @@ const YourColorPalette = () => {
                           )}
                         </div>
                       </div>
+
+                      {/* Professional Wardrobe Formula */}
+                      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-indigo-500 rounded-full"></div>
+                          Wardrobe Formula
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">Professional color distribution for a balanced wardrobe</p>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="text-center p-3 bg-white/70 rounded-lg">
+                            <div className="text-2xl font-bold text-indigo-600">{colorAnalysis.clothingRecommendations.wardrobeFormula.neutrals}%</div>
+                            <div className="text-xs text-gray-600">Neutrals</div>
+                          </div>
+                          <div className="text-center p-3 bg-white/70 rounded-lg">
+                            <div className="text-2xl font-bold text-purple-600">{colorAnalysis.clothingRecommendations.wardrobeFormula.accents}%</div>
+                            <div className="text-xs text-gray-600">Accents</div>
+                          </div>
+                          <div className="text-center p-3 bg-white/70 rounded-lg">
+                            <div className="text-2xl font-bold text-pink-600">{colorAnalysis.clothingRecommendations.wardrobeFormula.statement}%</div>
+                            <div className="text-xs text-gray-600">Statement</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Style Personality */}
+                      <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-rose-500 rounded-full"></div>
+                          Your Style Personality
+                        </h4>
+                        <p className="text-sm text-gray-700 leading-relaxed">{colorAnalysis.clothingRecommendations.stylePersonality}</p>
+                      </div>
+
+                      {/* Best Fabrics */}
+                      <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
+                          Recommended Fabrics
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {colorAnalysis.clothingRecommendations.bestFabrics.map((fabric, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {fabric}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
 
@@ -844,10 +904,186 @@ const YourColorPalette = () => {
                             ))}
                           </div>
                         </div>
+
+                        {/* Eyebrow Color */}
+                        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Eyebrow Color</h4>
+                          <p className="text-sm text-gray-600 mb-3">Perfect brow shade to frame your eyes</p>
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-16 h-8 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                              style={{ backgroundColor: colorAnalysis.makeupRecommendations.eyebrowColor }}
+                              title={`Copy ${colorAnalysis.makeupRecommendations.eyebrowColor}`}
+                              onClick={() => handleCopyColor(colorAnalysis.makeupRecommendations.eyebrowColor)}
+                            />
+                            <span className="text-xs text-gray-500 font-mono">{colorAnalysis.makeupRecommendations.eyebrowColor}</span>
+                          </div>
+                        </div>
+
+                        {/* Mascara & Eye Basics */}
+                        <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Eye Basics</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-gray-600 mb-2">Mascara</p>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-8 h-8 rounded border-2 border-white shadow-md"
+                                  style={{ backgroundColor: colorAnalysis.makeupRecommendations.mascara }}
+                                />
+                                <span className="text-xs text-gray-500 font-mono">{colorAnalysis.makeupRecommendations.mascara}</span>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600 mb-2">Highlighter</p>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-8 h-8 rounded border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                  style={{ backgroundColor: colorAnalysis.makeupRecommendations.highlighter }}
+                                  onClick={() => handleCopyColor(colorAnalysis.makeupRecommendations.highlighter)}
+                                />
+                                <span className="text-xs text-gray-500 font-mono">{colorAnalysis.makeupRecommendations.highlighter}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Nail Colors */}
+                        <div className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Nail Colors</h4>
+                          <p className="text-sm text-gray-600 mb-3">Flattering nail polish shades</p>
+                          <div className="grid grid-cols-4 gap-2">
+                            {colorAnalysis.makeupRecommendations.nailColors.map((color, index) => (
+                              <div
+                                key={index}
+                                className="w-full h-8 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                style={{ backgroundColor: color }}
+                                title={`Copy ${color}`}
+                                onClick={() => handleCopyColor(color)}
+                              />
+                            ))}
+                          </div>
+                        </div>
                       </CardContent>
                     </Card>
                   )}
                 </div>
+
+                {/* Professional Color Analysis Insights */}
+                <Card className="card-premium bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl text-blue-800">
+                      <Info className="h-6 w-6 text-blue-600" />
+                      Professional Color Analysis Insights
+                    </CardTitle>
+                    <p className="text-blue-700">Expert-level analysis of your unique color harmony</p>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Color Harmony Analysis */}
+                    <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                      <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        Your Color Harmony
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed">{colorAnalysis.professionalInsights.colorHarmony}</p>
+                    </div>
+
+                    {/* Personal Branding */}
+                    <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                      <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                        <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                        Personal Branding
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed">{colorAnalysis.professionalInsights.personalBranding}</p>
+                    </div>
+
+                    {/* Photography Tips */}
+                    <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                      <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                        <Camera className="w-4 h-4 text-green-600" />
+                        Photography Guidelines
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed">{colorAnalysis.professionalInsights.photographyTips}</p>
+                    </div>
+
+                    {/* Shopping Strategy */}
+                    <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                      <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        Smart Shopping Strategy
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed">{colorAnalysis.professionalInsights.shoppingStrategy}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Detailed Feature Analysis */}
+                <Card className="card-premium">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <Sparkles className="h-6 w-6 text-amber-600" />
+                      Detailed Feature Analysis
+                    </CardTitle>
+                    <p className="text-muted-foreground">Professional breakdown of your natural coloring</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4">
+                      <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+                        <h4 className="font-semibold text-amber-800 mb-2">Skin Tone Analysis</h4>
+                        <p className="text-gray-700 text-sm leading-relaxed">{colorAnalysis.detailedAnalysis.skinToneAnalysis}</p>
+                      </div>
+                      <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200">
+                        <h4 className="font-semibold text-amber-800 mb-2">Hair Color Analysis</h4>
+                        <p className="text-gray-700 text-sm leading-relaxed">{colorAnalysis.detailedAnalysis.hairColorAnalysis}</p>
+                      </div>
+                      <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                        <h4 className="font-semibold text-blue-800 mb-2">Eye Color Analysis</h4>
+                        <p className="text-gray-700 text-sm leading-relaxed">{colorAnalysis.detailedAnalysis.eyeColorAnalysis}</p>
+                      </div>
+                      <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                        <h4 className="font-semibold text-purple-800 mb-2">Overall Harmony</h4>
+                        <p className="text-gray-700 text-sm leading-relaxed">{colorAnalysis.detailedAnalysis.overallHarmony}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Color Combinations */}
+                <Card className="card-premium">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <Palette className="h-6 w-6 text-pink-600" />
+                      Professional Color Combinations
+                    </CardTitle>
+                    <p className="text-muted-foreground">Expertly curated color combinations for different occasions</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-6">
+                      {colorAnalysis.colorCombinations.map((combo, index) => (
+                        <div key={index} className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h4 className="font-semibold text-gray-800 text-lg">{combo.name}</h4>
+                              <Badge variant="secondary" className="text-xs mt-1">{combo.occasion}</Badge>
+                            </div>
+                            <div className="flex gap-2">
+                              {combo.colors.map((color, colorIndex) => (
+                                <div
+                                  key={colorIndex}
+                                  className="w-8 h-8 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                  style={{ backgroundColor: color }}
+                                  title={`Copy ${color}`}
+                                  onClick={() => handleCopyColor(color)}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-gray-600 text-sm leading-relaxed">{combo.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </>
             )}
           </>
@@ -878,7 +1114,12 @@ const YourColorPalette = () => {
                   <ColorPaletteSetup
                     onComplete={async () => {
                       setShowPaletteSelection(false);
-                      // Refresh profile data without page reload
+                      // Force cache invalidation and refresh
+                      if (user?.id) {
+                        invalidateProfileCache(user.id);
+                      }
+                      // Wait a moment for state to settle
+                      await new Promise(resolve => setTimeout(resolve, 100));
                       await refetch();
                     }}
                     showTitle={false}

@@ -31,16 +31,53 @@ export interface ColorSeasonAnalysis {
     accents: string[];
     metallics: 'gold' | 'silver' | 'both';
     patterns: string[];
+    wardrobeFormula: {
+      neutrals: number;
+      accents: number;
+      statement: number;
+    };
+    bestFabrics: string[];
+    stylePersonality: string;
   };
   makeupRecommendations: {
     foundation: string;
     lipColors: string[];
     eyeColors: string[];
     blushColors: string[];
+    eyebrowColor: string;
+    mascara: string;
+    highlighter: string;
+    bronzer: string;
+    nailColors: string[];
   };
   personalityTraits: string[];
   description: string;
   tips: string[];
+  professionalInsights: {
+    colorHarmony: string;
+    personalBranding: string;
+    seasonalAdjustments: string;
+    photographyTips: string;
+    shoppingStrategy: string;
+  };
+  detailedAnalysis: {
+    skinToneAnalysis: string;
+    hairColorAnalysis: string;
+    eyeColorAnalysis: string;
+    overallHarmony: string;
+  };
+  lifestyleRecommendations: {
+    business: string[];
+    casual: string[];
+    evening: string[];
+    travel: string[];
+  };
+  colorCombinations: {
+    name: string;
+    colors: string[];
+    occasion: string;
+    description: string;
+  }[];
 }
 
 class ColorSeasonAnalysisService {
@@ -62,11 +99,15 @@ class ColorSeasonAnalysisService {
       characteristics,
       idealColors: seasonAnalysis.idealColors,
       avoidColors: seasonAnalysis.avoidColors,
-      clothingRecommendations: seasonAnalysis.clothingRecommendations,
-      makeupRecommendations: this.getMakeupRecommendations(palette),
+      clothingRecommendations: this.getEnhancedClothingRecommendations(seasonAnalysis.clothingRecommendations, palette),
+      makeupRecommendations: this.getEnhancedMakeupRecommendations(palette),
       personalityTraits: seasonAnalysis.personalityTraits,
       description: seasonAnalysis.description,
-      tips: seasonAnalysis.tips
+      tips: seasonAnalysis.tips,
+      professionalInsights: this.getProfessionalInsights(palette, characteristics),
+      detailedAnalysis: this.getDetailedAnalysis(palette),
+      lifestyleRecommendations: this.getLifestyleRecommendations(palette.colorSeason),
+      colorCombinations: this.getColorCombinations(palette.colorSeason)
     };
   }
 
@@ -358,7 +399,40 @@ class ColorSeasonAnalysisService {
     return 'True Winter';
   }
 
-  private getMakeupRecommendations(palette: ColorPalette) {
+  private getEnhancedClothingRecommendations(baseRecommendations: any, palette: ColorPalette) {
+    return {
+      ...baseRecommendations,
+      wardrobeFormula: {
+        neutrals: 60,
+        accents: 30,
+        statement: 10
+      },
+      bestFabrics: this.getBestFabrics(palette.colorSeason),
+      stylePersonality: this.getStylePersonality(palette.colorSeason)
+    };
+  }
+
+  private getBestFabrics(season: string): string[] {
+    const fabricData = {
+      spring: ['Cotton', 'Linen', 'Silk', 'Lightweight wools', 'Chiffon'],
+      summer: ['Silk', 'Cotton', 'Crepe', 'Soft knits', 'Flowing fabrics'],
+      autumn: ['Wool', 'Tweed', 'Corduroy', 'Suede', 'Rich textures'],
+      winter: ['Silk', 'Wool gabardine', 'Crisp cotton', 'Leather', 'Structured fabrics']
+    };
+    return fabricData[season as keyof typeof fabricData] || [];
+  }
+
+  private getStylePersonality(season: string): string {
+    const personalityData = {
+      spring: 'Fresh & Youthful - Natural, approachable style with vibrant energy',
+      summer: 'Elegant & Refined - Sophisticated, gentle style with timeless appeal',
+      autumn: 'Rich & Earthy - Warm, luxurious style with natural sophistication',
+      winter: 'Bold & Dramatic - Striking, confident style with sharp elegance'
+    };
+    return personalityData[season as keyof typeof personalityData] || '';
+  }
+
+  private getEnhancedMakeupRecommendations(palette: ColorPalette) {
     const { colorSeason, skinTone, hairColor, eyeColor } = palette;
 
     // Use actual skin tone color for foundation
@@ -369,25 +443,45 @@ class ColorSeasonAnalysisService {
         foundation: foundationColor,
         lipColors: ['#FF6B6B', '#FF8E8E', '#FFB6C1', '#F08080', '#FFA07A'],
         eyeColors: ['#87CEEB', '#98FB98', '#DDA0DD', '#F0E68C', '#FFB6C1'],
-        blushColors: ['#FFB6C1', '#F08080', '#FFA07A', '#FFCCCB']
+        blushColors: ['#FFB6C1', '#F08080', '#FFA07A', '#FFCCCB'],
+        eyebrowColor: this.getEyebrowColor(hairColor.color),
+        mascara: '#8B4513',
+        highlighter: '#FFFACD',
+        bronzer: '#DEB887',
+        nailColors: ['#FFB6C1', '#FF8E8E', '#87CEEB', '#98FB98']
       },
       summer: {
         foundation: foundationColor,
         lipColors: ['#DDA0DD', '#DA70D6', '#9370DB', '#B0E0E6', '#E6E6FA'],
         eyeColors: ['#B0E0E6', '#DDA0DD', '#9370DB', '#8FBC8F', '#C0C0C0'],
-        blushColors: ['#DDA0DD', '#E6E6FA', '#F0E68C', '#FFCDD2']
+        blushColors: ['#DDA0DD', '#E6E6FA', '#F0E68C', '#FFCDD2'],
+        eyebrowColor: this.getEyebrowColor(hairColor.color),
+        mascara: '#696969',
+        highlighter: '#F0F8FF',
+        bronzer: '#D2B48C',
+        nailColors: ['#DDA0DD', '#B0E0E6', '#9370DB', '#E6E6FA']
       },
       autumn: {
         foundation: foundationColor,
         lipColors: ['#A0522D', '#CD853F', '#D2691E', '#B22222', '#8B4513'],
         eyeColors: ['#8B4513', '#A0522D', '#DAA520', '#228B22', '#CD853F'],
-        blushColors: ['#BC8F8F', '#F4A460', '#DEB887', '#FFAB91']
+        blushColors: ['#BC8F8F', '#F4A460', '#DEB887', '#FFAB91'],
+        eyebrowColor: this.getEyebrowColor(hairColor.color),
+        mascara: '#8B4513',
+        highlighter: '#DAA520',
+        bronzer: '#CD853F',
+        nailColors: ['#A0522D', '#8B4513', '#DAA520', '#B22222']
       },
       winter: {
         foundation: foundationColor,
         lipColors: ['#DC143C', '#B22222', '#8B008B', '#000080', '#C62828'],
         eyeColors: ['#000080', '#8B008B', '#2F4F4F', '#696969', '#37474F'],
-        blushColors: ['#DC143C', '#9370DB', '#4682B4', '#E91E63']
+        blushColors: ['#DC143C', '#9370DB', '#4682B4', '#E91E63'],
+        eyebrowColor: this.getEyebrowColor(hairColor.color),
+        mascara: '#000000',
+        highlighter: '#E6E6FA',
+        bronzer: '#A9A9A9',
+        nailColors: ['#DC143C', '#8B008B', '#000080', '#9370DB']
       }
     };
 
@@ -419,6 +513,117 @@ class ColorSeasonAnalysisService {
       g: parseInt(result[2], 16),
       b: parseInt(result[3], 16)
     } : { r: 0, g: 0, b: 0 };
+  }
+
+  private getEyebrowColor(hairColor: string): string {
+    const rgb = this.hexToRgb(hairColor);
+    // Make eyebrow color slightly darker than hair
+    const adjusted = {
+      r: Math.max(0, rgb.r - 30),
+      g: Math.max(0, rgb.g - 30),
+      b: Math.max(0, rgb.b - 30)
+    };
+    return this.rgbToHex(adjusted.r, adjusted.g, adjusted.b);
+  }
+
+  private getProfessionalInsights(palette: ColorPalette, characteristics: any) {
+    const season = palette.colorSeason;
+    const insights = {
+      spring: {
+        colorHarmony: 'Your natural coloring creates a fresh, vibrant harmony. The warm undertones in your skin paired with your hair and eye colors create an energetic, youthful appearance that works best with clear, bright colors.',
+        personalBranding: 'Your color palette suggests an approachable, energetic personal brand. In professional settings, use your natural warmth to convey trustworthiness and enthusiasm while maintaining clarity and freshness.',
+        seasonalAdjustments: 'In summer, embrace brighter versions of your palette. In winter, add depth with richer warm tones while maintaining your natural brightness.',
+        photographyTips: 'You photograph beautifully in natural light. Avoid harsh shadows and opt for warm, golden hour lighting. Bright backgrounds complement your coloring.',
+        shoppingStrategy: 'Look for "warm" and "bright" descriptors when shopping. Avoid anything labeled "cool" or "muted". Test colors against your face in natural light before purchasing.'
+      },
+      summer: {
+        colorHarmony: 'Your coloring creates a sophisticated, elegant harmony with cool undertones. The soft contrast between your features gives you a refined, timeless beauty that works best with muted, cool colors.',
+        personalBranding: 'Your palette suggests a refined, trustworthy personal brand. In professional settings, your natural elegance conveys competence and reliability.',
+        seasonalAdjustments: 'In summer, embrace lighter versions of your palette. In winter, add richness with deeper cool tones while maintaining your natural softness.',
+        photographyTips: 'You look stunning in soft, diffused lighting. Avoid harsh, warm lighting. Cool-toned backgrounds and overcast lighting are most flattering.',
+        shoppingStrategy: 'Look for "cool" and "soft" descriptors. Avoid anything too bright or warm. Your colors often have gray undertones, so test in various lighting conditions.'
+      },
+      autumn: {
+        colorHarmony: 'Your rich, warm coloring creates a luxurious, earthy harmony. The depth and richness of your natural colors give you a sophisticated, grounded appearance that works best with warm, muted colors.',
+        personalBranding: 'Your palette suggests a sophisticated, reliable personal brand. Your natural richness conveys depth, experience, and trustworthiness.',
+        seasonalAdjustments: 'In autumn, you can wear the richest versions of your palette. In spring, lighten your colors while maintaining warmth. Winter calls for your deepest, richest tones.',
+        photographyTips: 'You look magnificent in warm, golden lighting. Rich, textured backgrounds complement your coloring. Avoid cool, harsh lighting.',
+        shoppingStrategy: 'Look for "warm", "rich", and "muted" descriptors. Avoid cool or icy colors. Your colors often have golden or bronze undertones.'
+      },
+      winter: {
+        colorHarmony: 'Your high-contrast coloring creates a striking, dramatic harmony. The clear definition between your features gives you a bold, confident appearance that works best with clear, cool colors.',
+        personalBranding: 'Your palette suggests a confident, authoritative personal brand. Your natural drama conveys leadership and decisiveness.',
+        seasonalAdjustments: 'You can wear your boldest colors year-round. In summer, opt for clearer versions. In winter, embrace your deepest, most dramatic tones.',
+        photographyTips: 'You excel in high-contrast lighting. Bold backgrounds and dramatic lighting enhance your natural intensity. Avoid soft, muted lighting.',
+        shoppingStrategy: 'Look for "bold", "clear", and "cool" descriptors. Avoid warm or muted colors. Your colors are often pure and saturated without yellow undertones.'
+      }
+    };
+    return insights[season as keyof typeof insights] || insights.spring;
+  }
+
+  private getDetailedAnalysis(palette: ColorPalette) {
+    return {
+      skinToneAnalysis: `Your ${palette.skinTone.name} skin with ${palette.skinTone.undertone} undertones provides the foundation for your color harmony. This undertone determines whether warm or cool colors will be most flattering on you.`,
+      hairColorAnalysis: `Your ${palette.hairColor.name} hair color adds ${palette.hairColor.category === 'blonde' ? 'lightness and warmth' : palette.hairColor.category === 'brunette' ? 'depth and richness' : palette.hairColor.category === 'black' ? 'drama and contrast' : 'warmth and vibrancy'} to your overall appearance.`,
+      eyeColorAnalysis: `Your ${palette.eyeColor.name} eyes ${palette.eyeColor.category === 'blue' ? 'add cool clarity' : palette.eyeColor.category === 'brown' ? 'provide warm depth' : palette.eyeColor.category === 'green' ? 'bring natural warmth' : palette.eyeColor.category === 'hazel' ? 'offer versatile beauty' : 'contribute unique character'} to your color story.`,
+      overallHarmony: `The combination of your skin, hair, and eye colors creates a ${palette.colorSeason} color harmony that is best enhanced by colors that share similar temperature and intensity characteristics.`
+    };
+  }
+
+  private getLifestyleRecommendations(season: string) {
+    const recommendations = {
+      spring: {
+        business: ['Navy blazer with coral blouse', 'Warm gray suit with bright accessories', 'Cream blazer with turquoise top'],
+        casual: ['Bright coral sweater with cream jeans', 'Turquoise dress with gold accessories', 'Yellow top with navy bottoms'],
+        evening: ['Emerald cocktail dress', 'Navy gown with gold details', 'Bright fuchsia evening wear'],
+        travel: ['Warm neutrals as base', 'One bright accent piece', 'Comfortable fabrics in your colors']
+      },
+      summer: {
+        business: ['Soft gray suit with lavender blouse', 'Navy with powder blue accents', 'Soft white with cool accessories'],
+        casual: ['Soft blue sweater with gray jeans', 'Lavender dress with silver jewelry', 'Rose pink top with navy bottoms'],
+        evening: ['Soft navy evening dress', 'Dusty rose gown', 'Cool gray formal wear'],
+        travel: ['Cool neutrals as foundation', 'Soft colored accessories', 'Comfortable, flowing fabrics']
+      },
+      autumn: {
+        business: ['Rich brown suit with gold blouse', 'Forest green blazer with cream top', 'Camel coat with bronze accents'],
+        casual: ['Rust sweater with dark jeans', 'Olive green dress with gold jewelry', 'Camel top with brown bottoms'],
+        evening: ['Deep emerald evening dress', 'Rich burgundy gown', 'Bronze formal wear'],
+        travel: ['Rich earth tones', 'Luxurious textures', 'Warm metallic accessories']
+      },
+      winter: {
+        business: ['Black suit with white blouse', 'Navy with bright white accents', 'Charcoal with jewel-toned top'],
+        casual: ['Black sweater with bright scarf', 'White dress with bold accessories', 'Navy top with black bottoms'],
+        evening: ['Classic black evening dress', 'Royal blue gown', 'Jewel-toned formal wear'],
+        travel: ['High-contrast basics', 'One statement piece', 'Quality over quantity']
+      }
+    };
+    return recommendations[season as keyof typeof recommendations] || recommendations.spring;
+  }
+
+  private getColorCombinations(season: string) {
+    const combinations = {
+      spring: [
+        { name: 'Fresh Garden', colors: ['#87CEEB', '#98FB98', '#FFB6C1'], occasion: 'Casual Day', description: 'Soft blue, light green, and pink create a fresh, natural look' },
+        { name: 'Sunset Glow', colors: ['#FF6B6B', '#FFD700', '#FFA500'], occasion: 'Evening Out', description: 'Warm coral, gold, and orange evoke a beautiful sunset' },
+        { name: 'Professional Spring', colors: ['#4682B4', '#F5F5DC', '#FF6B6B'], occasion: 'Business', description: 'Steel blue, beige, and coral for professional warmth' }
+      ],
+      summer: [
+        { name: 'Lavender Dreams', colors: ['#E6E6FA', '#DDA0DD', '#9370DB'], occasion: 'Romantic', description: 'Soft lavender tones create an elegant, romantic palette' },
+        { name: 'Ocean Breeze', colors: ['#B0E0E6', '#87CEEB', '#4682B4'], occasion: 'Casual', description: 'Cool blues evoke a peaceful ocean feeling' },
+        { name: 'Executive Summer', colors: ['#2F4F4F', '#C0C0C0', '#DDA0DD'], occasion: 'Business', description: 'Charcoal, silver, and mauve for sophisticated authority' }
+      ],
+      autumn: [
+        { name: 'Forest Walk', colors: ['#228B22', '#8B4513', '#D2691E'], occasion: 'Casual', description: 'Deep green, brown, and orange reflect autumn nature' },
+        { name: 'Golden Hour', colors: ['#DAA520', '#CD853F', '#BC8F8F'], occasion: 'Evening', description: 'Rich golds and browns capture the warmth of golden hour' },
+        { name: 'Executive Autumn', colors: ['#8B4513', '#F5F5DC', '#DAA520'], occasion: 'Business', description: 'Brown, cream, and gold for warm professional presence' }
+      ],
+      winter: [
+        { name: 'Classic Drama', colors: ['#000000', '#FFFFFF', '#DC143C'], occasion: 'Formal', description: 'Black, white, and red create timeless dramatic elegance' },
+        { name: 'Royal Jewels', colors: ['#4B0082', '#8B008B', '#000080'], occasion: 'Evening', description: 'Deep purples and navy create regal sophistication' },
+        { name: 'Power Executive', colors: ['#2F4F4F', '#FFFFFF', '#8B008B'], occasion: 'Business', description: 'Charcoal, white, and purple for commanding presence' }
+      ]
+    };
+    return combinations[season as keyof typeof combinations] || combinations.spring;
   }
 }
 
