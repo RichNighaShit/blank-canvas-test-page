@@ -773,7 +773,7 @@ const YourColorPalette = () => {
                           {colorAnalysis.clothingRecommendations.metallics === 'both' && (
                             <>
                               <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900 px-3 py-2">
-                                ��� Gold
+                                🥇 Gold
                               </Badge>
                               <Badge className="bg-gradient-to-r from-gray-300 to-gray-500 text-gray-800 px-3 py-2">
                                 🥈 Silver
@@ -936,6 +936,121 @@ const YourColorPalette = () => {
                       <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
                         <h4 className="font-semibold text-purple-800 mb-2">Overall Harmony</h4>
                         <p className="text-gray-700 text-sm leading-relaxed">{colorAnalysis.detailedAnalysis.overallHarmony}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Color Combinations */}
+                <Card className="card-premium">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <Palette className="h-6 w-6 text-pink-600" />
+                      Professional Color Combinations
+                    </CardTitle>
+                    <p className="text-muted-foreground">Expertly curated color combinations for different occasions</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-6">
+                      {colorAnalysis.colorCombinations.map((combo, index) => (
+                        <div key={index} className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h4 className="font-semibold text-gray-800 text-lg">{combo.name}</h4>
+                              <Badge variant="secondary" className="text-xs mt-1">{combo.occasion}</Badge>
+                            </div>
+                            <div className="flex gap-2">
+                              {combo.colors.map((color, colorIndex) => (
+                                <div
+                                  key={colorIndex}
+                                  className="w-8 h-8 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                  style={{ backgroundColor: color }}
+                                  title={`Copy ${color}`}
+                                  onClick={() => handleCopyColor(color)}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-gray-600 text-sm leading-relaxed">{combo.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Lifestyle Recommendations */}
+                <Card className="card-premium bg-gradient-to-br from-green-50 to-teal-50 border-green-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl text-green-800">
+                      <Star className="h-6 w-6 text-green-600" />
+                      Lifestyle Color Recommendations
+                    </CardTitle>
+                    <p className="text-green-700">Tailored suggestions for every aspect of your life</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {/* Business */}
+                      <div className="bg-white/70 rounded-lg p-4 border border-green-100">
+                        <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                          Business & Professional
+                        </h4>
+                        <ul className="space-y-2">
+                          {colorAnalysis.lifestyleRecommendations.business.map((item, index) => (
+                            <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Casual */}
+                      <div className="bg-white/70 rounded-lg p-4 border border-green-100">
+                        <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                          Casual & Weekend
+                        </h4>
+                        <ul className="space-y-2">
+                          {colorAnalysis.lifestyleRecommendations.casual.map((item, index) => (
+                            <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Evening */}
+                      <div className="bg-white/70 rounded-lg p-4 border border-green-100">
+                        <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                          Evening & Special Events
+                        </h4>
+                        <ul className="space-y-2">
+                          {colorAnalysis.lifestyleRecommendations.evening.map((item, index) => (
+                            <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Travel */}
+                      <div className="bg-white/70 rounded-lg p-4 border border-green-100">
+                        <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
+                          Travel & Vacation
+                        </h4>
+                        <ul className="space-y-2">
+                          {colorAnalysis.lifestyleRecommendations.travel.map((item, index) => (
+                            <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
                   </CardContent>
