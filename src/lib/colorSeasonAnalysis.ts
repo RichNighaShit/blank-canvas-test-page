@@ -443,25 +443,45 @@ class ColorSeasonAnalysisService {
         foundation: foundationColor,
         lipColors: ['#FF6B6B', '#FF8E8E', '#FFB6C1', '#F08080', '#FFA07A'],
         eyeColors: ['#87CEEB', '#98FB98', '#DDA0DD', '#F0E68C', '#FFB6C1'],
-        blushColors: ['#FFB6C1', '#F08080', '#FFA07A', '#FFCCCB']
+        blushColors: ['#FFB6C1', '#F08080', '#FFA07A', '#FFCCCB'],
+        eyebrowColor: this.getEyebrowColor(hairColor.color),
+        mascara: '#8B4513',
+        highlighter: '#FFFACD',
+        bronzer: '#DEB887',
+        nailColors: ['#FFB6C1', '#FF8E8E', '#87CEEB', '#98FB98']
       },
       summer: {
         foundation: foundationColor,
         lipColors: ['#DDA0DD', '#DA70D6', '#9370DB', '#B0E0E6', '#E6E6FA'],
         eyeColors: ['#B0E0E6', '#DDA0DD', '#9370DB', '#8FBC8F', '#C0C0C0'],
-        blushColors: ['#DDA0DD', '#E6E6FA', '#F0E68C', '#FFCDD2']
+        blushColors: ['#DDA0DD', '#E6E6FA', '#F0E68C', '#FFCDD2'],
+        eyebrowColor: this.getEyebrowColor(hairColor.color),
+        mascara: '#696969',
+        highlighter: '#F0F8FF',
+        bronzer: '#D2B48C',
+        nailColors: ['#DDA0DD', '#B0E0E6', '#9370DB', '#E6E6FA']
       },
       autumn: {
         foundation: foundationColor,
         lipColors: ['#A0522D', '#CD853F', '#D2691E', '#B22222', '#8B4513'],
         eyeColors: ['#8B4513', '#A0522D', '#DAA520', '#228B22', '#CD853F'],
-        blushColors: ['#BC8F8F', '#F4A460', '#DEB887', '#FFAB91']
+        blushColors: ['#BC8F8F', '#F4A460', '#DEB887', '#FFAB91'],
+        eyebrowColor: this.getEyebrowColor(hairColor.color),
+        mascara: '#8B4513',
+        highlighter: '#DAA520',
+        bronzer: '#CD853F',
+        nailColors: ['#A0522D', '#8B4513', '#DAA520', '#B22222']
       },
       winter: {
         foundation: foundationColor,
         lipColors: ['#DC143C', '#B22222', '#8B008B', '#000080', '#C62828'],
         eyeColors: ['#000080', '#8B008B', '#2F4F4F', '#696969', '#37474F'],
-        blushColors: ['#DC143C', '#9370DB', '#4682B4', '#E91E63']
+        blushColors: ['#DC143C', '#9370DB', '#4682B4', '#E91E63'],
+        eyebrowColor: this.getEyebrowColor(hairColor.color),
+        mascara: '#000000',
+        highlighter: '#E6E6FA',
+        bronzer: '#A9A9A9',
+        nailColors: ['#DC143C', '#8B008B', '#000080', '#9370DB']
       }
     };
 
