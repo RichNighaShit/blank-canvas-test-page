@@ -142,17 +142,7 @@ const Onboarding = () => {
     }
   };
 
-  const handlePhotoAnalysis = (analysisResult: any) => {
-    setProfileData((prev) => ({
-      ...prev,
-      face_photo_url: analysisResult.imageUrl,
-      // Store extracted colors in color_palette_colors, not favorite_colors
-      color_palette_colors: analysisResult.colors
-        ? analysisResult.colors.slice(0, 6)
-        : [],
-    }));
-    setStep(2);
-  };
+
 
   const handleBasicInfo = (e: React.FormEvent) => {
     e.preventDefault();
