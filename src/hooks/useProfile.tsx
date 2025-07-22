@@ -14,6 +14,8 @@ interface Profile {
   goals?: string[];
   gender_identity?: string;
   face_photo_url?: string;
+  selected_palette_id?: string;
+  color_season_analysis?: any;
 }
 
 // Add a simple in-memory cache for profile by user id with global invalidation
