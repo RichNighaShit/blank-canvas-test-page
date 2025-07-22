@@ -75,9 +75,10 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
 
       if (error) {
         console.error('Error saving palette:', error);
+        const errorMessage = error.message || error.toString() || 'Unknown error occurred';
         toast({
           title: "Error",
-          description: "Failed to save your color palette. Please try again.",
+          description: `Failed to save your color palette: ${errorMessage}`,
           variant: "destructive"
         });
         return;
@@ -97,11 +98,12 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
         onComplete(selectedPalette, colorAnalysis);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving palette:', error);
+      const errorMessage = error?.message || error?.toString() || 'Unknown error occurred';
       toast({
-        title: "Error", 
-        description: "An unexpected error occurred. Please try again.",
+        title: "Error",
+        description: `An unexpected error occurred: ${errorMessage}`,
         variant: "destructive"
       });
     } finally {
