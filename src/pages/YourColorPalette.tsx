@@ -432,6 +432,179 @@ const YourColorPalette = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Color Season Analysis Section */}
+            {hasFullAnalysis && (
+              <>
+                <Card className="card-premium bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Star className="h-5 w-5 text-purple-600" />
+                      Your Professional Color Analysis
+                    </CardTitle>
+                    <p className="text-muted-foreground">
+                      Based on your selected palette: <strong>{selectedPalette.name}</strong>
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {/* Color Season Badge */}
+                      <div className="text-center">
+                        <Badge variant="secondary" className="text-lg px-4 py-2 bg-purple-100 text-purple-800">
+                          {colorAnalysis.season.charAt(0).toUpperCase() + colorAnalysis.season.slice(1)} - {colorAnalysis.subSeason}
+                        </Badge>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {colorAnalysis.description}
+                        </p>
+                      </div>
+
+                      {/* Characteristics Grid */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div className="text-center p-3 bg-white rounded-lg">
+                          <p className="font-medium text-gray-700">Contrast</p>
+                          <p className="capitalize text-purple-600">{colorAnalysis.characteristics.contrast}</p>
+                        </div>
+                        <div className="text-center p-3 bg-white rounded-lg">
+                          <p className="font-medium text-gray-700">Warmth</p>
+                          <p className="capitalize text-purple-600">{colorAnalysis.characteristics.warmth}</p>
+                        </div>
+                        <div className="text-center p-3 bg-white rounded-lg">
+                          <p className="font-medium text-gray-700">Clarity</p>
+                          <p className="capitalize text-purple-600">{colorAnalysis.characteristics.clarity}</p>
+                        </div>
+                        <div className="text-center p-3 bg-white rounded-lg">
+                          <p className="font-medium text-gray-700">Depth</p>
+                          <p className="capitalize text-purple-600">{colorAnalysis.characteristics.depth}</p>
+                        </div>
+                      </div>
+
+                      {/* Your Natural Features */}
+                      <div>
+                        <h4 className="font-medium mb-3">Your Natural Features</h4>
+                        <div className="flex gap-6 justify-center">
+                          <div className="text-center">
+                            <div
+                              className="w-16 h-16 rounded-full border-4 border-white shadow-lg mx-auto mb-2"
+                              style={{ backgroundColor: selectedPalette.skinTone.color }}
+                            />
+                            <p className="text-sm font-medium">{selectedPalette.skinTone.name}</p>
+                            <p className="text-xs text-gray-500">Skin</p>
+                          </div>
+                          <div className="text-center">
+                            <div
+                              className="w-16 h-16 rounded-full border-4 border-white shadow-lg mx-auto mb-2"
+                              style={{ backgroundColor: selectedPalette.hairColor.color }}
+                            />
+                            <p className="text-sm font-medium">{selectedPalette.hairColor.name}</p>
+                            <p className="text-xs text-gray-500">Hair</p>
+                          </div>
+                          <div className="text-center">
+                            <div
+                              className="w-16 h-16 rounded-full border-4 border-white shadow-lg mx-auto mb-2"
+                              style={{ backgroundColor: selectedPalette.eyeColor.color }}
+                            />
+                            <p className="text-sm font-medium">{selectedPalette.eyeColor.name}</p>
+                            <p className="text-xs text-gray-500">Eyes</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Ideal Colors Grid */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  {colorAnalysis.idealColors.map((category, index) => (
+                    <Card key={index}>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg">{category.category}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{category.description}</p>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-wrap gap-2">
+                          {category.colors.map((color, colorIndex) => (
+                            <div
+                              key={colorIndex}
+                              className="w-8 h-8 rounded border-2 border-white shadow-sm cursor-pointer hover:scale-110 transition-transform"
+                              style={{ backgroundColor: color }}
+                              title={color}
+                              onClick={() => handleCopyColor(color)}
+                            />
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Professional Style Tips */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-purple-600" />
+                      Professional Style Tips
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {colorAnalysis.tips.map((tip, index) => (
+                        <div key={index} className="flex items-start gap-2">
+                          <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 flex-shrink-0" />
+                          <p className="text-sm">{tip}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Clothing Recommendations */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Clothing Recommendations</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-2">Best Neutral Colors</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {colorAnalysis.clothingRecommendations.neutrals.map((color, index) => (
+                            <div
+                              key={index}
+                              className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 transition-transform"
+                              style={{ backgroundColor: color }}
+                              title={color}
+                              onClick={() => handleCopyColor(color)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-2">Best Accent Colors</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {colorAnalysis.clothingRecommendations.accents.map((color, index) => (
+                            <div
+                              key={index}
+                              className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 transition-transform"
+                              style={{ backgroundColor: color }}
+                              title={color}
+                              onClick={() => handleCopyColor(color)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-2">Best Metals</h4>
+                        <Badge variant="outline">
+                          {colorAnalysis.clothingRecommendations.metallics === 'gold' ? '🥇 Gold' :
+                           colorAnalysis.clothingRecommendations.metallics === 'silver' ? '🥈 Silver' :
+                           '🥇🥈 Both Gold & Silver'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </>
         ) : (
           /* No Colors State */
