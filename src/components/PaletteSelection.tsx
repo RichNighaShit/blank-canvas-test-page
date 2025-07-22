@@ -221,10 +221,25 @@ export const PaletteSelection: React.FC<PaletteSelectionProps> = ({
                   <p className="text-xs text-gray-500">Eyes</p>
                 </div>
               </div>
-              
+
+              {/* Progress Indicator for embedded mode */}
+              {saving && (
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>{saveProgress.step}</span>
+                    <span>{saveProgress.progress}%</span>
+                  </div>
+                  <Progress value={saveProgress.progress} className="h-2" />
+                </div>
+              )}
+
               {showContinueButton && (
-                <Button onClick={onContinue} size="lg">
-                  Continue with This Palette
+                <Button
+                  onClick={onContinue}
+                  size="lg"
+                  disabled={saving}
+                >
+                  {saving ? 'Saving...' : 'Continue with This Palette'}
                 </Button>
               )}
             </div>
