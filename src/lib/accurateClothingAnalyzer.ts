@@ -598,185 +598,117 @@ export class AccurateClothingAnalyzer {
   ): string {
     const fname = filename.toLowerCase();
 
-    // Enhanced filename analysis with more specific keywords
+    // Enhanced filename analysis with comprehensive category keywords and scoring
     const categoryKeywords = {
-      tops: [
-        "shirt",
-        "top",
-        "blouse",
-        "sweater",
-        "hoodie",
-        "pullover",
-        "cardigan",
-        "tshirt",
-        "t-shirt",
-        "tank",
-        "polo",
-        "henley",
-        "crop",
-        "tube",
-        "halter",
-        "camisole",
-        "vest",
-        "turtleneck",
-        "sweatshirt",
-        "jersey",
-        "bodysuit",
-        "leotard",
-      ],
-      bottoms: [
-        "pant",
-        "jean",
-        "trouser",
-        "short",
-        "legging",
-        "skirt",
-        "chino",
-        "slack",
-        "khaki",
-        "cargo",
-        "jogger",
-        "sweatpant",
-        "yoga",
-        "capri",
-        "bermuda",
-        "culottes",
-        "palazzo",
-        "wide-leg",
-        "skinny",
-        "bootcut",
-        "straight-leg",
-        "flare",
-      ],
-      dresses: [
-        "dress",
-        "gown",
-        "frock",
-        "sundress",
-        "maxi",
-        "mini",
-        "midi",
-        "cocktail",
-        "evening",
-        "wedding",
-        "prom",
-        "formal",
-        "shift",
-        "wrap",
-        "a-line",
-        "bodycon",
-        "slip",
-        "tunic",
-        "kaftan",
-      ],
-      outerwear: [
-        "jacket",
-        "coat",
-        "blazer",
-        "parka",
-        "windbreaker",
-        "bomber",
-        "denim jacket",
-        "leather jacket",
-        "trench",
-        "peacoat",
-        "puffer",
-        "anorak",
-        "vest",
-        "poncho",
-        "cape",
-        "shawl",
-        "wrap",
-        "cardigan",
-        "overcoat",
-        "raincoat",
-      ],
-      shoes: [
-        "shoe",
-        "boot",
-        "sneaker",
-        "sandal",
-        "heel",
-        "pump",
-        "loafer",
-        "oxford",
-        "runner",
-        "trainer",
-        "athletic",
-        "tennis",
-        "basketball",
-        "running",
-        "walking",
-        "hiking",
-        "combat",
-        "ankle",
-        "knee-high",
-        "platform",
-        "wedge",
-        "stiletto",
-        "flat",
-        "ballet",
-        "slip-on",
-        "lace-up",
-        "moccasin",
-        "clog",
-        "flip-flop",
-        "thong",
-        "slide",
-      ],
-      accessories: [
-        "bag",
-        "purse",
-        "backpack",
-        "hat",
-        "cap",
-        "scarf",
-        "belt",
-        "watch",
-        "necklace",
-        "bracelet",
-        "earring",
-        "ring",
-        "brooch",
-        "pin",
-        "tie",
-        "bowtie",
-        "cufflink",
-        "glasses",
-        "sunglasses",
-        "glove",
-        "mitten",
-        "wallet",
-        "clutch",
-        "tote",
-        "crossbody",
-        "messenger",
-        "satchel",
-        "duffel",
-        "fanny",
-        "headband",
-        "hair",
-        "beanie",
-        "fedora",
-        "visor",
-      ],
+      tops: {
+        primary: [
+          "shirt", "top", "blouse", "sweater", "hoodie", "pullover", "cardigan",
+          "tshirt", "t-shirt", "tank", "polo", "henley", "turtleneck", "sweatshirt"
+        ],
+        secondary: [
+          "crop", "tube", "halter", "camisole", "vest", "jersey", "bodysuit",
+          "leotard", "tunic", "peasant", "peasant-top", "blouse-top", "thermal"
+        ],
+        modifiers: ["long-sleeve", "short-sleeve", "sleeveless", "v-neck", "crew-neck"]
+      },
+      bottoms: {
+        primary: [
+          "pant", "pants", "jean", "jeans", "trouser", "trousers", "short", "shorts",
+          "legging", "leggings", "skirt", "chino", "chinos", "slack", "slacks"
+        ],
+        secondary: [
+          "khaki", "cargo", "jogger", "joggers", "sweatpant", "sweatpants",
+          "yoga-pant", "capri", "bermuda", "culottes", "palazzo", "harem"
+        ],
+        modifiers: ["wide-leg", "skinny", "bootcut", "straight-leg", "flare", "high-waist"]
+      },
+      dresses: {
+        primary: [
+          "dress", "gown", "frock", "sundress", "maxi-dress", "mini-dress",
+          "midi-dress", "cocktail-dress", "evening-dress", "wedding-dress"
+        ],
+        secondary: [
+          "shift-dress", "wrap-dress", "a-line-dress", "bodycon-dress",
+          "slip-dress", "shirtdress", "jumper", "pinafore", "kaftan"
+        ],
+        modifiers: ["formal", "casual", "party", "prom", "bridesmaid"]
+      },
+      outerwear: {
+        primary: [
+          "jacket", "coat", "blazer", "parka", "windbreaker", "bomber",
+          "trench", "peacoat", "puffer", "anorak", "overcoat", "raincoat"
+        ],
+        secondary: [
+          "denim-jacket", "leather-jacket", "moto-jacket", "varsity-jacket",
+          "poncho", "cape", "shawl", "wrap", "kimono", "robe", "vest"
+        ],
+        modifiers: ["winter", "spring", "fall", "waterproof", "down", "fleece"]
+      },
+      shoes: {
+        primary: [
+          "shoe", "shoes", "boot", "boots", "sneaker", "sneakers", "sandal", "sandals",
+          "heel", "heels", "pump", "pumps", "loafer", "loafers", "oxford", "oxfords"
+        ],
+        secondary: [
+          "runner", "runners", "trainer", "trainers", "athletic", "tennis",
+          "basketball", "running", "walking", "hiking", "combat", "work-boot"
+        ],
+        modifiers: ["ankle", "knee-high", "platform", "wedge", "stiletto", "flat", "slip-on"]
+      },
+      accessories: {
+        primary: [
+          "bag", "purse", "backpack", "hat", "cap", "scarf", "belt", "watch",
+          "necklace", "bracelet", "earring", "earrings", "ring", "glasses", "sunglasses"
+        ],
+        secondary: [
+          "clutch", "tote", "crossbody", "messenger", "satchel", "wallet",
+          "glove", "gloves", "mitten", "mittens", "headband", "beanie", "fedora"
+        ],
+        modifiers: ["designer", "vintage", "statement", "charm", "pendant"]
+      },
     };
 
-    // Check filename for category keywords with confidence scoring
-    let bestMatch = { category: "", confidence: 0 };
+    // Enhanced category matching with weighted scoring
+    let bestMatch = { category: "", confidence: 0, score: 0 };
 
-    for (const [category, keywords] of Object.entries(categoryKeywords)) {
-      for (const keyword of keywords) {
+    for (const [category, keywordGroups] of Object.entries(categoryKeywords)) {
+      let categoryScore = 0;
+      let maxConfidence = 0;
+
+      // Primary keywords get highest weight
+      for (const keyword of keywordGroups.primary) {
         if (fname.includes(keyword)) {
-          const confidence = keyword.length / fname.length; // Longer matches get higher confidence
-          if (confidence > bestMatch.confidence) {
-            bestMatch = { category, confidence };
-          }
+          const keywordScore = 10 * (keyword.length / 20); // Normalize by typical keyword length
+          const confidence = keyword.length / fname.length;
+          categoryScore += keywordScore;
+          maxConfidence = Math.max(maxConfidence, confidence);
         }
+      }
+
+      // Secondary keywords get medium weight
+      for (const keyword of keywordGroups.secondary) {
+        if (fname.includes(keyword)) {
+          const keywordScore = 6 * (keyword.length / 20);
+          const confidence = keyword.length / fname.length;
+          categoryScore += keywordScore;
+          maxConfidence = Math.max(maxConfidence, confidence * 0.8);
+        }
+      }
+
+      // Modifiers add bonus points
+      for (const modifier of keywordGroups.modifiers) {
+        if (fname.includes(modifier)) {
+          categoryScore += 2;
+        }
+      }
+
+      // Update best match if this category scores higher
+      if (categoryScore > bestMatch.score) {
+        bestMatch = { category, confidence: maxConfidence, score: categoryScore };
       }
     }
 
-    if (bestMatch.confidence > 0.1) {
+    if (bestMatch.score > 5) { // Threshold for confident category detection
       return bestMatch.category;
     }
 
