@@ -303,15 +303,27 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
         </CardContent>
       </Card>
 
+      {/* Progress Indicator */}
+      {saving && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>{saveProgress.step}</span>
+            <span>{saveProgress.progress}%</span>
+          </div>
+          <Progress value={saveProgress.progress} className="h-2" />
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="flex gap-4 justify-center">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => setStep('selection')}
+          disabled={saving}
         >
           Choose Different Palette
         </Button>
-        <Button 
+        <Button
           onClick={handleSaveProfile}
           disabled={saving}
           size="lg"
