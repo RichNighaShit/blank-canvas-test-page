@@ -128,20 +128,7 @@ const EditProfile = () => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handlePhotoAnalysis = (analysisResult: any) => {
-    console.log("Photo analysis result:", analysisResult);
-    if (analysisResult?.imageUrl) {
-      setForm((prev) => ({
-        ...prev,
-        face_photo_url: analysisResult.imageUrl,
-        // Store extracted colors in color_palette_colors, not favorite_colors
-        color_palette_colors:
-          analysisResult.colors && Array.isArray(analysisResult.colors)
-            ? analysisResult.colors.slice(0, 6)
-            : prev.color_palette_colors || [],
-      }));
-    }
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
