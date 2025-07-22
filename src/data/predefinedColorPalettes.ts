@@ -29,6 +29,8 @@ export interface ColorPalette {
   category: 'very-fair' | 'fair' | 'light' | 'medium' | 'olive' | 'tan' | 'dark' | 'deep';
 }
 
+// Comprehensive and inclusive color palette collection representing the beautiful diversity of human coloring
+// This collection includes 40+ palettes covering all ethnic backgrounds, skin tones, and natural color combinations
 export const PREDEFINED_COLOR_PALETTES: ColorPalette[] = [
   // VERY FAIR COMPLEXIONS
   {
@@ -356,6 +358,177 @@ export const PREDEFINED_COLOR_PALETTES: ColorPalette[] = [
     colorSeason: 'spring',
     complementaryColors: ['#FFE4B5', '#FFDAB9', '#F0E68C', '#E6E6FA', '#B0E0E6', '#FFFACD'],
     category: 'fair'
+  },
+
+  // ADDITIONAL DIVERSE COMPLEXIONS
+  // South Asian & Middle Eastern
+  {
+    id: 'black-brown-south-asian',
+    name: 'South Asian Coloring',
+    description: 'Warm olive skin with black hair and dark brown eyes',
+    skinTone: { color: '#C8956D', name: 'Warm Olive', undertone: 'warm' },
+    hairColor: { color: '#1A1A1A', name: 'Black', category: 'black' },
+    eyeColor: { color: '#654321', name: 'Dark Brown', category: 'brown' },
+    colorSeason: 'autumn',
+    complementaryColors: ['#D2691E', '#CD853F', '#DEB887', '#F4A460', '#BC8F8F', '#8B4513'],
+    category: 'olive'
+  },
+  {
+    id: 'black-hazel-middle-eastern',
+    name: 'Middle Eastern Coloring',
+    description: 'Warm medium skin with black hair and hazel eyes',
+    skinTone: { color: '#B8860B', name: 'Golden Medium', undertone: 'warm' },
+    hairColor: { color: '#2F2F2F', name: 'Black', category: 'black' },
+    eyeColor: { color: '#8E7618', name: 'Hazel', category: 'hazel' },
+    colorSeason: 'autumn',
+    complementaryColors: ['#DAA520', '#B8860B', '#CD853F', '#D2691E', '#BC8F8F', '#8B4513'],
+    category: 'medium'
+  },
+
+  // East Asian Variations
+  {
+    id: 'black-brown-east-asian-cool',
+    name: 'East Asian Cool Tones',
+    description: 'Cool undertone skin with black hair and dark brown eyes',
+    skinTone: { color: '#E6C2A6', name: 'Light with Cool Undertones', undertone: 'cool' },
+    hairColor: { color: '#000000', name: 'Black', category: 'black' },
+    eyeColor: { color: '#8B4513', name: 'Brown', category: 'brown' },
+    colorSeason: 'winter',
+    complementaryColors: ['#E6E6FA', '#B0E0E6', '#F0F8FF', '#D2B48C', '#DDA0DD', '#C0C0C0'],
+    category: 'light'
+  },
+  {
+    id: 'black-brown-east-asian-warm',
+    name: 'East Asian Warm Tones',
+    description: 'Warm undertone skin with black hair and brown eyes',
+    skinTone: { color: '#DEB887', name: 'Light with Warm Undertones', undertone: 'warm' },
+    hairColor: { color: '#1C1C1C', name: 'Black', category: 'black' },
+    eyeColor: { color: '#654321', name: 'Brown', category: 'brown' },
+    colorSeason: 'autumn',
+    complementaryColors: ['#D2691E', '#CD853F', '#DEB887', '#F4A460', '#BC8F8F', '#8B4513'],
+    category: 'light'
+  },
+
+  // African/Afro-Caribbean Variations
+  {
+    id: 'black-brown-rich-deep',
+    name: 'Rich Deep Complexion',
+    description: 'Beautiful deep skin with black hair and rich brown eyes',
+    skinTone: { color: '#8B4513', name: 'Rich Deep', undertone: 'warm' },
+    hairColor: { color: '#000000', name: 'Black', category: 'black' },
+    eyeColor: { color: '#654321', name: 'Rich Brown', category: 'brown' },
+    colorSeason: 'winter',
+    complementaryColors: ['#FFD700', '#FFA500', '#FF8C00', '#DEB887', '#CD853F', '#D2691E'],
+    category: 'deep'
+  },
+  {
+    id: 'black-amber-ebony',
+    name: 'Ebony Complexion',
+    description: 'Stunning ebony skin with black hair and amber eyes',
+    skinTone: { color: '#654321', name: 'Ebony', undertone: 'neutral' },
+    hairColor: { color: '#1A1A1A', name: 'Black', category: 'black' },
+    eyeColor: { color: '#FFBF00', name: 'Amber', category: 'amber' },
+    colorSeason: 'winter',
+    complementaryColors: ['#FFD700', '#FFA500', '#FF8C00', '#DEB887', '#CD853F', '#D2691E'],
+    category: 'deep'
+  },
+  {
+    id: 'black-brown-mahogany',
+    name: 'Mahogany Complexion',
+    description: 'Rich mahogany skin with black hair and warm brown eyes',
+    skinTone: { color: '#A0522D', name: 'Mahogany', undertone: 'warm' },
+    hairColor: { color: '#2F1B14', name: 'Black', category: 'black' },
+    eyeColor: { color: '#8B4513', name: 'Warm Brown', category: 'brown' },
+    colorSeason: 'autumn',
+    complementaryColors: ['#D2691E', '#CD853F', '#DEB887', '#F4A460', '#BC8F8F', '#8B4513'],
+    category: 'dark'
+  },
+
+  // Mixed Heritage & Multiracial
+  {
+    id: 'brown-hazel-mixed-heritage',
+    name: 'Mixed Heritage Warm',
+    description: 'Mixed heritage with warm brown hair and hazel eyes',
+    skinTone: { color: '#D2B48C', name: 'Golden Tan', undertone: 'warm' },
+    hairColor: { color: '#8B4513', name: 'Rich Brown', category: 'brown' },
+    eyeColor: { color: '#8E7618', name: 'Hazel', category: 'hazel' },
+    colorSeason: 'autumn',
+    complementaryColors: ['#DAA520', '#B8860B', '#CD853F', '#D2691E', '#BC8F8F', '#8B4513'],
+    category: 'tan'
+  },
+  {
+    id: 'dark-brown-green-multiracial',
+    name: 'Multiracial Cool Tones',
+    description: 'Mixed heritage with cool undertones and striking green eyes',
+    skinTone: { color: '#C8956D', name: 'Cool Tan', undertone: 'cool' },
+    hairColor: { color: '#654321', name: 'Dark Brown', category: 'brown' },
+    eyeColor: { color: '#228B22', name: 'Green', category: 'green' },
+    colorSeason: 'summer',
+    complementaryColors: ['#228B22', '#006400', '#2E8B57', '#8FBC8F', '#98FB98', '#90EE90'],
+    category: 'tan'
+  },
+
+  // Latino/Hispanic Variations
+  {
+    id: 'black-brown-latino',
+    name: 'Latino Warm Complexion',
+    description: 'Warm Latino skin with black hair and brown eyes',
+    skinTone: { color: '#CD853F', name: 'Caramel', undertone: 'warm' },
+    hairColor: { color: '#2F1B14', name: 'Black', category: 'black' },
+    eyeColor: { color: '#8B4513', name: 'Brown', category: 'brown' },
+    colorSeason: 'autumn',
+    complementaryColors: ['#D2691E', '#CD853F', '#DEB887', '#F4A460', '#BC8F8F', '#8B4513'],
+    category: 'tan'
+  },
+  {
+    id: 'dark-brown-hazel-hispanic',
+    name: 'Hispanic Golden Tones',
+    description: 'Golden Hispanic skin with dark brown hair and hazel eyes',
+    skinTone: { color: '#DEB887', name: 'Golden', undertone: 'warm' },
+    hairColor: { color: '#654321', name: 'Dark Brown', category: 'brown' },
+    eyeColor: { color: '#8E7618', name: 'Hazel', category: 'hazel' },
+    colorSeason: 'autumn',
+    complementaryColors: ['#DAA520', '#B8860B', '#CD853F', '#D2691E', '#BC8F8F', '#8B4513'],
+    category: 'medium'
+  },
+
+  // Indigenous & Native American
+  {
+    id: 'black-brown-indigenous',
+    name: 'Indigenous Heritage',
+    description: 'Indigenous skin tones with black hair and deep brown eyes',
+    skinTone: { color: '#A0522D', name: 'Bronze', undertone: 'warm' },
+    hairColor: { color: '#1A1A1A', name: 'Black', category: 'black' },
+    eyeColor: { color: '#654321', name: 'Deep Brown', category: 'brown' },
+    colorSeason: 'autumn',
+    complementaryColors: ['#D2691E', '#CD853F', '#DEB887', '#F4A460', '#BC8F8F', '#8B4513'],
+    category: 'dark'
+  },
+
+  // Mediterranean & Southern European
+  {
+    id: 'dark-brown-brown-mediterranean',
+    name: 'Mediterranean Olive',
+    description: 'Mediterranean olive skin with dark brown hair and brown eyes',
+    skinTone: { color: '#9ACD32', name: 'Olive', undertone: 'neutral' },
+    hairColor: { color: '#654321', name: 'Dark Brown', category: 'brown' },
+    eyeColor: { color: '#8B4513', name: 'Brown', category: 'brown' },
+    colorSeason: 'autumn',
+    complementaryColors: ['#9ACD32', '#8FBC8F', '#6B8E23', '#556B2F', '#808000', '#BDB76B'],
+    category: 'olive'
+  },
+
+  // Additional Fair Complexions (Northern European)
+  {
+    id: 'light-brown-blue-scandinavian',
+    name: 'Scandinavian Fair',
+    description: 'Very fair Scandinavian skin with light brown hair and blue eyes',
+    skinTone: { color: '#FFF8DC', name: 'Porcelain', undertone: 'cool' },
+    hairColor: { color: '#D2B48C', name: 'Light Brown', category: 'brown' },
+    eyeColor: { color: '#87CEEB', name: 'Light Blue', category: 'blue' },
+    colorSeason: 'summer',
+    complementaryColors: ['#E6E6FA', '#B0E0E6', '#F0F8FF', '#D2B48C', '#DDA0DD', '#C0C0C0'],
+    category: 'very-fair'
   }
 ];
 
@@ -374,4 +547,36 @@ export const getAllCategories = (): string[] => {
 
 export const getPalettesByColorSeason = (season: string): ColorPalette[] => {
   return PREDEFINED_COLOR_PALETTES.filter(palette => palette.colorSeason === season);
+};
+
+// Get total count for reference
+export const getTotalPaletteCount = (): number => {
+  return PREDEFINED_COLOR_PALETTES.length;
+};
+
+// Get palettes by heritage/ethnicity for inclusive browsing
+export const getPalettesByHeritage = () => {
+  return {
+    european: PREDEFINED_COLOR_PALETTES.filter(p =>
+      p.id.includes('blonde') || p.id.includes('scandinavian') || p.id.includes('mediterranean')
+    ),
+    african: PREDEFINED_COLOR_PALETTES.filter(p =>
+      p.id.includes('ebony') || p.id.includes('mahogany') || p.id.includes('rich-deep')
+    ),
+    asian: PREDEFINED_COLOR_PALETTES.filter(p =>
+      p.id.includes('east-asian') || p.id.includes('south-asian')
+    ),
+    latino: PREDEFINED_COLOR_PALETTES.filter(p =>
+      p.id.includes('latino') || p.id.includes('hispanic')
+    ),
+    middleEastern: PREDEFINED_COLOR_PALETTES.filter(p =>
+      p.id.includes('middle-eastern')
+    ),
+    indigenous: PREDEFINED_COLOR_PALETTES.filter(p =>
+      p.id.includes('indigenous')
+    ),
+    mixed: PREDEFINED_COLOR_PALETTES.filter(p =>
+      p.id.includes('mixed') || p.id.includes('multiracial')
+    )
+  };
 };
