@@ -22,7 +22,9 @@ export const PaletteSelection: React.FC<PaletteSelectionProps> = ({
   selectedPaletteId,
   onPaletteSelect,
   onContinue,
-  showContinueButton = true
+  showContinueButton = true,
+  saving = false,
+  saveProgress = { step: '', progress: 0 }
 }) => {
   const [selectedPalette, setSelectedPalette] = useState<ColorPalette | null>(null);
   const [activeCategory, setActiveCategory] = useState('very-fair');
