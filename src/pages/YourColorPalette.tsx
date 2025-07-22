@@ -652,9 +652,10 @@ const YourColorPalette = () => {
                     <DialogTitle>Choose Your Color Palette</DialogTitle>
                   </DialogHeader>
                   <ColorPaletteSetup
-                    onComplete={() => {
+                    onComplete={async () => {
                       setShowPaletteSelection(false);
-                      window.location.reload(); // Refresh to show new palette
+                      // Refresh profile data without page reload
+                      await refetch();
                     }}
                     showTitle={false}
                     embedded={true}
