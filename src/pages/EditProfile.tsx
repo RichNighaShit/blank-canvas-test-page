@@ -182,6 +182,8 @@ const EditProfile = () => {
         color_palette_colors: form.color_palette_colors,
         goals: form.goals,
         face_photo_url: form.face_photo_url || null,
+        selected_palette_id: form.selected_palette_id || null,
+        color_season_analysis: form.color_season_analysis || null,
       };
 
       console.log("Updating profile with data:", updateData);
