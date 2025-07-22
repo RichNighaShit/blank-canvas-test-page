@@ -114,7 +114,7 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
 
     } catch (error: any) {
       console.error('Error saving palette:', error);
-      const errorMessage = error?.message || error?.toString() || 'Unknown error occurred';
+      const errorMessage = getErrorMessage(error);
       toast({
         title: "Error",
         description: `An unexpected error occurred: ${errorMessage}`,
