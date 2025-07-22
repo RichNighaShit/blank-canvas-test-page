@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, invalidateProfileCache } from "@/hooks/useProfile";
 import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -134,6 +134,10 @@ const YourColorPalette = () => {
   const handleRefreshPalette = async () => {
     setIsRefreshing(true);
     try {
+      // Force a hard refresh by invalidating cache first
+      if (user?.id) {
+        invalidateProfileCache(user.id);
+      }
       await refetch();
       toast({
         title: "Palette refreshed!",
@@ -262,7 +266,12 @@ const YourColorPalette = () => {
                         <ColorPaletteSetup
                           onComplete={async () => {
                             setShowPaletteSelection(false);
-                            // Refresh profile data without page reload
+                            // Force cache invalidation and refresh
+                            if (user?.id) {
+                              invalidateProfileCache(user.id);
+                            }
+                            // Wait a moment for state to settle
+                            await new Promise(resolve => setTimeout(resolve, 100));
                             await refetch();
                           }}
                           showTitle={false}
@@ -878,7 +887,12 @@ const YourColorPalette = () => {
                   <ColorPaletteSetup
                     onComplete={async () => {
                       setShowPaletteSelection(false);
-                      // Refresh profile data without page reload
+                      // Force cache invalidation and refresh
+                      if (user?.id) {
+                        invalidateProfileCache(user.id);
+                      }
+                      // Wait a moment for state to settle
+                      await new Promise(resolve => setTimeout(resolve, 100));
                       await refetch();
                     }}
                     showTitle={false}
