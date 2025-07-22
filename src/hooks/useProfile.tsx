@@ -97,6 +97,8 @@ export const useProfile = () => {
           }
         } else {
           console.error("Error fetching profile:", error);
+          const errorMessage = error?.message || error?.toString() || 'Unknown error';
+          console.error("Error details:", errorMessage);
         }
       } else {
         console.log("Profile fetched successfully:", data);
