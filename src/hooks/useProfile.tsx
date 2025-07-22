@@ -140,9 +140,12 @@ export const useProfile = () => {
   }, [user]);
 
   const refetch = async () => {
+    setLoading(true);
     // Clear cache before refetching to ensure fresh data
     if (user?.id) {
       delete profileCache[user.id];
+      // Also clear local state to force re-render
+      setProfile(null);
     }
     await fetchProfile(true);
   };
@@ -152,6 +155,7 @@ export const useProfile = () => {
 
 // Export global cache invalidation function
 export const invalidateProfileCache = (userId: string) => {
+  console.log('Invalidating profile cache for user:', userId);
   delete profileCache[userId];
   if (profileCacheListeners[userId]) {
     profileCacheListeners[userId].forEach(fn => fn());
