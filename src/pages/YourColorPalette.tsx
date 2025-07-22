@@ -19,6 +19,7 @@ import {
   Heart,
   Edit,
   Star,
+  AlertTriangle,
 } from "lucide-react";
 import { ColorPaletteSetup } from "@/components/ColorPaletteSetup";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
