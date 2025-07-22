@@ -659,72 +659,195 @@ const YourColorPalette = () => {
                   </Card>
                 )}
 
-                {/* Professional Style Tips */}
-                <Card>
+                {/* Enhanced Professional Style Tips */}
+                <Card className="card-premium bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-purple-600" />
-                      Professional Style Tips
+                    <CardTitle className="flex items-center gap-2 text-xl text-green-800">
+                      <Sparkles className="h-6 w-6 text-green-600" />
+                      Professional Styling Advice
                     </CardTitle>
+                    <p className="text-green-700">Expert tips to maximize your color harmony</p>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
+                    <div className="grid gap-4">
                       {colorAnalysis.tips.map((tip, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 flex-shrink-0" />
-                          <p className="text-sm">{tip}</p>
+                        <div key={index} className="flex items-start gap-3 p-4 bg-white/70 rounded-lg border border-green-100">
+                          <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                          </div>
+                          <p className="text-gray-700 leading-relaxed">{tip}</p>
                         </div>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Clothing Recommendations */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Clothing Recommendations</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium mb-2">Best Neutral Colors</h4>
-                        <div className="flex flex-wrap gap-2">
+                {/* Enhanced Clothing & Makeup Recommendations */}
+                <div className="grid lg:grid-cols-2 gap-6">
+                  {/* Clothing Recommendations */}
+                  <Card className="card-premium">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-xl">
+                        <Heart className="h-6 w-6 text-pink-600" />
+                        Wardrobe Colors
+                      </CardTitle>
+                      <p className="text-muted-foreground">Your perfect clothing color palette</p>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
+                          Foundation Neutrals
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">Your wardrobe building blocks - use for 60% of your outfits</p>
+                        <div className="grid grid-cols-8 gap-2">
                           {colorAnalysis.clothingRecommendations.neutrals.map((color, index) => (
-                            <div
-                              key={index}
-                              className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 transition-transform"
-                              style={{ backgroundColor: color }}
-                              title={color}
-                              onClick={() => handleCopyColor(color)}
-                            />
+                            <div key={index} className="group relative">
+                              <div
+                                className="w-full h-10 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200"
+                                style={{ backgroundColor: color }}
+                                title={`Copy ${color}`}
+                                onClick={() => handleCopyColor(color)}
+                              />
+                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Copy className="w-2 h-2 text-gray-600" />
+                              </div>
+                            </div>
                           ))}
                         </div>
                       </div>
-                      <div>
-                        <h4 className="font-medium mb-2">Best Accent Colors</h4>
-                        <div className="flex flex-wrap gap-2">
+
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
+                          Statement Accents
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">Bold colors that make you shine - use for 30% of your outfits</p>
+                        <div className="grid grid-cols-8 gap-2">
                           {colorAnalysis.clothingRecommendations.accents.map((color, index) => (
-                            <div
-                              key={index}
-                              className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 transition-transform"
-                              style={{ backgroundColor: color }}
-                              title={color}
-                              onClick={() => handleCopyColor(color)}
-                            />
+                            <div key={index} className="group relative">
+                              <div
+                                className="w-full h-10 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200"
+                                style={{ backgroundColor: color }}
+                                title={`Copy ${color}`}
+                                onClick={() => handleCopyColor(color)}
+                              />
+                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Copy className="w-2 h-2 text-gray-600" />
+                              </div>
+                            </div>
                           ))}
                         </div>
                       </div>
-                      <div>
-                        <h4 className="font-medium mb-2">Best Metals</h4>
-                        <Badge variant="outline">
-                          {colorAnalysis.clothingRecommendations.metallics === 'gold' ? '🥇 Gold' :
-                           colorAnalysis.clothingRecommendations.metallics === 'silver' ? '🥈 Silver' :
-                           '🥇🥈 Both Gold & Silver'}
-                        </Badge>
+
+                      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                          Metallic Finishes
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">Jewelry and accessories that complement your coloring</p>
+                        <div className="flex gap-3">
+                          {colorAnalysis.clothingRecommendations.metallics === 'gold' && (
+                            <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900 px-4 py-2">
+                              🥇 Gold Tones
+                            </Badge>
+                          )}
+                          {colorAnalysis.clothingRecommendations.metallics === 'silver' && (
+                            <Badge className="bg-gradient-to-r from-gray-300 to-gray-500 text-gray-800 px-4 py-2">
+                              🥈 Silver Tones
+                            </Badge>
+                          )}
+                          {colorAnalysis.clothingRecommendations.metallics === 'both' && (
+                            <>
+                              <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900 px-3 py-2">
+                                🥇 Gold
+                              </Badge>
+                              <Badge className="bg-gradient-to-r from-gray-300 to-gray-500 text-gray-800 px-3 py-2">
+                                🥈 Silver
+                              </Badge>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+
+                  {/* Makeup Recommendations */}
+                  {colorAnalysis.makeupRecommendations && (
+                    <Card className="card-premium">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-xl">
+                          <Sparkles className="h-6 w-6 text-rose-600" />
+                          Makeup Colors
+                        </CardTitle>
+                        <p className="text-muted-foreground">Cosmetic shades that enhance your features</p>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {/* Foundation */}
+                        <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Foundation Match</h4>
+                          <p className="text-sm text-gray-600 mb-3">Your ideal foundation tone</p>
+                          <div
+                            className="w-full h-8 rounded-lg border-2 border-white shadow-md"
+                            style={{ backgroundColor: colorAnalysis.makeupRecommendations.foundation }}
+                          />
+                          <p className="text-xs text-gray-500 mt-2">{colorAnalysis.makeupRecommendations.foundation}</p>
+                        </div>
+
+                        {/* Lip Colors */}
+                        <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Lip Colors</h4>
+                          <p className="text-sm text-gray-600 mb-3">Flattering lip shades</p>
+                          <div className="grid grid-cols-4 gap-2">
+                            {colorAnalysis.makeupRecommendations.lipColors.map((color, index) => (
+                              <div
+                                key={index}
+                                className="w-full h-8 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                style={{ backgroundColor: color }}
+                                title={`Copy ${color}`}
+                                onClick={() => handleCopyColor(color)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Eye Colors */}
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Eye Colors</h4>
+                          <p className="text-sm text-gray-600 mb-3">Eyeshadow and liner shades</p>
+                          <div className="grid grid-cols-4 gap-2">
+                            {colorAnalysis.makeupRecommendations.eyeColors.map((color, index) => (
+                              <div
+                                key={index}
+                                className="w-full h-8 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                style={{ backgroundColor: color }}
+                                title={`Copy ${color}`}
+                                onClick={() => handleCopyColor(color)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Blush Colors */}
+                        <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4">
+                          <h4 className="font-semibold mb-2 text-gray-800">Blush Colors</h4>
+                          <p className="text-sm text-gray-600 mb-3">Cheek colors that add natural glow</p>
+                          <div className="grid grid-cols-4 gap-2">
+                            {colorAnalysis.makeupRecommendations.blushColors.map((color, index) => (
+                              <div
+                                key={index}
+                                className="w-full h-8 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                style={{ backgroundColor: color }}
+                                title={`Copy ${color}`}
+                                onClick={() => handleCopyColor(color)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               </>
             )}
           </>
