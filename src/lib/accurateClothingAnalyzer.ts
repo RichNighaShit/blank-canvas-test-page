@@ -13,6 +13,26 @@ interface ClothingAnalysisResult {
   materials?: string[];
 }
 
+interface CategorySignals {
+  aspectRatio: number;
+  totalPixels: number;
+  isVeryWide: boolean;
+  isWide: boolean;
+  isSquareish: boolean;
+  isTall: boolean;
+  isVeryTall: boolean;
+  isSmall: boolean;
+  isMedium: boolean;
+  isLarge: boolean;
+  colorDistribution: ColorDistribution;
+}
+
+interface ColorDistribution {
+  hasUniformColor: boolean;
+  hasCenterFocus: boolean;
+  hasComplexPattern: boolean;
+}
+
 interface VisionAPIResponse {
   responses: Array<{
     labelAnnotations?: Array<{
@@ -768,7 +788,7 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
-   * Analyze image shape and characteristics for category detection
+   * Enhanced image shape and visual characteristics analysis for category detection
    */
   private analyzeImageShape(
     imageElement: HTMLImageElement,
@@ -776,43 +796,154 @@ export class AccurateClothingAnalyzer {
   ): string {
     const width = imageElement.width;
     const height = imageElement.height;
+    const totalPixels = width * height;
 
-    // Very wide images are likely shoes or accessories
-    if (aspectRatio > 1.5) {
+    // Enhanced category detection with multiple signals
+    const signals = this.gatherCategorySignals(imageElement, aspectRatio, totalPixels);
+
+    return this.determineCategoryFromSignals(signals);
+  }
+
+  /**
+   * Gather multiple visual signals for category determination
+   */
+  private gatherCategorySignals(
+    imageElement: HTMLImageElement,
+    aspectRatio: number,
+    totalPixels: number
+  ): CategorySignals {
+    const signals: CategorySignals = {
+      aspectRatio,
+      totalPixels,
+      isVeryWide: aspectRatio > 1.8,
+      isWide: aspectRatio > 1.3 && aspectRatio <= 1.8,
+      isSquareish: aspectRatio >= 0.8 && aspectRatio <= 1.2,
+      isTall: aspectRatio < 0.8 && aspectRatio >= 0.5,
+      isVeryTall: aspectRatio < 0.5,
+      isSmall: totalPixels < 200000, // Less than ~450x450
+      isMedium: totalPixels >= 200000 && totalPixels < 800000,
+      isLarge: totalPixels >= 800000,
+      colorDistribution: this.analyzeColorDistribution(imageElement)
+    };
+
+    return signals;
+  }
+
+  /**
+   * Analyze color distribution patterns that indicate clothing categories
+   */
+  private analyzeColorDistribution(imageElement: HTMLImageElement): ColorDistribution {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) return { hasUniformColor: false, hasCenterFocus: false, hasComplexPattern: false };
+
+      // Sample at lower resolution for performance
+      const sampleWidth = Math.min(imageElement.width, 100);
+      const sampleHeight = Math.min(imageElement.height, 100);
+
+      canvas.width = sampleWidth;
+      canvas.height = sampleHeight;
+      ctx.drawImage(imageElement, 0, 0, sampleWidth, sampleHeight);
+
+      const imageData = ctx.getImageData(0, 0, sampleWidth, sampleHeight);
+      return this.calculateColorDistributionMetrics(imageData, sampleWidth, sampleHeight);
+    } catch (error) {
+      return { hasUniformColor: false, hasCenterFocus: false, hasComplexPattern: false };
+    }
+  }
+
+  /**
+   * Calculate metrics about color distribution
+   */
+  private calculateColorDistributionMetrics(
+    imageData: ImageData,
+    width: number,
+    height: number
+  ): ColorDistribution {
+    const data = imageData.data;
+    const centerRegionColors = new Map<string, number>();
+    const edgeRegionColors = new Map<string, number>();
+    const allColors = new Map<string, number>();
+
+    const centerThreshold = Math.min(width, height) * 0.3;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    for (let i = 0; i < data.length; i += 16) { // Sample every 4th pixel
+      const pixelIndex = i / 4;
+      const x = pixelIndex % width;
+      const y = Math.floor(pixelIndex / width);
+
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const alpha = data[i + 3];
+
+      if (alpha < 128) continue;
+
+      const colorName = this.rgbToColorName(r, g, b);
+      allColors.set(colorName, (allColors.get(colorName) || 0) + 1);
+
+      const distanceFromCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+
+      if (distanceFromCenter <= centerThreshold) {
+        centerRegionColors.set(colorName, (centerRegionColors.get(colorName) || 0) + 1);
+      } else {
+        edgeRegionColors.set(colorName, (edgeRegionColors.get(colorName) || 0) + 1);
+      }
+    }
+
+    const totalColors = allColors.size;
+    const dominantColor = Array.from(allColors.entries()).sort(([,a], [,b]) => b - a)[0];
+    const dominantColorRatio = dominantColor ? dominantColor[1] / Array.from(allColors.values()).reduce((a, b) => a + b, 0) : 0;
+
+    return {
+      hasUniformColor: totalColors <= 3 && dominantColorRatio > 0.7,
+      hasCenterFocus: centerRegionColors.size > 0 && centerRegionColors.size < edgeRegionColors.size,
+      hasComplexPattern: totalColors > 8 && dominantColorRatio < 0.4
+    };
+  }
+
+  /**
+   * Determine category from gathered signals using enhanced logic
+   */
+  private determineCategoryFromSignals(signals: CategorySignals): string {
+    // Shoes detection - typically wide and with specific characteristics
+    if (signals.isVeryWide && (signals.isSmall || signals.isMedium)) {
       return "shoes";
     }
 
-    // Very tall images are likely dresses or full-body shots
-    if (aspectRatio < 0.6) {
-      return "dresses";
-    }
-
-    // Square-ish images with moderate size often accessories
-    if (
-      aspectRatio >= 0.8 &&
-      aspectRatio <= 1.2 &&
-      width < 800 &&
-      height < 800
-    ) {
+    // Accessories detection - typically small and square-ish
+    if (signals.isSquareish && signals.isSmall && !signals.hasComplexPattern) {
       return "accessories";
     }
 
-    // Wider than tall but not extremely wide - likely tops or bottoms
-    if (aspectRatio > 1.0 && aspectRatio <= 1.5) {
-      // Use additional heuristics
-      return height > width * 0.8 ? "tops" : "bottoms";
+    // Dresses detection - tall aspect ratio with center focus
+    if (signals.isVeryTall || (signals.isTall && signals.hasCenterFocus)) {
+      return "dresses";
     }
 
-    // Taller than wide - likely tops, dresses, or outerwear
-    if (aspectRatio < 1.0) {
-      // Very tall suggests dresses
-      if (aspectRatio < 0.7) return "dresses";
-      // Moderately tall suggests tops or outerwear
+    // Outerwear detection - medium to tall with complex patterns or layered appearance
+    if ((signals.isTall || signals.isSquareish) &&
+        (signals.hasComplexPattern || signals.isLarge)) {
+      return "outerwear";
+    }
+
+    // Bottoms detection - wide but not very wide, typically horizontal orientation
+    if (signals.isWide && !signals.isVeryWide && !signals.hasCenterFocus) {
+      return "bottoms";
+    }
+
+    // Enhanced tops detection - remaining cases that fit top characteristics
+    if (signals.isSquareish || signals.isTall ||
+        (signals.isWide && signals.hasCenterFocus)) {
       return "tops";
     }
 
-    // Default fallback with smarter logic
-    return "tops"; // Most common category
+    // Default to tops (most common category)
+    return "tops";
   }
 
   /**
@@ -1333,33 +1464,100 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
-   * Enhanced RGB to color name conversion
+   * Enhanced RGB to color name conversion with expanded color palette
    */
   private rgbToColorName(r: number, g: number, b: number): string {
     // Convert to HSL for better color categorization
     const [h, s, l] = this.rgbToHsl(r, g, b);
 
-    // Black and white
-    if (l < 15) return "black";
-    if (l > 85 && s < 20) return "white";
+    // Black and white variants
+    if (l < 8) return "black";
+    if (l < 20 && s < 10) return "charcoal";
+    if (l > 92 && s < 15) return "white";
+    if (l > 80 && s < 20) return "off-white";
+    if (l > 85 && s < 25) return "cream";
 
-    // Grays
-    if (s < 15) {
-      if (l < 30) return "charcoal";
-      if (l < 70) return "gray";
-      return "light-gray";
+    // Gray variants
+    if (s < 12) {
+      if (l < 25) return "dark-gray";
+      if (l < 50) return "gray";
+      if (l < 75) return "light-gray";
+      return "silver";
     }
 
-    // Colors based on hue
-    if (h >= 0 && h < 15) return s > 50 ? "red" : "pink";
-    if (h >= 15 && h < 45) return s > 60 ? "orange" : "coral";
-    if (h >= 45 && h < 75) return s > 40 ? "yellow" : "cream";
-    if (h >= 75 && h < 150) return s > 30 ? "green" : "sage";
-    if (h >= 150 && h < 190) return "cyan";
-    if (h >= 190 && h < 250) return s > 40 ? "blue" : "navy";
-    if (h >= 250 && h < 290) return "purple";
-    if (h >= 290 && h < 330) return "magenta";
-    if (h >= 330) return s > 50 ? "red" : "pink";
+    // Brown family (often missed in clothing)
+    if (h >= 15 && h < 45 && s > 25 && l < 60) {
+      if (l < 30) return "brown";
+      if (l < 50) return "tan";
+      return "beige";
+    }
+
+    // Red family
+    if ((h >= 345 || h < 15)) {
+      if (s > 60 && l > 40) return "red";
+      if (s > 40 && l > 60) return "pink";
+      if (s > 50 && l < 40) return "maroon";
+      if (s < 40) return "dusty-pink";
+      return "red";
+    }
+
+    // Orange family
+    if (h >= 15 && h < 45) {
+      if (s > 70 && l > 50) return "orange";
+      if (s > 40 && l > 70) return "coral";
+      if (s > 50 && l < 50) return "rust";
+      return "peach";
+    }
+
+    // Yellow family
+    if (h >= 45 && h < 75) {
+      if (s > 60 && l > 50) return "yellow";
+      if (s > 30 && l > 80) return "light-yellow";
+      if (s < 40) return "cream";
+      if (l < 50) return "mustard";
+      return "yellow";
+    }
+
+    // Green family
+    if (h >= 75 && h < 150) {
+      if (s > 50 && l > 40 && l < 70) return "green";
+      if (s > 30 && l > 70) return "light-green";
+      if (s > 40 && l < 40) return "forest-green";
+      if (s < 40 && l > 50) return "sage";
+      if (h >= 120 && h < 150) return "teal";
+      return "green";
+    }
+
+    // Cyan family
+    if (h >= 150 && h < 190) {
+      if (s > 50) return "cyan";
+      return "teal";
+    }
+
+    // Blue family
+    if (h >= 190 && h < 250) {
+      if (s > 60 && l > 50) return "blue";
+      if (s > 40 && l > 70) return "light-blue";
+      if (s > 50 && l < 40) return "navy";
+      if (l > 80) return "sky-blue";
+      return "blue";
+    }
+
+    // Purple family
+    if (h >= 250 && h < 290) {
+      if (s > 50 && l > 50) return "purple";
+      if (s > 30 && l > 70) return "lavender";
+      if (s > 50 && l < 40) return "deep-purple";
+      return "purple";
+    }
+
+    // Magenta/Pink family
+    if (h >= 290 && h < 345) {
+      if (s > 60 && l > 40) return "magenta";
+      if (s > 40 && l > 60) return "pink";
+      if (s > 50 && l < 40) return "fuchsia";
+      return "magenta";
+    }
 
     return "neutral";
   }
