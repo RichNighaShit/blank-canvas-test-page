@@ -298,9 +298,16 @@ const YourColorPalette = () => {
                       return null; // Skip invalid colors
                     }
 
-                    const labels = ["Skin Tone", "Hair Color", "Eye Color"];
+                    // Use palette names if available, otherwise use generic labels
+                    const defaultLabels = ["Skin Tone", "Hair Color", "Eye Color"];
+                    const paletteLabels = selectedPalette ? [
+                      selectedPalette.skinTone.name,
+                      selectedPalette.hairColor.name,
+                      selectedPalette.eyeColor.name
+                    ] : defaultLabels;
+
                     const icons = ["👤", "💇", "👁️"];
-                    const label = labels[index] || `Color ${index + 1}`;
+                    const label = paletteLabels[index] || defaultLabels[index] || `Color ${index + 1}`;
                     const icon = icons[index] || "🎨";
 
                     return (
@@ -606,7 +613,7 @@ const YourColorPalette = () => {
                         <Badge variant="outline">
                           {colorAnalysis.clothingRecommendations.metallics === 'gold' ? '🥇 Gold' :
                            colorAnalysis.clothingRecommendations.metallics === 'silver' ? '🥈 Silver' :
-                           '🥇���� Both Gold & Silver'}
+                           '🥇🥈 Both Gold & Silver'}
                         </Badge>
                       </div>
                     </div>
