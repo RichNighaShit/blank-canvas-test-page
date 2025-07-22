@@ -85,6 +85,9 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
   const handleSaveProfile = async () => {
     if (!selectedPalette || !user) return;
 
+    setSaving(true);
+    setSaveProgress({ step: 'Analyzing your color palette...', progress: 25 });
+
     // Generate analysis if not already done
     let analysisToSave = colorAnalysis;
     if (!analysisToSave) {
@@ -92,8 +95,9 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
       setColorAnalysis(analysisToSave);
     }
 
-    setSaving(true);
     try {
+      setSaveProgress({ step: 'Saving your palette...', progress: 50 });
+
       // Save the selected palette and analysis to the user's profile
       const { error } = await supabase
         .from('profiles')
@@ -114,6 +118,8 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
         });
         return;
       }
+
+      setSaveProgress({ step: 'Updating your profile...', progress: 75 });
 
       // Invalidate cache and refetch profile
       invalidateProfileCache(user.id);
