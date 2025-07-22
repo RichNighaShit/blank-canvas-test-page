@@ -399,7 +399,40 @@ class ColorSeasonAnalysisService {
     return 'True Winter';
   }
 
-  private getMakeupRecommendations(palette: ColorPalette) {
+  private getEnhancedClothingRecommendations(baseRecommendations: any, palette: ColorPalette) {
+    return {
+      ...baseRecommendations,
+      wardrobeFormula: {
+        neutrals: 60,
+        accents: 30,
+        statement: 10
+      },
+      bestFabrics: this.getBestFabrics(palette.colorSeason),
+      stylePersonality: this.getStylePersonality(palette.colorSeason)
+    };
+  }
+
+  private getBestFabrics(season: string): string[] {
+    const fabricData = {
+      spring: ['Cotton', 'Linen', 'Silk', 'Lightweight wools', 'Chiffon'],
+      summer: ['Silk', 'Cotton', 'Crepe', 'Soft knits', 'Flowing fabrics'],
+      autumn: ['Wool', 'Tweed', 'Corduroy', 'Suede', 'Rich textures'],
+      winter: ['Silk', 'Wool gabardine', 'Crisp cotton', 'Leather', 'Structured fabrics']
+    };
+    return fabricData[season as keyof typeof fabricData] || [];
+  }
+
+  private getStylePersonality(season: string): string {
+    const personalityData = {
+      spring: 'Fresh & Youthful - Natural, approachable style with vibrant energy',
+      summer: 'Elegant & Refined - Sophisticated, gentle style with timeless appeal',
+      autumn: 'Rich & Earthy - Warm, luxurious style with natural sophistication',
+      winter: 'Bold & Dramatic - Striking, confident style with sharp elegance'
+    };
+    return personalityData[season as keyof typeof personalityData] || '';
+  }
+
+  private getEnhancedMakeupRecommendations(palette: ColorPalette) {
     const { colorSeason, skinTone, hairColor, eyeColor } = palette;
 
     // Use actual skin tone color for foundation
