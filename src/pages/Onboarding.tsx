@@ -22,7 +22,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
-import { PhotoUpload } from "@/components/PhotoUpload";
+import { ColorPaletteSetup } from "@/components/ColorPaletteSetup";
+import type { ColorPalette } from "@/data/predefinedColorPalettes";
+import type { ColorSeasonAnalysis } from "@/lib/colorSeasonAnalysis";
 
 interface ProfileData {
   display_name: string;
@@ -33,6 +35,8 @@ interface ProfileData {
   color_palette_colors: string[];
   goals: string[];
   face_photo_url?: string;
+  selected_palette_id?: string;
+  color_season_analysis?: any;
 }
 
 const Onboarding = () => {
@@ -313,14 +317,27 @@ const Onboarding = () => {
         {step === 1 && (
           <Card className="shadow-elegant">
             <CardHeader>
-              <CardTitle>Upload Your Photo (Optional)</CardTitle>
+              <CardTitle>Choose Your Color Palette</CardTitle>
               <CardDescription>
-                Our AI will analyze your photo to understand your color palette
-                and suggest the best clothing matches
+                Select the palette that best matches your natural coloring for personalized style recommendations
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <PhotoUpload onAnalysisComplete={handlePhotoAnalysis} />
+              <ColorPaletteSetup
+                onComplete={(palette: ColorPalette, analysis: ColorSeasonAnalysis) => {
+                  console.log('Color palette selected:', palette);
+                  console.log('Color analysis:', analysis);
+                  setProfileData(prev => ({
+                    ...prev,
+                    color_palette_colors: palette.complementaryColors,
+                    selected_palette_id: palette.id,
+                    color_season_analysis: analysis
+                  }));
+                  setStep(2);
+                }}
+                showTitle={false}
+                embedded={true}
+              />
               <div className="mt-4 text-center">
                 <Button variant="outline" onClick={() => setStep(2)}>
                   Skip for now
