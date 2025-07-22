@@ -773,7 +773,7 @@ const YourColorPalette = () => {
                           {colorAnalysis.clothingRecommendations.metallics === 'both' && (
                             <>
                               <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900 px-3 py-2">
-                                🥇 Gold
+                                ��� Gold
                               </Badge>
                               <Badge className="bg-gradient-to-r from-gray-300 to-gray-500 text-gray-800 px-3 py-2">
                                 🥈 Silver
@@ -861,6 +861,85 @@ const YourColorPalette = () => {
                     </Card>
                   )}
                 </div>
+
+                {/* Professional Color Analysis Insights */}
+                <Card className="card-premium bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl text-blue-800">
+                      <Info className="h-6 w-6 text-blue-600" />
+                      Professional Color Analysis Insights
+                    </CardTitle>
+                    <p className="text-blue-700">Expert-level analysis of your unique color harmony</p>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Color Harmony Analysis */}
+                    <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                      <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        Your Color Harmony
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed">{colorAnalysis.professionalInsights.colorHarmony}</p>
+                    </div>
+
+                    {/* Personal Branding */}
+                    <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                      <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                        <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                        Personal Branding
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed">{colorAnalysis.professionalInsights.personalBranding}</p>
+                    </div>
+
+                    {/* Photography Tips */}
+                    <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                      <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                        <Camera className="w-4 h-4 text-green-600" />
+                        Photography Guidelines
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed">{colorAnalysis.professionalInsights.photographyTips}</p>
+                    </div>
+
+                    {/* Shopping Strategy */}
+                    <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                      <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        Smart Shopping Strategy
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed">{colorAnalysis.professionalInsights.shoppingStrategy}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Detailed Feature Analysis */}
+                <Card className="card-premium">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <Sparkles className="h-6 w-6 text-amber-600" />
+                      Detailed Feature Analysis
+                    </CardTitle>
+                    <p className="text-muted-foreground">Professional breakdown of your natural coloring</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4">
+                      <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+                        <h4 className="font-semibold text-amber-800 mb-2">Skin Tone Analysis</h4>
+                        <p className="text-gray-700 text-sm leading-relaxed">{colorAnalysis.detailedAnalysis.skinToneAnalysis}</p>
+                      </div>
+                      <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200">
+                        <h4 className="font-semibold text-amber-800 mb-2">Hair Color Analysis</h4>
+                        <p className="text-gray-700 text-sm leading-relaxed">{colorAnalysis.detailedAnalysis.hairColorAnalysis}</p>
+                      </div>
+                      <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                        <h4 className="font-semibold text-blue-800 mb-2">Eye Color Analysis</h4>
+                        <p className="text-gray-700 text-sm leading-relaxed">{colorAnalysis.detailedAnalysis.eyeColorAnalysis}</p>
+                      </div>
+                      <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                        <h4 className="font-semibold text-purple-800 mb-2">Overall Harmony</h4>
+                        <p className="text-gray-700 text-sm leading-relaxed">{colorAnalysis.detailedAnalysis.overallHarmony}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </>
             )}
           </>
