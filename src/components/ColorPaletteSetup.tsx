@@ -83,7 +83,7 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
         .update({
           selected_palette_id: selectedPalette.id,
           color_palette_colors: selectedPalette.complementaryColors,
-          color_season_analysis: colorAnalysis
+          color_season_analysis: analysisToSave
         })
         .eq('user_id', user.id);
 
@@ -109,7 +109,7 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
 
       // Call completion callback if provided
       if (onComplete) {
-        onComplete(selectedPalette, colorAnalysis);
+        onComplete(selectedPalette, analysisToSave);
       }
 
     } catch (error: any) {
