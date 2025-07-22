@@ -17,7 +17,10 @@ import {
   Info,
   Sparkles,
   Heart,
+  Edit,
 } from "lucide-react";
+import { ColorPaletteSetup } from "@/components/ColorPaletteSetup";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const YourColorPalette = () => {
   // Cache busting effect
@@ -26,6 +29,7 @@ const YourColorPalette = () => {
     const cacheVersion = new Date().getTime();
     console.log('YourColorPalette loaded at:', cacheVersion);
   }, []);
+  const [showPaletteSelection, setShowPaletteSelection] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, refetch } = useProfile();
   const navigate = useNavigate();
@@ -219,6 +223,31 @@ const YourColorPalette = () => {
                     Your Facial Feature Colors
                   </CardTitle>
                   <div className="flex flex-wrap gap-2">
+                    <Dialog open={showPaletteSelection} onOpenChange={setShowPaletteSelection}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Change Palette
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-5xl max-h-[90vh] overflow-auto">
+                        <DialogHeader>
+                          <DialogTitle>Update Your Color Palette</DialogTitle>
+                        </DialogHeader>
+                        <ColorPaletteSetup
+                          onComplete={() => {
+                            setShowPaletteSelection(false);
+                            window.location.reload(); // Refresh to show new palette
+                          }}
+                          showTitle={false}
+                          embedded={true}
+                        />
+                      </DialogContent>
+                    </Dialog>
                     <Button
                       variant="outline"
                       size="sm"
@@ -401,22 +430,35 @@ const YourColorPalette = () => {
           <Card className="card-premium text-center">
             <CardContent className="p-12">
               <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Camera className="h-10 w-10 text-white" />
+                <Palette className="h-10 w-10 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-4">
-                No Color Palette Yet
+                Choose Your Color Palette
               </h3>
-                                                        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Upload a profile picture to detect your actual skin tone, hair color, and eye color.
-                We'll show you the real colors from your photo for accurate reference.
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Select the color palette that best matches your natural coloring to get personalized style recommendations.
               </p>
-              <Button
-                onClick={() => navigate("/edit-profile")}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Upload Profile Picture
-              </Button>
+              <Dialog open={showPaletteSelection} onOpenChange={setShowPaletteSelection}>
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                    <Palette className="h-4 w-4 mr-2" />
+                    Choose Color Palette
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-5xl max-h-[90vh] overflow-auto">
+                  <DialogHeader>
+                    <DialogTitle>Choose Your Color Palette</DialogTitle>
+                  </DialogHeader>
+                  <ColorPaletteSetup
+                    onComplete={() => {
+                      setShowPaletteSelection(false);
+                      window.location.reload(); // Refresh to show new palette
+                    }}
+                    showTitle={false}
+                    embedded={true}
+                  />
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         )}
