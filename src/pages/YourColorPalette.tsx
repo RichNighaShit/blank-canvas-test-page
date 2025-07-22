@@ -62,10 +62,19 @@ const YourColorPalette = () => {
     );
   }
 
-      const rawColors = Array.isArray(profile?.color_palette_colors) ? profile.color_palette_colors : [];
-  const colors = rawColors.filter(color =>
+  // Use selected palette colors if available, otherwise fall back to extracted colors
+  const rawColors = Array.isArray(profile?.color_palette_colors) ? profile.color_palette_colors : [];
+  const extractedColors = rawColors.filter(color =>
     color && typeof color === 'string' && color.match(/^#[0-9A-Fa-f]{6}$/)
   );
+
+  // Prefer selected palette colors over extracted colors
+  const colors = selectedPalette ? [
+    selectedPalette.skinTone.color,
+    selectedPalette.hairColor.color,
+    selectedPalette.eyeColor.color
+  ] : extractedColors;
+
   const hasColors = colors.length > 0;
 
   // Get selected palette and analysis
@@ -597,7 +606,7 @@ const YourColorPalette = () => {
                         <Badge variant="outline">
                           {colorAnalysis.clothingRecommendations.metallics === 'gold' ? '🥇 Gold' :
                            colorAnalysis.clothingRecommendations.metallics === 'silver' ? '🥈 Silver' :
-                           '🥇🥈 Both Gold & Silver'}
+                           '🥇���� Both Gold & Silver'}
                         </Badge>
                       </div>
                     </div>
