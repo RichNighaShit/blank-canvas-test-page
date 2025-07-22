@@ -137,81 +137,192 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
-   * Final validation and cleaning of analysis results
+   * Enhanced validation and cleaning of analysis results with category confidence scoring
    */
   private validateAndCleanResult(
     result: ClothingAnalysisResult,
   ): ClothingAnalysisResult {
-    // Ensure no background colors in final result
+    // Enhanced color cleaning with better filtering
     const cleanedColors = this.finalColorFilter(result.colors);
 
-    // Validate category
+    // Enhanced category validation with confidence adjustment
     const validCategories = [
-      "tops",
-      "bottoms",
-      "dresses",
-      "outerwear",
-      "shoes",
-      "accessories",
+      "tops", "bottoms", "dresses", "outerwear", "shoes", "accessories"
     ];
-    const validatedCategory = validCategories.includes(result.category)
+
+    let validatedCategory = validCategories.includes(result.category)
       ? result.category
       : "tops";
 
-    // Validate style
+    // Adjust confidence based on category detection method
+    let adjustedConfidence = result.confidence;
+
+    // Higher confidence if category was detected via multiple signals
+    if (result.reasoning.includes("filename") && result.reasoning.includes("shape")) {
+      adjustedConfidence = Math.min(0.95, adjustedConfidence + 0.1);
+    }
+
+    // Lower confidence if we had to fallback to default category
+    if (!validCategories.includes(result.category)) {
+      adjustedConfidence = Math.max(0.3, adjustedConfidence - 0.2);
+      validatedCategory = this.getSmartCategoryFallback(cleanedColors, result.style);
+    }
+
+    // Enhanced style validation
     const validStyles = [
-      "casual",
-      "formal",
-      "elegant",
-      "sporty",
-      "streetwear",
-      "bohemian",
-      "minimalist",
-      "vintage",
-      "romantic",
-      "edgy",
+      "casual", "formal", "elegant", "sporty", "streetwear",
+      "bohemian", "minimalist", "vintage", "romantic", "edgy"
     ];
     const validatedStyle = validStyles.includes(result.style)
       ? result.style
-      : "casual";
+      : this.getSmartStyleFallback(validatedCategory, cleanedColors);
+
+    // Enhanced reasoning with more detail
+    const enhancedReasoning = this.buildEnhancedReasoning(
+      result.reasoning,
+      validatedCategory,
+      cleanedColors,
+      adjustedConfidence
+    );
 
     return {
       ...result,
       category: validatedCategory,
       style: validatedStyle,
       colors: cleanedColors,
-      confidence: Math.min(0.95, Math.max(0.5, result.confidence)), // Ensure reasonable confidence bounds
-      reasoning:
-        result.reasoning +
-        " - Final validation and background filtering applied",
+      confidence: Math.min(0.95, Math.max(0.3, adjustedConfidence)),
+      reasoning: enhancedReasoning,
     };
   }
 
   /**
-   * Final filter to remove any remaining background colors
+   * Smart category fallback based on colors and style
+   */
+  private getSmartCategoryFallback(colors: string[], style: string): string {
+    // If colors suggest specific categories
+    if (colors.includes("blue") && style === "casual") return "tops";
+    if (colors.includes("black") && style === "formal") return "bottoms";
+    if (colors.includes("brown") || colors.includes("tan")) return "shoes";
+
+    // Style-based fallbacks
+    if (style === "elegant" || style === "romantic") return "dresses";
+    if (style === "formal") return "outerwear";
+    if (style === "sporty") return "tops";
+
+    return "tops"; // Most common fallback
+  }
+
+  /**
+   * Smart style fallback based on category and colors
+   */
+  private getSmartStyleFallback(category: string, colors: string[]): string {
+    // Category-based style logic
+    if (category === "dresses") return "elegant";
+    if (category === "outerwear") return "casual";
+    if (category === "shoes" && colors.includes("black")) return "formal";
+    if (category === "accessories") return "minimalist";
+
+    // Color-based style logic
+    if (colors.includes("black") && colors.length === 1) return "minimalist";
+    if (colors.includes("navy") || colors.includes("charcoal")) return "formal";
+
+    return "casual"; // Most common fallback
+  }
+
+  /**
+   * Build enhanced reasoning with analysis details
+   */
+  private buildEnhancedReasoning(
+    originalReasoning: string,
+    category: string,
+    colors: string[],
+    confidence: number
+  ): string {
+    const parts = [];
+
+    parts.push(originalReasoning);
+    parts.push(`Enhanced category detection: ${category}`);
+    parts.push(`Filtered colors: ${colors.join(", ")}`);
+    parts.push(`Final confidence: ${Math.round(confidence * 100)}%`);
+
+    return parts.join(" | ");
+  }
+
+  /**
+   * Enhanced background color filtering with intelligent preservation
    */
   private finalColorFilter(colors: string[]): string[] {
-    const backgroundColors = [
-      "white",
-      "light-gray",
-      "off-white",
-      "cream",
-      "neutral",
-      "beige",
-      "ivory",
+    // Expanded list of potential background colors
+    const commonBackgroundColors = [
+      "white", "off-white", "cream", "light-gray", "silver",
+      "neutral", "beige", "ivory", "very-light"
     ];
 
-    const filteredColors = colors.filter(
-      (color) => !backgroundColors.includes(color) || colors.length === 1,
-    );
+    // Photography studio background indicators
+    const studioBackgrounds = [
+      "white", "light-gray", "off-white", "cream", "neutral"
+    ];
+
+    // If we only have potential background colors, keep the most specific one
+    if (colors.length <= 2 && colors.every(color => commonBackgroundColors.includes(color))) {
+      return colors.slice(0, 1);
+    }
+
+    // Remove obvious studio backgrounds but preserve actual clothing colors
+    const filteredColors = colors.filter((color, index) => {
+      // Always keep the first non-background color
+      if (!commonBackgroundColors.includes(color)) return true;
+
+      // Keep background colors if they appear to be actual clothing colors
+      // (e.g., white shirt, cream sweater)
+      if (index === 0 && colors.length <= 2) return true;
+
+      // Remove if it's likely a photography background
+      if (studioBackgrounds.includes(color) && colors.length > 2) return false;
+
+      return true;
+    });
 
     // Ensure we always have at least one color
     if (filteredColors.length === 0) {
-      return ["neutral"];
+      // Return the most clothing-like color from original list
+      const clothingLikeColors = colors.filter(color =>
+        !["white", "light-gray", "neutral"].includes(color)
+      );
+      return clothingLikeColors.length > 0 ? [clothingLikeColors[0]] : ["blue"];
     }
 
-    // Limit to top 3 most meaningful colors
-    return filteredColors.slice(0, 3);
+    // Prioritize non-neutral colors and limit to top 3
+    const prioritized = this.prioritizeClothingColors(filteredColors);
+    return prioritized.slice(0, 3);
+  }
+
+  /**
+   * Prioritize colors that are more likely to be actual clothing colors
+   */
+  private prioritizeClothingColors(colors: string[]): string[] {
+    const colorPriority = {
+      // High priority - common clothing colors
+      "blue": 10, "navy": 10, "black": 10, "red": 9, "green": 9,
+      "brown": 9, "purple": 8, "orange": 8, "yellow": 7, "pink": 7,
+
+      // Medium priority - accent colors
+      "maroon": 6, "forest-green": 6, "deep-purple": 6, "rust": 6,
+      "mustard": 5, "teal": 5, "coral": 5, "lavender": 5,
+
+      // Lower priority - light/neutral colors (still valid clothing colors)
+      "light-blue": 4, "light-green": 4, "sky-blue": 4, "peach": 4,
+      "tan": 3, "beige": 3, "cream": 2, "gray": 2,
+
+      // Lowest priority - very light/neutral
+      "light-gray": 1, "off-white": 1, "white": 1, "neutral": 0
+    };
+
+    return colors.sort((a, b) => {
+      const priorityA = colorPriority[a] || 5; // Default medium priority
+      const priorityB = colorPriority[b] || 5;
+      return priorityB - priorityA;
+    });
   }
 
   /**
