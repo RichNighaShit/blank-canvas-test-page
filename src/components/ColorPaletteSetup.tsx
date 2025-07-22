@@ -64,7 +64,8 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
     setSaving(true);
     try {
       // Save the selected palette and analysis to the user's profile
-      const { error } = await supabase
+      // First try with all columns, if that fails due to missing columns, try with just the basic ones
+      let { error } = await supabase
         .from('profiles')
         .update({
           selected_palette_id: selectedPalette.id,
@@ -72,6 +73,18 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
           color_season_analysis: colorAnalysis
         })
         .eq('user_id', user.id);
+
+      // If error due to missing columns, try updating just the color_palette_colors
+      if (error && (error.message?.includes('column') || error.message?.includes('does not exist'))) {
+        console.log('Missing database columns, updating only color_palette_colors');
+        const { error: fallbackError } = await supabase
+          .from('profiles')
+          .update({
+            color_palette_colors: selectedPalette.complementaryColors
+          })
+          .eq('user_id', user.id);
+        error = fallbackError;
+      }
 
       if (error) {
         console.error('Error saving palette:', error);
