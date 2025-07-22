@@ -18,9 +18,12 @@ import {
   Sparkles,
   Heart,
   Edit,
+  Star,
 } from "lucide-react";
 import { ColorPaletteSetup } from "@/components/ColorPaletteSetup";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PREDEFINED_COLOR_PALETTES, getPaletteById } from "@/data/predefinedColorPalettes";
+import type { ColorSeasonAnalysis } from "@/lib/colorSeasonAnalysis";
 
 const YourColorPalette = () => {
   // Cache busting effect
@@ -64,6 +67,11 @@ const YourColorPalette = () => {
     color && typeof color === 'string' && color.match(/^#[0-9A-Fa-f]{6}$/)
   );
   const hasColors = colors.length > 0;
+
+  // Get selected palette and analysis
+  const selectedPalette = profile?.selected_palette_id ? getPaletteById(profile.selected_palette_id) : null;
+  const colorAnalysis: ColorSeasonAnalysis | null = profile?.color_season_analysis || null;
+  const hasFullAnalysis = selectedPalette && colorAnalysis;
 
     const handleCopyColor = async (color: string) => {
     try {
