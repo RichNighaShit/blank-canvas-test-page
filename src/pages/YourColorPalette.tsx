@@ -24,7 +24,7 @@ import {
 import { ColorPaletteSetup } from "@/components/ColorPaletteSetup";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PREDEFINED_COLOR_PALETTES, getPaletteById } from "@/data/predefinedColorPalettes";
-import type { ColorSeasonAnalysis } from "@/lib/colorSeasonAnalysis";
+import { colorSeasonAnalysisService, type ColorSeasonAnalysis } from "@/lib/colorSeasonAnalysis";
 
 const YourColorPalette = () => {
   // Cache busting effect
@@ -65,7 +65,11 @@ const YourColorPalette = () => {
 
   // Get selected palette and analysis first
   const selectedPalette = profile?.selected_palette_id ? getPaletteById(profile.selected_palette_id) : null;
-  const colorAnalysis: ColorSeasonAnalysis | null = profile?.color_season_analysis || null;
+
+  // Always recalculate color analysis based on current palette to ensure consistency
+  const colorAnalysis: ColorSeasonAnalysis | null = selectedPalette
+    ? colorSeasonAnalysisService.analyzeColorSeason(selectedPalette)
+    : null;
   const hasFullAnalysis = selectedPalette && colorAnalysis;
 
   // Use selected palette colors if available, otherwise fall back to extracted colors
