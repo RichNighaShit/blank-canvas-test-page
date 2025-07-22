@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { ArrowRight, Palette, Sparkles, Info } from 'lucide-react';
 import { PaletteSelection } from './PaletteSelection';
 import { PREDEFINED_COLOR_PALETTES, type ColorPalette } from '@/data/predefinedColorPalettes';
