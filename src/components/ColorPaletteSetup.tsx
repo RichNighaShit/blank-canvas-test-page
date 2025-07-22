@@ -371,6 +371,8 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
         onPaletteSelect={handlePaletteSelect}
         onContinue={handleContinueToAnalysis}
         showContinueButton={!!selectedPalette}
+        saving={saving}
+        saveProgress={saveProgress}
       />
     </div>
   );
