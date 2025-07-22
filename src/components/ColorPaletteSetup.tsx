@@ -125,6 +125,8 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
       invalidateProfileCache(user.id);
       await refetch();
 
+      setSaveProgress({ step: 'Complete!', progress: 100 });
+
       toast({
         title: "Success!",
         description: "Your color palette has been saved successfully.",
