@@ -62,6 +62,11 @@ const YourColorPalette = () => {
     );
   }
 
+  // Get selected palette and analysis first
+  const selectedPalette = profile?.selected_palette_id ? getPaletteById(profile.selected_palette_id) : null;
+  const colorAnalysis: ColorSeasonAnalysis | null = profile?.color_season_analysis || null;
+  const hasFullAnalysis = selectedPalette && colorAnalysis;
+
   // Use selected palette colors if available, otherwise fall back to extracted colors
   const rawColors = Array.isArray(profile?.color_palette_colors) ? profile.color_palette_colors : [];
   const extractedColors = rawColors.filter(color =>
@@ -76,11 +81,6 @@ const YourColorPalette = () => {
   ] : extractedColors;
 
   const hasColors = colors.length > 0;
-
-  // Get selected palette and analysis
-  const selectedPalette = profile?.selected_palette_id ? getPaletteById(profile.selected_palette_id) : null;
-  const colorAnalysis: ColorSeasonAnalysis | null = profile?.color_season_analysis || null;
-  const hasFullAnalysis = selectedPalette && colorAnalysis;
 
     const handleCopyColor = async (color: string) => {
     try {
