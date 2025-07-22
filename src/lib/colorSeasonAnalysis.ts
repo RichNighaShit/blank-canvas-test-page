@@ -361,34 +361,55 @@ class ColorSeasonAnalysisService {
   private getMakeupRecommendations(palette: ColorPalette) {
     const { colorSeason, skinTone, hairColor, eyeColor } = palette;
 
+    // Use actual skin tone color for foundation
+    const foundationColor = this.adjustFoundationTone(skinTone.color);
+
     const makeupData = {
       spring: {
-        foundation: 'Warm undertones with peachy or golden base',
-        lipColors: ['#FF6B6B', '#FF8E8E', '#FFB6C1', '#F08080'],
-        eyeColors: ['#87CEEB', '#98FB98', '#DDA0DD', '#F0E68C'],
-        blushColors: ['#FFB6C1', '#F08080', '#FFA07A']
+        foundation: foundationColor,
+        lipColors: ['#FF6B6B', '#FF8E8E', '#FFB6C1', '#F08080', '#FFA07A'],
+        eyeColors: ['#87CEEB', '#98FB98', '#DDA0DD', '#F0E68C', '#FFB6C1'],
+        blushColors: ['#FFB6C1', '#F08080', '#FFA07A', '#FFCCCB']
       },
       summer: {
-        foundation: 'Cool undertones with pink or blue base',
-        lipColors: ['#DDA0DD', '#DA70D6', '#9370DB', '#B0E0E6'],
-        eyeColors: ['#B0E0E6', '#DDA0DD', '#9370DB', '#8FBC8F'],
-        blushColors: ['#DDA0DD', '#F0E68C', '#E6E6FA']
+        foundation: foundationColor,
+        lipColors: ['#DDA0DD', '#DA70D6', '#9370DB', '#B0E0E6', '#E6E6FA'],
+        eyeColors: ['#B0E0E6', '#DDA0DD', '#9370DB', '#8FBC8F', '#C0C0C0'],
+        blushColors: ['#DDA0DD', '#E6E6FA', '#F0E68C', '#FFCDD2']
       },
       autumn: {
-        foundation: 'Warm undertones with golden or bronze base',
-        lipColors: ['#A0522D', '#CD853F', '#D2691E', '#B22222'],
-        eyeColors: ['#8B4513', '#A0522D', '#DAA520', '#228B22'],
-        blushColors: ['#BC8F8F', '#F4A460', '#DEB887']
+        foundation: foundationColor,
+        lipColors: ['#A0522D', '#CD853F', '#D2691E', '#B22222', '#8B4513'],
+        eyeColors: ['#8B4513', '#A0522D', '#DAA520', '#228B22', '#CD853F'],
+        blushColors: ['#BC8F8F', '#F4A460', '#DEB887', '#FFAB91']
       },
       winter: {
-        foundation: 'Cool undertones with pink or neutral base',
-        lipColors: ['#DC143C', '#B22222', '#8B008B', '#000080'],
-        eyeColors: ['#000080', '#8B008B', '#2F4F4F', '#696969'],
-        blushColors: ['#DC143C', '#9370DB', '#4682B4']
+        foundation: foundationColor,
+        lipColors: ['#DC143C', '#B22222', '#8B008B', '#000080', '#C62828'],
+        eyeColors: ['#000080', '#8B008B', '#2F4F4F', '#696969', '#37474F'],
+        blushColors: ['#DC143C', '#9370DB', '#4682B4', '#E91E63']
       }
     };
 
     return makeupData[colorSeason];
+  }
+
+  private adjustFoundationTone(skinColor: string): string {
+    // Use the actual skin tone with slight adjustment for foundation match
+    const rgb = this.hexToRgb(skinColor);
+
+    // Slightly adjust for better foundation match
+    const adjusted = {
+      r: Math.min(255, Math.max(0, rgb.r + 2)),
+      g: Math.min(255, Math.max(0, rgb.g + 1)),
+      b: Math.min(255, Math.max(0, rgb.b + 1))
+    };
+
+    return this.rgbToHex(adjusted.r, adjusted.g, adjusted.b);
+  }
+
+  private rgbToHex(r: number, g: number, b: number): string {
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
   }
 
   private hexToRgb(hex: string): { r: number; g: number; b: number } {
