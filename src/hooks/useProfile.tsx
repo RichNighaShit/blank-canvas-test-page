@@ -2,6 +2,22 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
+// Utility function to extract error messages safely
+const getErrorMessage = (error: any): string => {
+  if (typeof error === 'string') return error;
+  if (error?.message) return error.message;
+  if (error?.error_description) return error.error_description;
+  if (error?.details) return error.details;
+  if (error && typeof error === 'object') {
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
+  }
+  return 'Unknown error occurred';
+};
+
 interface Profile {
   id: string;
   user_id: string;
