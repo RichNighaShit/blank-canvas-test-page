@@ -779,49 +779,158 @@ export class AccurateClothingAnalyzer {
       },
     };
 
-    // Enhanced category matching with weighted scoring
+    // Advanced comprehensive category matching with multiple detection methods
+    const categoryResults = this.performExhaustiveFilenameAnalysis(fname, categoryKeywords);
+
+    // If we have a confident match, return it
+    if (categoryResults.confidence > 0.8 && categoryResults.score > 15) {
+      return categoryResults.category;
+    }
+
+    // Try partial word matching for edge cases
+    const partialMatch = this.performPartialWordMatching(fname);
+    if (partialMatch.confidence > 0.7) {
+      return partialMatch.category;
+    }
+
+    // Try brand/style inference
+    const styleInference = this.performBrandStyleInference(fname);
+    if (styleInference.confidence > 0.6) {
+      return styleInference.category;
+    }
+  }
+
+  /**
+   * Exhaustive filename analysis with advanced scoring
+   */
+  private performExhaustiveFilenameAnalysis(fname: string, categoryKeywords: any): {category: string, confidence: number, score: number} {
     let bestMatch = { category: "", confidence: 0, score: 0 };
 
     for (const [category, keywordGroups] of Object.entries(categoryKeywords)) {
       let categoryScore = 0;
       let maxConfidence = 0;
+      let matchCount = 0;
 
-      // Primary keywords get highest weight
+      // Primary keywords - exact matches get highest weight
       for (const keyword of keywordGroups.primary) {
-        if (fname.includes(keyword)) {
-          const keywordScore = 10 * (keyword.length / 20); // Normalize by typical keyword length
+        const exactMatch = fname.includes(keyword);
+        const wordBoundaryMatch = new RegExp(`\\b${keyword}\\b`, 'i').test(fname);
+
+        if (exactMatch) {
+          const weight = wordBoundaryMatch ? 15 : 10; // Bonus for word boundary
+          const keywordScore = weight * (keyword.length / 15);
           const confidence = keyword.length / fname.length;
           categoryScore += keywordScore;
           maxConfidence = Math.max(maxConfidence, confidence);
+          matchCount++;
         }
       }
 
-      // Secondary keywords get medium weight
+      // Secondary keywords - good indicators
       for (const keyword of keywordGroups.secondary) {
-        if (fname.includes(keyword)) {
-          const keywordScore = 6 * (keyword.length / 20);
+        const exactMatch = fname.includes(keyword);
+        const wordBoundaryMatch = new RegExp(`\\b${keyword}\\b`, 'i').test(fname);
+
+        if (exactMatch) {
+          const weight = wordBoundaryMatch ? 10 : 6;
+          const keywordScore = weight * (keyword.length / 15);
           const confidence = keyword.length / fname.length;
           categoryScore += keywordScore;
-          maxConfidence = Math.max(maxConfidence, confidence * 0.8);
+          maxConfidence = Math.max(maxConfidence, confidence * 0.9);
+          matchCount++;
         }
       }
 
-      // Modifiers add bonus points
+      // Modifiers - provide context
       for (const modifier of keywordGroups.modifiers) {
         if (fname.includes(modifier)) {
-          categoryScore += 2;
+          categoryScore += 3;
+          matchCount++;
         }
       }
 
-      // Update best match if this category scores higher
+      // Bonus for multiple matches (indicates strong category signal)
+      if (matchCount > 1) {
+        categoryScore += matchCount * 2;
+        maxConfidence += 0.1;
+      }
+
+      // Update best match
       if (categoryScore > bestMatch.score) {
-        bestMatch = { category, confidence: maxConfidence, score: categoryScore };
+        bestMatch = { category, confidence: Math.min(maxConfidence, 0.95), score: categoryScore };
       }
     }
 
-    if (bestMatch.score > 5) { // Threshold for confident category detection
-      return bestMatch.category;
+    return bestMatch;
+  }
+
+  /**
+   * Partial word matching for abbreviated or compound words
+   */
+  private performPartialWordMatching(fname: string): {category: string, confidence: number} {
+    const partialMatches = {
+      shoes: ['shoe', 'boot', 'sneak', 'sandal', 'heel', 'pump', 'loaf', 'oxf', 'runner'],
+      accessories: ['bag', 'hat', 'cap', 'scarf', 'belt', 'watch', 'neck', 'ear', 'ring'],
+      dresses: ['dress', 'gown', 'maxi', 'mini', 'midi'],
+      outerwear: ['jack', 'coat', 'blaz', 'parka', 'bomb', 'wind'],
+      bottoms: ['pant', 'jean', 'trous', 'short', 'legg', 'skirt', 'slack'],
+      tops: ['shirt', 'top', 'blou', 'sweat', 'hood', 'pull', 'card', 'tank']
+    };
+
+    for (const [category, patterns] of Object.entries(partialMatches)) {
+      for (const pattern of patterns) {
+        if (fname.includes(pattern)) {
+          return { category, confidence: 0.75 };
+        }
+      }
     }
+
+    return { category: "", confidence: 0 };
+  }
+
+  /**
+   * Brand and style-based category inference
+   */
+  private performBrandStyleInference(fname: string): {category: string, confidence: number} {
+    // Common brand patterns that indicate specific categories
+    const brandPatterns = {
+      shoes: ['nike', 'adidas', 'jordan', 'converse', 'vans', 'timberland', 'ugg'],
+      accessories: ['gucci', 'lv', 'chanel', 'prada', 'coach', 'kate-spade'],
+      outerwear: ['north-face', 'patagonia', 'columbia', 'carhartt'],
+      bottoms: ['levis', 'wrangler', 'calvin-klein'],
+      dresses: ['zara', 'h&m', 'forever21']
+    };
+
+    // Style indicators
+    const styleIndicators = {
+      shoes: ['athletic', 'sport', 'running', 'walking', 'dress-shoe'],
+      accessories: ['handbag', 'clutch', 'tote', 'backpack', 'jewelry'],
+      outerwear: ['winter', 'rain', 'wind', 'outdoor'],
+      bottoms: ['denim', 'chino', 'yoga', 'workout'],
+      dresses: ['formal', 'evening', 'cocktail', 'summer']
+    };
+
+    // Check brand patterns
+    for (const [category, brands] of Object.entries(brandPatterns)) {
+      if (brands.some(brand => fname.includes(brand))) {
+        return { category, confidence: 0.8 };
+      }
+    }
+
+    // Check style indicators
+    for (const [category, styles] of Object.entries(styleIndicators)) {
+      if (styles.some(style => fname.includes(style))) {
+        return { category, confidence: 0.65 };
+      }
+    }
+
+    return { category: "", confidence: 0 };
+  }
+
+  /**
+   * Continue with enhanced smart category detection
+   */
+  private continueEnhancedCategoryDetection(filename: string, imageElement: HTMLImageElement): string {
 
     // Advanced image analysis
     const aspectRatio = imageElement.width / imageElement.height;
