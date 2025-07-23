@@ -215,7 +215,19 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 
   const startOnboarding = (flowId: string) => {
     const flow = onboardingFlows.find(f => f.id === flowId);
-    if (!flow) return;
+    if (!flow || !user) return;
+
+    // Check if onboarding was already started in this session
+    const sessionKey = `onboarding_session_${user.id}`;
+    const sessionFlag = sessionStorage.getItem(sessionKey);
+
+    if (sessionFlag === 'active') {
+      console.log('Onboarding already active in this session, skipping');
+      return;
+    }
+
+    // Mark onboarding as active for this session
+    sessionStorage.setItem(sessionKey, 'active');
 
     setCurrentFlow(flow);
     setCurrentStepIndex(0);
