@@ -108,7 +108,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                 {summaryItems.map((item, index) => {
                   const Icon = item.icon;
                   return (
-                    <div key={index} className="p-4 rounded-lg border bg-card">
+                    <div key={index} className="p-3 sm:p-4 rounded-lg border bg-card">
                       <div className="flex items-start gap-3">
                         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center flex-shrink-0`}>
                           <Icon className="h-5 w-5 text-white" />
