@@ -85,7 +85,7 @@ export const EnhancedOnboardingOverlay: React.FC = () => {
               0 0 30px rgba(139, 92, 246, 0.4),
               inset 0 0 0 3px rgba(255, 255, 255, 0.8)
             `,
-            zIndex: 9998,
+            zIndex: 51,
             pointerEvents: 'none',
             animation: 'tutorialPulse 2s ease-in-out infinite, tutorialGlow 3s ease-in-out infinite alternate',
             transition: 'all 0.3s ease-in-out'
@@ -211,7 +211,7 @@ export const EnhancedOnboardingOverlay: React.FC = () => {
   return (
     <>
       {/* Enhanced Backdrop with gradient */}
-      <div className="fixed inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/60 backdrop-blur-sm z-[9997]" />
+      <div className="fixed inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/60 backdrop-blur-sm z-[50]" />
       
       {/* Highlight */}
       {currentStep.targetSelector && (
@@ -220,7 +220,7 @@ export const EnhancedOnboardingOverlay: React.FC = () => {
       
       {/* Mini Progress Indicator (when not on center) */}
       {showMiniProgress && currentStep.targetSelector && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[10000]">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[52]">
           <div className="bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border">
             <div className="flex items-center gap-3">
               <Sparkles className="h-4 w-4 text-purple-600" />
@@ -235,7 +235,7 @@ export const EnhancedOnboardingOverlay: React.FC = () => {
       
       {/* Enhanced Tooltip */}
       <div
-        className={`fixed z-[9999] max-w-md transition-all duration-300 ${
+        className={`fixed z-[53] max-w-md transition-all duration-300 ${
           isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
         }`}
         style={{
