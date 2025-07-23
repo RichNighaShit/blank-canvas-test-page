@@ -647,14 +647,14 @@ const YourColorPalette = () => {
                         <AlertTriangle className="h-6 w-6" />
                         Colors to Avoid
                       </CardTitle>
-                      <p className="text-red-600">These colors may wash you out or clash with your natural coloring</p>
+                      <p className="text-red-600 dark:text-red-400">These colors may wash you out or clash with your natural coloring</p>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
                         {colorAnalysis.avoidColors.map((category, index) => (
-                          <div key={index} className="bg-white/70 rounded-lg p-4 border border-red-100">
-                            <h4 className="font-medium text-red-800 mb-2">{category.category}</h4>
-                            <p className="text-sm text-red-700 mb-3">{category.reason}</p>
+                          <div key={index} className="bg-card/70 rounded-lg p-4 border border-red-100 dark:border-red-900/50">
+                            <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">{category.category}</h4>
+                            <p className="text-sm text-red-700 dark:text-red-300 mb-3">{category.reason}</p>
                             <div className="flex flex-wrap gap-2">
                               {category.colors.map((color, colorIndex) => (
                                 <div
