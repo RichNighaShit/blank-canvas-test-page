@@ -144,7 +144,12 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
           }, 1000); // Delay to let page load
         }
       } catch (error) {
-        console.error('Error checking first-time user status:', error);
+        console.error('Error checking first-time user status:', error instanceof Error ? error.message : JSON.stringify(error));
+        // If database check fails, assume first-time user for better UX
+        setIsFirstTimeUser(true);
+        setTimeout(() => {
+          startOnboarding('first-time-user');
+        }, 1000);
       }
     };
 
