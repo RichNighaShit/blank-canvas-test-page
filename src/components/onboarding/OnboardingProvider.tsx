@@ -86,7 +86,7 @@ const onboardingFlows: OnboardingFlow[] = [
         description: 'Once you\'ve added items, come here for AI-powered outfit recommendations based on weather, occasion, and your style.',
         targetSelector: '[data-tour="style-me-nav"]',
         position: 'bottom',
-        page: '/style-me'
+        page: '/recommendations'
       },
       {
         id: 'completion',
