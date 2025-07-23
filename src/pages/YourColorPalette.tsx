@@ -501,7 +501,7 @@ const YourColorPalette = () => {
                       </div>
 
                       {/* Enhanced Natural Features Showcase */}
-                      <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100">
+                      <div className="bg-card/70 backdrop-blur-sm rounded-xl p-6 border border-primary/20">
                         <h4 className="text-lg font-semibold text-center mb-6 text-gray-800">Your Natural Color Harmony</h4>
                         <div className="flex gap-8 justify-center items-center">
                           <div className="text-center">
