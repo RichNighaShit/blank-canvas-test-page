@@ -1321,6 +1321,45 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
+   * Combined analysis using both filename and visual features
+   */
+  private performCombinedAnalysis(
+    filenameResult: {category: string, confidence: number},
+    visualResult: {category: string, confidence: number},
+    imageElement: HTMLImageElement
+  ): {category: string, confidence: number} {
+
+    // If both methods agree, high confidence
+    if (filenameResult.category === visualResult.category) {
+      return {
+        category: filenameResult.category,
+        confidence: Math.min(0.95, (filenameResult.confidence + visualResult.confidence) / 2 + 0.2)
+      };
+    }
+
+    // Weighted combination based on individual confidence
+    const filenameWeight = filenameResult.confidence;
+    const visualWeight = visualResult.confidence;
+
+    if (filenameWeight + visualWeight === 0) {
+      return { category: 'tops', confidence: 0.3 };
+    }
+
+    // Choose the result with higher confidence, but consider both
+    if (filenameWeight > visualWeight) {
+      return {
+        category: filenameResult.category,
+        confidence: Math.min(0.85, filenameResult.confidence + (visualWeight * 0.3))
+      };
+    } else {
+      return {
+        category: visualResult.category,
+        confidence: Math.min(0.85, visualResult.confidence + (filenameWeight * 0.3))
+      };
+    }
+  }
+
+  /**
    * Continue with enhanced smart category detection
    */
   private continueEnhancedCategoryDetection(filename: string, imageElement: HTMLImageElement): string {
