@@ -362,12 +362,16 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     currentStep,
     totalSteps: currentFlow?.steps.length || 0,
     isFirstTimeUser,
+    needsTermsAcceptance,
+    termsAccepted,
     startOnboarding,
     nextStep,
     previousStep,
     skipOnboarding,
     completeOnboarding,
-    markAsExperienced
+    markAsExperienced,
+    acceptTerms,
+    declineTerms
   };
 
   return (
