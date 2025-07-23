@@ -863,6 +863,9 @@ export class AccurateClothingAnalyzer {
     if (styleInference.confidence > 0.6) {
       return styleInference.category;
     }
+
+    // Default fallback
+    return { category: "tops", confidence: 0.3 };
   }
 
   /**
