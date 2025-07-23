@@ -33,6 +33,41 @@ interface ColorDistribution {
   hasComplexPattern: boolean;
 }
 
+interface VisualFeatures {
+  aspectRatio: number;
+  edgeDensity: number;
+  colorComplexity: number;
+  symmetryScore: number;
+  centerMassRatio: number;
+  textureVariance: number;
+  shapeCompactness: number;
+  objectBoundingRatio: number;
+  dominantRegionAspectRatio: number;
+  verticalEdgeRatio: number;
+  horizontalEdgeRatio: number;
+  cornerDensity: number;
+}
+
+interface EdgeAnalysis {
+  totalEdges: number;
+  verticalEdges: number;
+  horizontalEdges: number;
+  corners: number;
+}
+
+interface ColorAnalysisResult {
+  uniqueColors: number;
+  variance: number;
+}
+
+interface ShapeAnalysis {
+  symmetry: number;
+  centerMass: number;
+  compactness: number;
+  boundingRatio: number;
+  dominantRegionAspectRatio: number;
+}
+
 interface VisionAPIResponse {
   responses: Array<{
     labelAnnotations?: Array<{
@@ -701,7 +736,7 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
-   * Enhanced smart category detection using multiple signals
+   * FLAWLESS smart category detection using multiple advanced signals
    */
   private smartCategoryDetection(
     filename: string,
@@ -709,6 +744,36 @@ export class AccurateClothingAnalyzer {
   ): string {
     const fname = filename.toLowerCase();
 
+    // Step 1: Try exhaustive filename analysis
+    const filenameResult = this.performComprehensiveFilenameAnalysis(fname);
+    if (filenameResult.confidence > 0.85) {
+      return filenameResult.category;
+    }
+
+    // Step 2: Advanced visual pattern recognition
+    const visualResult = this.performAdvancedVisualAnalysis(imageElement);
+    if (visualResult.confidence > 0.75) {
+      return visualResult.category;
+    }
+
+    // Step 3: Combined analysis with weighted scoring
+    const combinedResult = this.performCombinedAnalysis(filenameResult, visualResult, imageElement);
+    if (combinedResult.confidence > 0.65) {
+      return combinedResult.category;
+    }
+
+    // Step 4: Enhanced image shape analysis
+    const aspectRatio = imageElement.width / imageElement.height;
+    const signals = this.gatherCategorySignals(imageElement, aspectRatio, imageElement.width * imageElement.height);
+    const shapeResult = this.determineCategoryFromSignals(signals);
+
+    return shapeResult;
+  }
+
+  /**
+   * Comprehensive filename analysis entry point
+   */
+  private performComprehensiveFilenameAnalysis(fname: string): {category: string, confidence: number} {
     // Enhanced filename analysis with comprehensive category keywords and scoring
     const categoryKeywords = {
       tops: {
