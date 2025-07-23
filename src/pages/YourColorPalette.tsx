@@ -548,25 +548,25 @@ const YourColorPalette = () => {
 
                       {/* Enhanced Characteristics Grid */}
                       <div className="bg-card/70 backdrop-blur-sm rounded-xl p-6 border border-primary/20">
-                        <h4 className="text-lg font-semibold text-center mb-6 text-gray-800">Your Color Characteristics</h4>
+                        <h4 className="text-lg font-semibold text-center mb-6 text-foreground">Your Color Characteristics</h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+                          <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-primary/20 rounded-xl border border-primary/30">
                             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
                               <span className="text-white text-xs font-bold">C</span>
                             </div>
-                            <p className="font-semibold text-gray-700 text-sm">Contrast</p>
-                            <p className="capitalize text-purple-700 font-medium text-lg">{colorAnalysis.characteristics.contrast}</p>
+                            <p className="font-semibold text-foreground text-sm">Contrast</p>
+                            <p className="capitalize text-primary font-medium text-lg">{colorAnalysis.characteristics.contrast}</p>
                             <p className="text-xs text-gray-600 mt-1">
                               {colorAnalysis.characteristics.contrast === 'high' ? 'Bold differences' :
                                colorAnalysis.characteristics.contrast === 'medium' ? 'Balanced blend' : 'Subtle harmony'}
                             </p>
                           </div>
-                          <div className="text-center p-4 bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl border border-pink-200">
+                          <div className="text-center p-4 bg-gradient-to-br from-secondary/10 to-secondary/20 rounded-xl border border-secondary/30">
                             <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
                               <span className="text-white text-xs font-bold">W</span>
                             </div>
-                            <p className="font-semibold text-gray-700 text-sm">Warmth</p>
-                            <p className="capitalize text-pink-700 font-medium text-lg">{colorAnalysis.characteristics.warmth}</p>
+                            <p className="font-semibold text-foreground text-sm">Warmth</p>
+                            <p className="capitalize text-secondary font-medium text-lg">{colorAnalysis.characteristics.warmth}</p>
                             <p className="text-xs text-gray-600 mt-1">
                               {colorAnalysis.characteristics.warmth === 'warm' ? 'Golden undertones' :
                                colorAnalysis.characteristics.warmth === 'cool' ? 'Blue undertones' : 'Balanced tones'}
