@@ -568,6 +568,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      user_onboarding: {
+        Row: {
+          age_confirmed: boolean | null;
+          completed_at: string | null;
+          completed_flows: string[] | null;
+          created_at: string;
+          current_step: string | null;
+          id: string;
+          onboarding_completed: boolean | null;
+          privacy_accepted: boolean | null;
+          terms_accepted: boolean | null;
+          tutorial_skipped: boolean | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          age_confirmed?: boolean | null;
+          completed_at?: string | null;
+          completed_flows?: string[] | null;
+          created_at?: string;
+          current_step?: string | null;
+          id?: string;
+          onboarding_completed?: boolean | null;
+          privacy_accepted?: boolean | null;
+          terms_accepted?: boolean | null;
+          tutorial_skipped?: boolean | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          age_confirmed?: boolean | null;
+          completed_at?: string | null;
+          completed_flows?: string[] | null;
+          created_at?: string;
+          current_step?: string | null;
+          id?: string;
+          onboarding_completed?: boolean | null;
+          privacy_accepted?: boolean | null;
+          terms_accepted?: boolean | null;
+          tutorial_skipped?: boolean | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       user_style_quiz: {
         Row: {
           body_type: string | null;
