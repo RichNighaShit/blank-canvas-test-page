@@ -512,10 +512,10 @@ const YourColorPalette = () => {
                               >
                                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
                               </div>
-                              <div className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full">{selectedPalette.skinTone.undertone}</div>
+                              <div className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">{selectedPalette.skinTone.undertone}</div>
                             </div>
-                            <p className="text-sm font-semibold text-gray-800 mt-2">{selectedPalette.skinTone.name}</p>
-                            <p className="text-xs text-gray-500">Skin Tone</p>
+                            <p className="text-sm font-semibold text-foreground mt-2">{selectedPalette.skinTone.name}</p>
+                            <p className="text-xs text-muted-foreground">Skin Tone</p>
                           </div>
                           <div className="text-center">
                             <div className="relative">
@@ -525,10 +525,10 @@ const YourColorPalette = () => {
                               >
                                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
                               </div>
-                              <div className="text-xs font-medium text-pink-600 bg-pink-50 px-2 py-1 rounded-full">{selectedPalette.hairColor.category}</div>
+                              <div className="text-xs font-medium text-secondary bg-secondary/10 px-2 py-1 rounded-full">{selectedPalette.hairColor.category}</div>
                             </div>
-                            <p className="text-sm font-semibold text-gray-800 mt-2">{selectedPalette.hairColor.name}</p>
-                            <p className="text-xs text-gray-500">Hair Color</p>
+                            <p className="text-sm font-semibold text-foreground mt-2">{selectedPalette.hairColor.name}</p>
+                            <p className="text-xs text-muted-foreground">Hair Color</p>
                           </div>
                           <div className="text-center">
                             <div className="relative">
@@ -538,10 +538,10 @@ const YourColorPalette = () => {
                               >
                                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
                               </div>
-                              <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{selectedPalette.eyeColor.category}</div>
+                              <div className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-1 rounded-full">{selectedPalette.eyeColor.category}</div>
                             </div>
-                            <p className="text-sm font-semibold text-gray-800 mt-2">{selectedPalette.eyeColor.name}</p>
-                            <p className="text-xs text-gray-500">Eye Color</p>
+                            <p className="text-sm font-semibold text-foreground mt-2">{selectedPalette.eyeColor.name}</p>
+                            <p className="text-xs text-muted-foreground">Eye Color</p>
                           </div>
                         </div>
                       </div>
