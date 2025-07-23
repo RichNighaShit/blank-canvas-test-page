@@ -232,7 +232,13 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
             console.warn('Onboarding table not set up yet. Using localStorage only.');
           }
         } else {
-          console.error('Error saving onboarding completion:', error.message || JSON.stringify(error));
+          const errorMessage = error?.message || error?.details || 'Unknown database error';
+          const errorCode = error?.code || 'NO_CODE';
+          console.error('Error saving onboarding completion:', {
+            message: errorMessage,
+            code: errorCode,
+            fullError: error
+          });
         }
       }
     } catch (error) {
