@@ -171,7 +171,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Required Agreements</h3>
               <div className="space-y-4">
-                <div className="flex items-start space-x-3 p-4 border rounded-lg">
+                <div className="flex items-start space-x-2 sm:space-x-3 p-3 sm:p-4 border rounded-lg">
                   <Checkbox
                     id="age-confirm"
                     checked={ageConfirmed}
