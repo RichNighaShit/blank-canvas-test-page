@@ -50,7 +50,7 @@ const YourColorPalette = () => {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/50 flex items-center justify-center">
         <div className="flex flex-col items-center space-y-6">
           <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center animate-pulse">
             <Palette className="h-8 w-8 text-white" />
