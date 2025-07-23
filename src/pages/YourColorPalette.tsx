@@ -673,7 +673,7 @@ const YourColorPalette = () => {
                 )}
 
                 {/* Enhanced Professional Style Tips */}
-                <Card className="card-premium bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                <Card className="card-premium bg-gradient-to-br from-green-50 dark:from-green-950/30 to-emerald-50 dark:to-emerald-950/30 border-green-200 dark:border-green-800">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-xl text-green-800">
                       <Sparkles className="h-6 w-6 text-green-600" />
