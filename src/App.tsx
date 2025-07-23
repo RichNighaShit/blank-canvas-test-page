@@ -25,6 +25,8 @@ const Onboarding = React.lazy(() => import("./pages/Onboarding"));
 const Index = React.lazy(() => import("./pages/Index"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const YourColorPalette = React.lazy(() => import("./pages/YourColorPalette"));
+const TermsOfUsePage = React.lazy(() => import("./pages/TermsOfUsePage"));
+const PrivacyPolicyPage = React.lazy(() => import("./pages/PrivacyPolicyPage"));
 
 
 // Loading component for Suspense fallback
