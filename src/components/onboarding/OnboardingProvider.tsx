@@ -140,8 +140,8 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 
         // Check database
         const { data, error } = await supabase
-          .from('user_onboarding' as any) // Use 'as any' to bypass TypeScript checks temporarily
-          .select('completed_flows')
+          .from('user_onboarding')
+          .select('completed_flows, terms_accepted, privacy_accepted, age_confirmed, onboarding_completed')
           .eq('user_id', user.id)
           .single();
 
@@ -162,8 +162,8 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
           return;
         }
 
-        const hasCompletedFirstTime = data?.completed_flows?.includes('first-time-user');
-        const hasAcceptedTerms = data?.completed_flows?.includes('terms-accepted');
+        const hasCompletedFirstTime = data?.completed_flows?.includes('first-time-user') || data?.onboarding_completed;
+        const hasAcceptedTerms = data?.terms_accepted;
 
         setIsFirstTimeUser(!hasCompletedFirstTime);
 
@@ -245,10 +245,11 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     try {
       // Try to save to database, but don't fail if table doesn't exist
       const { error } = await supabase
-        .from('user_onboarding' as any) // Use 'as any' to bypass TypeScript checks temporarily
+        .from('user_onboarding')
         .upsert({
           user_id: user.id,
           completed_flows: [currentFlow.id],
+          onboarding_completed: true,
           completed_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
@@ -294,10 +295,11 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     try {
       // Try to save to database if available
       await supabase
-        .from('user_onboarding' as any) // Use 'as any' to bypass TypeScript checks temporarily
+        .from('user_onboarding')
         .upsert({
           user_id: user.id,
           completed_flows: ['first-time-user'],
+          onboarding_completed: true,
           completed_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
@@ -323,10 +325,12 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     try {
       // Try to save to database
       await supabase
-        .from('user_onboarding' as any)
+        .from('user_onboarding')
         .upsert({
           user_id: user.id,
-          completed_flows: ['terms-accepted'],
+          terms_accepted: true,
+          privacy_accepted: true,
+          age_confirmed: true,
           completed_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
