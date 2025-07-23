@@ -104,7 +104,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                 <Zap className="h-5 w-5 text-purple-600" />
                 What DripMuse Offers
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {summaryItems.map((item, index) => {
                   const Icon = item.icon;
                   return (
