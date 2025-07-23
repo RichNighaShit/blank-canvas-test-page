@@ -45,8 +45,9 @@ const PageLoader = () => (
 function App() {
   return (
     <OnboardingProvider>
-      <div className="min-h-screen bg-background">
-        <RouteErrorBoundary>
+      <AppContent>
+        <div className="min-h-screen bg-background">
+          <RouteErrorBoundary>
         <Routes>
           {/* Auth route loads immediately without lazy loading */}
           <Route path="/auth" element={<Auth />} />
@@ -185,15 +186,13 @@ function App() {
               </Suspense>
             }
           />
-        </Routes>
-        </RouteErrorBoundary>
+          </Routes>
+          </RouteErrorBoundary>
 
-        {/* Performance Dashboard - Development Only */}
-        {import.meta.env.DEV && <PerformanceDashboard />}
-
-        {/* Onboarding Overlay */}
-        <OnboardingOverlay />
-      </div>
+          {/* Performance Dashboard - Development Only */}
+          {import.meta.env.DEV && <PerformanceDashboard />}
+        </div>
+      </AppContent>
     </OnboardingProvider>
   );
 }
