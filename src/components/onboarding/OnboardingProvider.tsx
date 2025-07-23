@@ -303,6 +303,9 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     // Always save to localStorage as backup
     localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
 
+    // Clear session flag
+    sessionStorage.removeItem(`onboarding_session_${user.id}`);
+
     setIsActive(false);
     setCurrentFlow(null);
     setCurrentStepIndex(0);
