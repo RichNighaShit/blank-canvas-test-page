@@ -96,7 +96,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
           </Badge>
         </div>
 
-        <ScrollArea className="flex-1 px-4 sm:px-6 max-h-[calc(95vh-200px)] overflow-y-auto">
+        <ScrollArea className="flex-1 px-4 sm:px-6 min-h-0 overflow-y-auto">
           <div className="space-y-6">
             {/* Service Summary */}
             <div className="space-y-4">
