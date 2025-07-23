@@ -124,7 +124,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 
         // Check database
         const { data, error } = await supabase
-          .from('user_onboarding')
+          .from('user_onboarding' as any) // Use 'as any' to bypass TypeScript checks temporarily
           .select('completed_flows')
           .eq('user_id', user.id)
           .single();
