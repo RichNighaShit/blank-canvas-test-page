@@ -489,7 +489,7 @@ const YourColorPalette = () => {
                   <CardContent>
                     <div className="space-y-8">
                       {/* Enhanced Color Season Badge */}
-                      <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100">
+                      <div className="text-center bg-card/70 backdrop-blur-sm rounded-xl p-6 border border-primary/20">
                         <div className="mb-4">
                           <Badge className="text-xl px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold">
                             {colorAnalysis.season.charAt(0).toUpperCase() + colorAnalysis.season.slice(1)} - {colorAnalysis.subSeason}
