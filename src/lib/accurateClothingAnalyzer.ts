@@ -949,24 +949,29 @@ export class AccurateClothingAnalyzer {
    * Partial word matching for abbreviated or compound words
    */
   private performPartialWordMatching(fname: string): {category: string, confidence: number} {
-    const partialMatches = {
-      shoes: ['shoe', 'boot', 'sneak', 'sandal', 'heel', 'pump', 'loaf', 'oxf', 'runner'],
-      accessories: ['bag', 'hat', 'cap', 'scarf', 'belt', 'watch', 'neck', 'ear', 'ring'],
-      dresses: ['dress', 'gown', 'maxi', 'mini', 'midi'],
-      outerwear: ['jack', 'coat', 'blaz', 'parka', 'bomb', 'wind'],
-      bottoms: ['pant', 'jean', 'trous', 'short', 'legg', 'skirt', 'slack'],
-      tops: ['shirt', 'top', 'blou', 'sweat', 'hood', 'pull', 'card', 'tank']
-    };
+    try {
+      const partialMatches = {
+        shoes: ['shoe', 'boot', 'sneak', 'sandal', 'heel', 'pump', 'loaf', 'oxf', 'runner'],
+        accessories: ['bag', 'hat', 'cap', 'scarf', 'belt', 'watch', 'neck', 'ear', 'ring'],
+        dresses: ['dress', 'gown', 'maxi', 'mini', 'midi'],
+        outerwear: ['jack', 'coat', 'blaz', 'parka', 'bomb', 'wind'],
+        bottoms: ['pant', 'jean', 'trous', 'short', 'legg', 'skirt', 'slack'],
+        tops: ['shirt', 'top', 'blou', 'sweat', 'hood', 'pull', 'card', 'tank']
+      };
 
-    for (const [category, patterns] of Object.entries(partialMatches)) {
-      for (const pattern of patterns) {
-        if (fname.includes(pattern)) {
-          return { category, confidence: 0.75 };
+      for (const [category, patterns] of Object.entries(partialMatches)) {
+        for (const pattern of patterns) {
+          if (fname.includes(pattern)) {
+            return { category, confidence: 0.75 };
+          }
         }
       }
-    }
 
-    return { category: "", confidence: 0 };
+      return { category: "", confidence: 0 };
+    } catch (error) {
+      console.warn('Partial word matching failed:', error);
+      return { category: "tops", confidence: 0.3 };
+    }
   }
 
   /**
