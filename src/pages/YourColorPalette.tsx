@@ -679,16 +679,16 @@ const YourColorPalette = () => {
                       <Sparkles className="h-6 w-6 text-green-600" />
                       Professional Styling Advice
                     </CardTitle>
-                    <p className="text-green-700">Expert tips to maximize your color harmony</p>
+                    <p className="text-green-700 dark:text-green-300">Expert tips to maximize your color harmony</p>
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-4">
                       {colorAnalysis.tips.map((tip, index) => (
-                        <div key={index} className="flex items-start gap-3 p-4 bg-white/70 rounded-lg border border-green-100">
+                        <div key={index} className="flex items-start gap-3 p-4 bg-card/70 rounded-lg border border-green-100 dark:border-green-900/50">
                           <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                             <span className="text-white text-xs font-bold">{index + 1}</span>
                           </div>
-                          <p className="text-gray-700 leading-relaxed">{tip}</p>
+                          <p className="text-foreground/80 leading-relaxed">{tip}</p>
                         </div>
                       ))}
                     </div>
