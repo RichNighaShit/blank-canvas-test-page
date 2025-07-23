@@ -572,23 +572,23 @@ const YourColorPalette = () => {
                                colorAnalysis.characteristics.warmth === 'cool' ? 'Blue undertones' : 'Balanced tones'}
                             </p>
                           </div>
-                          <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                          <div className="text-center p-4 bg-gradient-to-br from-blue-50 dark:from-blue-950/30 to-blue-100 dark:to-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-800">
                             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
                               <span className="text-white text-xs font-bold">CL</span>
                             </div>
-                            <p className="font-semibold text-gray-700 text-sm">Clarity</p>
-                            <p className="capitalize text-blue-700 font-medium text-lg">{colorAnalysis.characteristics.clarity}</p>
+                            <p className="font-semibold text-foreground text-sm">Clarity</p>
+                            <p className="capitalize text-blue-700 dark:text-blue-300 font-medium text-lg">{colorAnalysis.characteristics.clarity}</p>
                             <p className="text-xs text-gray-600 mt-1">
                               {colorAnalysis.characteristics.clarity === 'clear' ? 'Bright & vibrant' :
                                colorAnalysis.characteristics.clarity === 'soft' ? 'Gentle & blended' : 'Dusty & muted'}
                             </p>
                           </div>
-                          <div className="text-center p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200">
+                          <div className="text-center p-4 bg-gradient-to-br from-indigo-50 dark:from-indigo-950/30 to-indigo-100 dark:to-indigo-900/30 rounded-xl border border-indigo-200 dark:border-indigo-800">
                             <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
                               <span className="text-white text-xs font-bold">D</span>
                             </div>
-                            <p className="font-semibold text-gray-700 text-sm">Depth</p>
-                            <p className="capitalize text-indigo-700 font-medium text-lg">{colorAnalysis.characteristics.depth}</p>
+                            <p className="font-semibold text-foreground text-sm">Depth</p>
+                            <p className="capitalize text-indigo-700 dark:text-indigo-300 font-medium text-lg">{colorAnalysis.characteristics.depth}</p>
                             <p className="text-xs text-gray-600 mt-1">
                               {colorAnalysis.characteristics.depth === 'light' ? 'Delicate tones' :
                                colorAnalysis.characteristics.depth === 'medium' ? 'Balanced depth' : 'Rich & intense'}
