@@ -547,7 +547,7 @@ const YourColorPalette = () => {
                       </div>
 
                       {/* Enhanced Characteristics Grid */}
-                      <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100">
+                      <div className="bg-card/70 backdrop-blur-sm rounded-xl p-6 border border-primary/20">
                         <h4 className="text-lg font-semibold text-center mb-6 text-gray-800">Your Color Characteristics</h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
