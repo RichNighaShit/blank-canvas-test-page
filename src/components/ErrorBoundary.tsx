@@ -50,27 +50,39 @@ export class ErrorBoundary extends Component<Props, State> {
 
   /**
    * Logs error to external service or console
-   * In production, this would send to a service like Sentry
+   * Uses our comprehensive error monitoring service
    */
-  private logError(error: Error, errorInfo: ErrorInfo) {
-    const errorData = {
-      message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-    };
+  private async logError(error: Error, errorInfo: ErrorInfo) {
+    try {
+      // Import error monitoring service
+      const { errorMonitoring } = await import('@/lib/errorMonitoring');
 
-    // Log to console in development
-    if (import.meta.env.DEV) {
-      console.error("Error Boundary - Full Error Details:", errorData);
-    }
-
-    // In production, send to logging service
-    if (import.meta.env.PROD) {
-      // Example: Send to external logging service
-      // logErrorToService(errorData);
+      // Report to monitoring service
+      await errorMonitoring.reportError({
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        severity: 'critical',
+        context: {
+          type: 'react_error_boundary',
+          componentStack: errorInfo.componentStack
+        },
+        errorBoundary: true
+      });
+    } catch (monitoringError) {
+      // Fallback to console logging if monitoring fails
+      console.error("Error Boundary - Failed to send to monitoring service:", monitoringError);
+      console.error("Error Boundary - Original Error:", {
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+      });
     }
   }
 
