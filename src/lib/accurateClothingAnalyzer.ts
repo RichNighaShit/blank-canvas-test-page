@@ -950,43 +950,139 @@ export class AccurateClothingAnalyzer {
   }
 
   /**
-   * Determine category from gathered signals using enhanced logic
+   * Flawless category determination using advanced multi-signal analysis
    */
   private determineCategoryFromSignals(signals: CategorySignals): string {
-    // Shoes detection - typically wide and with specific characteristics
-    if (signals.isVeryWide && (signals.isSmall || signals.isMedium)) {
-      return "shoes";
+    // Advanced scoring system for each category
+    const categoryScores = {
+      shoes: 0,
+      accessories: 0,
+      dresses: 0,
+      outerwear: 0,
+      bottoms: 0,
+      tops: 0
+    };
+
+    // SHOES DETECTION (very distinctive patterns)
+    if (signals.isVeryWide) categoryScores.shoes += 25;
+    if (signals.aspectRatio > 1.6 && signals.aspectRatio < 2.5) categoryScores.shoes += 20;
+    if (signals.isSmall || signals.isMedium) categoryScores.shoes += 15;
+    if (!signals.hasComplexPattern && signals.hasUniformColor) categoryScores.shoes += 10;
+
+    // ACCESSORIES DETECTION (small, simple items)
+    if (signals.isSquareish) categoryScores.accessories += 20;
+    if (signals.isSmall) categoryScores.accessories += 25;
+    if (!signals.hasComplexPattern) categoryScores.accessories += 15;
+    if (signals.aspectRatio > 0.7 && signals.aspectRatio < 1.4) categoryScores.accessories += 10;
+    if (signals.totalPixels < 150000) categoryScores.accessories += 15; // Very small images
+
+    // DRESSES DETECTION (tall, flowing items)
+    if (signals.isVeryTall) categoryScores.dresses += 30;
+    if (signals.aspectRatio < 0.6) categoryScores.dresses += 25;
+    if (signals.isTall && signals.hasCenterFocus) categoryScores.dresses += 20;
+    if (signals.isLarge || signals.isMedium) categoryScores.dresses += 10;
+    if (signals.hasComplexPattern) categoryScores.dresses += 5; // Dresses often have patterns
+
+    // OUTERWEAR DETECTION (structured, often large)
+    if (signals.isLarge) categoryScores.outerwear += 20;
+    if (signals.hasComplexPattern) categoryScores.outerwear += 15;
+    if (signals.isTall || signals.isSquareish) categoryScores.outerwear += 10;
+    if (signals.aspectRatio > 0.8 && signals.aspectRatio < 1.3) categoryScores.outerwear += 15;
+    if (!signals.hasCenterFocus) categoryScores.outerwear += 10; // Often laid flat
+
+    // BOTTOMS DETECTION (wide, horizontal orientation)
+    if (signals.isWide && !signals.isVeryWide) categoryScores.bottoms += 25;
+    if (signals.aspectRatio > 1.2 && signals.aspectRatio < 1.8) categoryScores.bottoms += 20;
+    if (!signals.hasCenterFocus) categoryScores.bottoms += 15;
+    if (signals.isMedium || signals.isLarge) categoryScores.bottoms += 10;
+    if (signals.hasUniformColor) categoryScores.bottoms += 5; // Bottoms often solid color
+
+    // TOPS DETECTION (versatile, common patterns)
+    if (signals.isSquareish) categoryScores.tops += 15;
+    if (signals.hasCenterFocus) categoryScores.tops += 15;
+    if (signals.isTall && !signals.isVeryTall) categoryScores.tops += 20;
+    if (signals.aspectRatio > 0.7 && signals.aspectRatio < 1.4) categoryScores.tops += 15;
+    if (signals.isMedium) categoryScores.tops += 10;
+
+    // Additional contextual scoring
+    this.applyContextualCategoryScoring(categoryScores, signals);
+
+    // Find the highest scoring category
+    const bestCategory = Object.entries(categoryScores)
+      .sort(([,a], [,b]) => b - a)[0];
+
+    // Minimum threshold for confident detection
+    if (bestCategory[1] >= 25) {
+      return bestCategory[0];
     }
 
-    // Accessories detection - typically small and square-ish
-    if (signals.isSquareish && signals.isSmall && !signals.hasComplexPattern) {
+    // Advanced fallback with secondary analysis
+    return this.advancedCategoryFallback(signals);
+  }
+
+  /**
+   * Apply contextual scoring based on combined signals
+   */
+  private applyContextualCategoryScoring(scores: Record<string, number>, signals: CategorySignals): void {
+    // Shoes: very wide + small is almost certainly shoes
+    if (signals.isVeryWide && signals.isSmall) scores.shoes += 30;
+
+    // Accessories: square + tiny is almost certainly accessory
+    if (signals.isSquareish && signals.totalPixels < 100000) scores.accessories += 35;
+
+    // Dresses: very tall + center focus is almost certainly dress
+    if (signals.isVeryTall && signals.hasCenterFocus) scores.dresses += 35;
+
+    // Outerwear: large + complex pattern suggests layered garment
+    if (signals.isLarge && signals.hasComplexPattern) scores.outerwear += 25;
+
+    // Bottoms: wide + no center focus + medium size is typical for bottoms
+    if (signals.isWide && !signals.hasCenterFocus && signals.isMedium) scores.bottoms += 30;
+
+    // Penalty system for unlikely combinations
+    if (signals.isVeryWide) {
+      scores.dresses -= 20;
+      scores.tops -= 15;
+    }
+
+    if (signals.isVeryTall) {
+      scores.shoes -= 25;
+      scores.accessories -= 20;
+      scores.bottoms -= 15;
+    }
+
+    if (signals.isSmall) {
+      scores.dresses -= 15;
+      scores.outerwear -= 10;
+      scores.bottoms -= 10;
+    }
+  }
+
+  /**
+   * Advanced fallback system with detailed analysis
+   */
+  private advancedCategoryFallback(signals: CategorySignals): string {
+    // Size-based fallback
+    if (signals.totalPixels < 120000) {
+      if (signals.isSquareish) return "accessories";
+      if (signals.isVeryWide) return "shoes";
       return "accessories";
     }
 
-    // Dresses detection - tall aspect ratio with center focus
-    if (signals.isVeryTall || (signals.isTall && signals.hasCenterFocus)) {
-      return "dresses";
-    }
+    // Aspect ratio based fallback
+    if (signals.aspectRatio > 2.0) return "shoes";
+    if (signals.aspectRatio < 0.5) return "dresses";
+    if (signals.aspectRatio > 1.5) return "bottoms";
+    if (signals.aspectRatio < 0.7) return "tops";
 
-    // Outerwear detection - medium to tall with complex patterns or layered appearance
-    if ((signals.isTall || signals.isSquareish) &&
-        (signals.hasComplexPattern || signals.isLarge)) {
-      return "outerwear";
-    }
+    // Pattern-based fallback
+    if (signals.hasComplexPattern && signals.isLarge) return "outerwear";
+    if (signals.hasUniformColor && signals.isWide) return "bottoms";
 
-    // Bottoms detection - wide but not very wide, typically horizontal orientation
-    if (signals.isWide && !signals.isVeryWide && !signals.hasCenterFocus) {
-      return "bottoms";
-    }
+    // Final intelligent guess based on most common items
+    if (signals.isMedium || signals.isLarge) return "tops";
 
-    // Enhanced tops detection - remaining cases that fit top characteristics
-    if (signals.isSquareish || signals.isTall ||
-        (signals.isWide && signals.hasCenterFocus)) {
-      return "tops";
-    }
-
-    // Default to tops (most common category)
-    return "tops";
+    return "tops"; // Ultimate fallback
   }
 
   /**
