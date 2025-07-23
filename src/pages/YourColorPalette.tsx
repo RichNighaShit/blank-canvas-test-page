@@ -615,9 +615,9 @@ const YourColorPalette = () => {
                         <div key={index} className="bg-gradient-to-br from-muted/30 to-muted/50 rounded-xl p-5 border border-border">
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
-                            <h3 className="font-semibold text-gray-800">{category.category}</h3>
+                            <h3 className="font-semibold text-foreground">{category.category}</h3>
                           </div>
-                          <p className="text-sm text-gray-600 mb-4 leading-relaxed">{category.description}</p>
+                          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{category.description}</p>
                           <div className="grid grid-cols-6 gap-2">
                             {category.colors.map((color, colorIndex) => (
                               <div key={colorIndex} className="group relative">
