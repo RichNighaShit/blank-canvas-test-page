@@ -205,11 +205,13 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
             startOnboarding('first-time-user');
           }, 1000);
         }
+
+        setHasInitialized(true);
       }
     };
 
     checkFirstTimeUser();
-  }, [user]);
+  }, [user, hasInitialized]);
 
   const startOnboarding = (flowId: string) => {
     const flow = onboardingFlows.find(f => f.id === flowId);
