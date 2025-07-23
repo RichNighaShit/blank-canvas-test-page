@@ -181,6 +181,8 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
             }, 1000); // Delay to let page load
           }
         }
+
+        setHasInitialized(true);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
 
