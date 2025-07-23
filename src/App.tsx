@@ -97,14 +97,7 @@ function App() {
               </Suspense>
             }
           />
-          <Route
-            path="/color-analysis-test"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <ColorAnalysisTestPage />
-              </Suspense>
-            }
-          />
+
           <Route
             path="/recommendations"
             element={
