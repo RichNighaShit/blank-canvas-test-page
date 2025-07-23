@@ -144,7 +144,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                     </p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-green-50 rounded-lg border border-green-200">
                   <Lock className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-green-900">Data Security</p>
