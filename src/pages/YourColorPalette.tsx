@@ -50,7 +50,7 @@ const YourColorPalette = () => {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/50 flex items-center justify-center">
         <div className="flex flex-col items-center space-y-6">
           <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center animate-pulse">
             <Palette className="h-8 w-8 text-white" />
@@ -212,7 +212,7 @@ const YourColorPalette = () => {
   const colorStats = getBasicColorAnalysis();
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/50">
       <Header />
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -472,7 +472,7 @@ const YourColorPalette = () => {
             {hasFullAnalysis && (
               <>
                 {/* Main Season Analysis Card */}
-                <Card className="card-premium bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-purple-200 shadow-lg">
+                <Card className="card-premium bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 border-primary/20 shadow-lg">
                   <CardHeader className="text-center pb-4">
                     <div className="flex items-center justify-center gap-3 mb-3">
                       <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
@@ -489,20 +489,20 @@ const YourColorPalette = () => {
                   <CardContent>
                     <div className="space-y-8">
                       {/* Enhanced Color Season Badge */}
-                      <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100">
+                      <div className="text-center bg-card/70 backdrop-blur-sm rounded-xl p-6 border border-primary/20">
                         <div className="mb-4">
                           <Badge className="text-xl px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold">
                             {colorAnalysis.season.charAt(0).toUpperCase() + colorAnalysis.season.slice(1)} - {colorAnalysis.subSeason}
                           </Badge>
                         </div>
-                        <p className="text-gray-700 text-base leading-relaxed max-w-2xl mx-auto">
+                        <p className="text-foreground/80 text-base leading-relaxed max-w-2xl mx-auto">
                           {colorAnalysis.description}
                         </p>
                       </div>
 
                       {/* Enhanced Natural Features Showcase */}
-                      <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100">
-                        <h4 className="text-lg font-semibold text-center mb-6 text-gray-800">Your Natural Color Harmony</h4>
+                      <div className="bg-card/70 backdrop-blur-sm rounded-xl p-6 border border-primary/20">
+                        <h4 className="text-lg font-semibold text-center mb-6 text-foreground">Your Natural Color Harmony</h4>
                         <div className="flex gap-8 justify-center items-center">
                           <div className="text-center">
                             <div className="relative">
@@ -512,10 +512,10 @@ const YourColorPalette = () => {
                               >
                                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
                               </div>
-                              <div className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full">{selectedPalette.skinTone.undertone}</div>
+                              <div className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">{selectedPalette.skinTone.undertone}</div>
                             </div>
-                            <p className="text-sm font-semibold text-gray-800 mt-2">{selectedPalette.skinTone.name}</p>
-                            <p className="text-xs text-gray-500">Skin Tone</p>
+                            <p className="text-sm font-semibold text-foreground mt-2">{selectedPalette.skinTone.name}</p>
+                            <p className="text-xs text-muted-foreground">Skin Tone</p>
                           </div>
                           <div className="text-center">
                             <div className="relative">
@@ -525,10 +525,10 @@ const YourColorPalette = () => {
                               >
                                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
                               </div>
-                              <div className="text-xs font-medium text-pink-600 bg-pink-50 px-2 py-1 rounded-full">{selectedPalette.hairColor.category}</div>
+                              <div className="text-xs font-medium text-secondary bg-secondary/10 px-2 py-1 rounded-full">{selectedPalette.hairColor.category}</div>
                             </div>
-                            <p className="text-sm font-semibold text-gray-800 mt-2">{selectedPalette.hairColor.name}</p>
-                            <p className="text-xs text-gray-500">Hair Color</p>
+                            <p className="text-sm font-semibold text-foreground mt-2">{selectedPalette.hairColor.name}</p>
+                            <p className="text-xs text-muted-foreground">Hair Color</p>
                           </div>
                           <div className="text-center">
                             <div className="relative">
@@ -538,57 +538,57 @@ const YourColorPalette = () => {
                               >
                                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
                               </div>
-                              <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{selectedPalette.eyeColor.category}</div>
+                              <div className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-1 rounded-full">{selectedPalette.eyeColor.category}</div>
                             </div>
-                            <p className="text-sm font-semibold text-gray-800 mt-2">{selectedPalette.eyeColor.name}</p>
-                            <p className="text-xs text-gray-500">Eye Color</p>
+                            <p className="text-sm font-semibold text-foreground mt-2">{selectedPalette.eyeColor.name}</p>
+                            <p className="text-xs text-muted-foreground">Eye Color</p>
                           </div>
                         </div>
                       </div>
 
                       {/* Enhanced Characteristics Grid */}
-                      <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100">
-                        <h4 className="text-lg font-semibold text-center mb-6 text-gray-800">Your Color Characteristics</h4>
+                      <div className="bg-card/70 backdrop-blur-sm rounded-xl p-6 border border-primary/20">
+                        <h4 className="text-lg font-semibold text-center mb-6 text-foreground">Your Color Characteristics</h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+                          <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-primary/20 rounded-xl border border-primary/30">
                             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
                               <span className="text-white text-xs font-bold">C</span>
                             </div>
-                            <p className="font-semibold text-gray-700 text-sm">Contrast</p>
-                            <p className="capitalize text-purple-700 font-medium text-lg">{colorAnalysis.characteristics.contrast}</p>
+                            <p className="font-semibold text-foreground text-sm">Contrast</p>
+                            <p className="capitalize text-primary font-medium text-lg">{colorAnalysis.characteristics.contrast}</p>
                             <p className="text-xs text-gray-600 mt-1">
                               {colorAnalysis.characteristics.contrast === 'high' ? 'Bold differences' :
                                colorAnalysis.characteristics.contrast === 'medium' ? 'Balanced blend' : 'Subtle harmony'}
                             </p>
                           </div>
-                          <div className="text-center p-4 bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl border border-pink-200">
+                          <div className="text-center p-4 bg-gradient-to-br from-secondary/10 to-secondary/20 rounded-xl border border-secondary/30">
                             <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
                               <span className="text-white text-xs font-bold">W</span>
                             </div>
-                            <p className="font-semibold text-gray-700 text-sm">Warmth</p>
-                            <p className="capitalize text-pink-700 font-medium text-lg">{colorAnalysis.characteristics.warmth}</p>
+                            <p className="font-semibold text-foreground text-sm">Warmth</p>
+                            <p className="capitalize text-secondary font-medium text-lg">{colorAnalysis.characteristics.warmth}</p>
                             <p className="text-xs text-gray-600 mt-1">
                               {colorAnalysis.characteristics.warmth === 'warm' ? 'Golden undertones' :
                                colorAnalysis.characteristics.warmth === 'cool' ? 'Blue undertones' : 'Balanced tones'}
                             </p>
                           </div>
-                          <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                          <div className="text-center p-4 bg-gradient-to-br from-blue-50 dark:from-blue-950/30 to-blue-100 dark:to-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-800">
                             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
                               <span className="text-white text-xs font-bold">CL</span>
                             </div>
-                            <p className="font-semibold text-gray-700 text-sm">Clarity</p>
-                            <p className="capitalize text-blue-700 font-medium text-lg">{colorAnalysis.characteristics.clarity}</p>
+                            <p className="font-semibold text-foreground text-sm">Clarity</p>
+                            <p className="capitalize text-blue-700 dark:text-blue-300 font-medium text-lg">{colorAnalysis.characteristics.clarity}</p>
                             <p className="text-xs text-gray-600 mt-1">
                               {colorAnalysis.characteristics.clarity === 'clear' ? 'Bright & vibrant' :
                                colorAnalysis.characteristics.clarity === 'soft' ? 'Gentle & blended' : 'Dusty & muted'}
                             </p>
                           </div>
-                          <div className="text-center p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200">
+                          <div className="text-center p-4 bg-gradient-to-br from-indigo-50 dark:from-indigo-950/30 to-indigo-100 dark:to-indigo-900/30 rounded-xl border border-indigo-200 dark:border-indigo-800">
                             <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
                               <span className="text-white text-xs font-bold">D</span>
                             </div>
-                            <p className="font-semibold text-gray-700 text-sm">Depth</p>
-                            <p className="capitalize text-indigo-700 font-medium text-lg">{colorAnalysis.characteristics.depth}</p>
+                            <p className="font-semibold text-foreground text-sm">Depth</p>
+                            <p className="capitalize text-indigo-700 dark:text-indigo-300 font-medium text-lg">{colorAnalysis.characteristics.depth}</p>
                             <p className="text-xs text-gray-600 mt-1">
                               {colorAnalysis.characteristics.depth === 'light' ? 'Delicate tones' :
                                colorAnalysis.characteristics.depth === 'medium' ? 'Balanced depth' : 'Rich & intense'}
@@ -612,12 +612,12 @@ const YourColorPalette = () => {
                   <CardContent>
                     <div className="grid md:grid-cols-2 gap-6">
                       {colorAnalysis.idealColors.map((category, index) => (
-                        <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+                        <div key={index} className="bg-gradient-to-br from-muted/30 to-muted/50 rounded-xl p-5 border border-border">
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
-                            <h3 className="font-semibold text-gray-800">{category.category}</h3>
+                            <h3 className="font-semibold text-foreground">{category.category}</h3>
                           </div>
-                          <p className="text-sm text-gray-600 mb-4 leading-relaxed">{category.description}</p>
+                          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{category.description}</p>
                           <div className="grid grid-cols-6 gap-2">
                             {category.colors.map((color, colorIndex) => (
                               <div key={colorIndex} className="group relative">
@@ -641,20 +641,20 @@ const YourColorPalette = () => {
 
                 {/* Colors to Avoid Section */}
                 {colorAnalysis.avoidColors && colorAnalysis.avoidColors.length > 0 && (
-                  <Card className="card-premium border-red-200 bg-gradient-to-br from-red-50 to-orange-50">
+                  <Card className="card-premium border-red-200 dark:border-red-800 bg-gradient-to-br from-red-50 dark:from-red-950/30 to-orange-50 dark:to-orange-950/30">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-xl text-red-700">
                         <AlertTriangle className="h-6 w-6" />
                         Colors to Avoid
                       </CardTitle>
-                      <p className="text-red-600">These colors may wash you out or clash with your natural coloring</p>
+                      <p className="text-red-600 dark:text-red-400">These colors may wash you out or clash with your natural coloring</p>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
                         {colorAnalysis.avoidColors.map((category, index) => (
-                          <div key={index} className="bg-white/70 rounded-lg p-4 border border-red-100">
-                            <h4 className="font-medium text-red-800 mb-2">{category.category}</h4>
-                            <p className="text-sm text-red-700 mb-3">{category.reason}</p>
+                          <div key={index} className="bg-card/70 rounded-lg p-4 border border-red-100 dark:border-red-900/50">
+                            <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">{category.category}</h4>
+                            <p className="text-sm text-red-700 dark:text-red-300 mb-3">{category.reason}</p>
                             <div className="flex flex-wrap gap-2">
                               {category.colors.map((color, colorIndex) => (
                                 <div
@@ -673,22 +673,22 @@ const YourColorPalette = () => {
                 )}
 
                 {/* Enhanced Professional Style Tips */}
-                <Card className="card-premium bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                <Card className="card-premium bg-gradient-to-br from-green-50 dark:from-green-950/30 to-emerald-50 dark:to-emerald-950/30 border-green-200 dark:border-green-800">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-xl text-green-800">
                       <Sparkles className="h-6 w-6 text-green-600" />
                       Professional Styling Advice
                     </CardTitle>
-                    <p className="text-green-700">Expert tips to maximize your color harmony</p>
+                    <p className="text-green-700 dark:text-green-300">Expert tips to maximize your color harmony</p>
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-4">
                       {colorAnalysis.tips.map((tip, index) => (
-                        <div key={index} className="flex items-start gap-3 p-4 bg-white/70 rounded-lg border border-green-100">
+                        <div key={index} className="flex items-start gap-3 p-4 bg-card/70 rounded-lg border border-green-100 dark:border-green-900/50">
                           <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                             <span className="text-white text-xs font-bold">{index + 1}</span>
                           </div>
-                          <p className="text-gray-700 leading-relaxed">{tip}</p>
+                          <p className="text-foreground/80 leading-relaxed">{tip}</p>
                         </div>
                       ))}
                     </div>

@@ -57,21 +57,25 @@ const Header = React.memo(() => {
         label: "Dashboard",
         path: "/dashboard",
         icon: BarChart3,
+        tourId: "dashboard-nav"
       },
       {
         label: "Wardrobe",
         path: "/wardrobe",
         icon: Shirt,
+        tourId: "wardrobe-nav"
       },
       {
         label: "Style Me",
         path: "/recommendations",
         icon: Sparkles,
+        tourId: "style-me-nav"
       },
       {
         label: "Analytics",
         path: "/analytics",
         icon: BarChart3,
+        tourId: "analytics-nav"
       },
     ],
     [],
@@ -107,6 +111,7 @@ const Header = React.memo(() => {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
+                data-tour={item.tourId}
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                   isActive(item.path)
@@ -255,7 +260,7 @@ const Header = React.memo(() => {
                   <Settings className="mr-2 h-4 w-4" />
                   Edit Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/profile/palette")}>
+                <DropdownMenuItem onClick={() => navigate("/profile/palette")} data-tour="color-palette-nav">
                   <Palette className="mr-2 h-4 w-4" />
                   Your Color Palette
                 </DropdownMenuItem>

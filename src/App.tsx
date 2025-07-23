@@ -1,7 +1,9 @@
 import React, { Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import { PerformanceDashboard } from "./components/PerformanceDashboard";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
+import { OnboardingProvider } from "./components/onboarding";
+import { AppContent } from "./components/AppContent";
 import Auth from "./pages/Auth"; // Regular import to avoid dynamic import issues
 
 // Lazy load components for better bundle splitting
@@ -24,7 +26,9 @@ const Onboarding = React.lazy(() => import("./pages/Onboarding"));
 const Index = React.lazy(() => import("./pages/Index"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const YourColorPalette = React.lazy(() => import("./pages/YourColorPalette"));
-const ColorAnalysisTestPage = React.lazy(() => import("./pages/ColorAnalysisTestPage"));
+const TermsOfUsePage = React.lazy(() => import("./pages/TermsOfUsePage"));
+const PrivacyPolicyPage = React.lazy(() => import("./pages/PrivacyPolicyPage"));
+
 
 // Loading component for Suspense fallback
 const PageLoader = () => (
@@ -40,8 +44,10 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <div className="min-h-screen bg-background">
-      <RouteErrorBoundary>
+    <OnboardingProvider>
+      <AppContent>
+        <div className="min-h-screen bg-background">
+          <RouteErrorBoundary>
         <Routes>
           {/* Auth route loads immediately without lazy loading */}
           <Route path="/auth" element={<Auth />} />
@@ -95,14 +101,7 @@ function App() {
               </Suspense>
             }
           />
-          <Route
-            path="/color-analysis-test"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <ColorAnalysisTestPage />
-              </Suspense>
-            }
-          />
+
           <Route
             path="/recommendations"
             element={
@@ -110,6 +109,10 @@ function App() {
                 <StyleRecommendations />
               </Suspense>
             }
+          />
+          <Route
+            path="/style-me"
+            element={<Navigate to="/recommendations" replace />}
           />
           <Route
             path="/analytics"
@@ -160,6 +163,22 @@ function App() {
             }
           />
           <Route
+            path="/terms"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <TermsOfUsePage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <PrivacyPolicyPage />
+              </Suspense>
+            }
+          />
+          <Route
             path="*"
             element={
               <Suspense fallback={<PageLoader />}>
@@ -167,12 +186,14 @@ function App() {
               </Suspense>
             }
           />
-        </Routes>
-      </RouteErrorBoundary>
+          </Routes>
+          </RouteErrorBoundary>
 
-      {/* Performance Dashboard - Development Only */}
-      {import.meta.env.DEV && <PerformanceDashboard />}
-    </div>
+          {/* Performance Dashboard - Development Only */}
+          {import.meta.env.DEV && <PerformanceDashboard />}
+        </div>
+      </AppContent>
+    </OnboardingProvider>
   );
 }
 
