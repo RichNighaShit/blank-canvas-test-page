@@ -338,6 +338,11 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     }
 
     setIsFirstTimeUser(false);
+
+    // Clear session flag
+    if (user) {
+      sessionStorage.removeItem(`onboarding_session_${user.id}`);
+    }
   };
 
   const acceptTerms = async () => {
