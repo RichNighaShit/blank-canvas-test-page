@@ -641,7 +641,7 @@ const YourColorPalette = () => {
 
                 {/* Colors to Avoid Section */}
                 {colorAnalysis.avoidColors && colorAnalysis.avoidColors.length > 0 && (
-                  <Card className="card-premium border-red-200 bg-gradient-to-br from-red-50 to-orange-50">
+                  <Card className="card-premium border-red-200 dark:border-red-800 bg-gradient-to-br from-red-50 dark:from-red-950/30 to-orange-50 dark:to-orange-950/30">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-xl text-red-700">
                         <AlertTriangle className="h-6 w-6" />
