@@ -472,7 +472,7 @@ const YourColorPalette = () => {
             {hasFullAnalysis && (
               <>
                 {/* Main Season Analysis Card */}
-                <Card className="card-premium bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-purple-200 shadow-lg">
+                <Card className="card-premium bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 border-primary/20 shadow-lg">
                   <CardHeader className="text-center pb-4">
                     <div className="flex items-center justify-center gap-3 mb-3">
                       <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
