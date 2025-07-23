@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -285,6 +284,72 @@ const Index = () => {
             </div>
           </div>
         </section>
+
+        {/* Footer */}
+        <footer className="py-12 px-4 bg-white/10 backdrop-blur-sm border-t border-white/20">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div className="col-span-2">
+                <div className="flex items-center space-x-3 mb-4">
+                  <img
+                    src="https://i.ibb.co/cSpbSRn7/logo.png"
+                    alt="DripMuse Logo"
+                    className="w-8 h-8 object-contain"
+                  />
+                  <span className="text-xl font-bold text-white">DripMuse</span>
+                </div>
+                <p className="text-white/80 text-sm leading-relaxed max-w-md">
+                  Your AI-powered personal fashion stylist. Transform your wardrobe with intelligent
+                  recommendations, color analysis, and style insights.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-4">Legal</h4>
+                <ul className="space-y-2">
+                  <li>
+                    <button
+                      onClick={() => navigate('/terms')}
+                      className="text-white/70 hover:text-white text-sm transition-colors"
+                    >
+                      Terms of Use
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => navigate('/privacy')}
+                      className="text-white/70 hover:text-white text-sm transition-colors"
+                    >
+                      Privacy Policy
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-4">Support</h4>
+                <ul className="space-y-2">
+                  <li>
+                    <span className="text-white/70 text-sm">
+                      support@dripmuse.com
+                    </span>
+                  </li>
+                  <li>
+                    <span className="text-white/70 text-sm">
+                      Available 24/7
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="border-t border-white/20 mt-8 pt-8 text-center">
+              <p className="text-white/60 text-sm">
+                © 2024 DripMuse. All rights reserved. AI-powered fashion styling platform.
+              </p>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );
