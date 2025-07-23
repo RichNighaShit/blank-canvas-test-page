@@ -312,6 +312,47 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     setIsFirstTimeUser(false);
   };
 
+  const acceptTerms = async () => {
+    if (!user) return;
+
+    // Save to localStorage immediately
+    localStorage.setItem(`terms_accepted_${user.id}`, 'true');
+    setTermsAccepted(true);
+    setNeedsTermsAcceptance(false);
+
+    try {
+      // Try to save to database
+      await supabase
+        .from('user_onboarding' as any)
+        .upsert({
+          user_id: user.id,
+          completed_flows: ['terms-accepted'],
+          completed_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+    } catch (error) {
+      // Silently fail - localStorage is sufficient
+      if (import.meta.env.DEV) {
+        console.warn('Database unavailable for terms tracking. Using localStorage only.');
+      }
+    }
+
+    // Start onboarding after terms acceptance if first-time user
+    if (isFirstTimeUser) {
+      setTimeout(() => {
+        startOnboarding('first-time-user');
+      }, 500);
+    }
+  };
+
+  const declineTerms = () => {
+    // User declined terms - they can't use the app
+    // Could redirect to a "terms required" page or sign them out
+    setNeedsTermsAcceptance(true);
+    // For now, just keep the modal open
+  };
+
   const currentStep = currentFlow?.steps[currentStepIndex] || null;
 
   const contextValue: OnboardingContextType = {
