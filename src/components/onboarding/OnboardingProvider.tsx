@@ -129,6 +129,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         if (localFlag === 'true') {
           setIsFirstTimeUser(false);
           setTermsAccepted(true);
+          setHasInitialized(true);
           return;
         }
 
