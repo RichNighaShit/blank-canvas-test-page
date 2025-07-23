@@ -123,9 +123,19 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
       try {
         // Check localStorage first (faster)
         const localFlag = localStorage.getItem(`onboarding_completed_${user.id}`);
+        const termsFlag = localStorage.getItem(`terms_accepted_${user.id}`);
+
         if (localFlag === 'true') {
           setIsFirstTimeUser(false);
+          setTermsAccepted(true);
           return;
+        }
+
+        // Check if terms were accepted separately
+        if (termsFlag === 'true') {
+          setTermsAccepted(true);
+        } else {
+          setNeedsTermsAcceptance(true);
         }
 
         // Check database
