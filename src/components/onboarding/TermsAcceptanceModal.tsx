@@ -74,7 +74,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
 
   return (
     <Dialog open={isOpen} modal>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0 gap-0">
+      <DialogContent className="max-w-2xl max-h-[95vh] w-[95vw] sm:w-full p-0 gap-0 overflow-hidden">
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center justify-center mb-4">
             <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
