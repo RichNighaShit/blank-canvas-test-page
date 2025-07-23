@@ -1052,7 +1052,7 @@ export class AccurateClothingAnalyzer {
     features.cornerDensity = edges.corners / (width * height);
 
     // Color and texture analysis
-    const colorAnalysis = this.analyzeColorDistribution(data, width, height);
+    const colorAnalysis = this.analyzeAdvancedColorDistribution(data, width, height);
     features.colorComplexity = colorAnalysis.uniqueColors / 100; // Normalized
     features.textureVariance = colorAnalysis.variance;
 
