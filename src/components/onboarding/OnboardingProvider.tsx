@@ -27,12 +27,16 @@ interface OnboardingContextType {
   currentStep: OnboardingStep | null;
   totalSteps: number;
   isFirstTimeUser: boolean;
+  needsTermsAcceptance: boolean;
+  termsAccepted: boolean;
   startOnboarding: (flowId: string) => void;
   nextStep: () => void;
   previousStep: () => void;
   skipOnboarding: () => void;
   completeOnboarding: () => void;
   markAsExperienced: () => void;
+  acceptTerms: () => void;
+  declineTerms: () => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | null>(null);
