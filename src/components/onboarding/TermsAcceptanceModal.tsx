@@ -153,7 +153,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                     </p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-purple-50 rounded-lg border border-purple-200">
                   <Eye className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-purple-900">Privacy First</p>
