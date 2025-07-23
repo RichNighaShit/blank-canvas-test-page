@@ -156,7 +156,18 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
           }, 1000); // Delay to let page load
         }
       } catch (error) {
-        console.error('Error checking first-time user status:', error instanceof Error ? error.message : JSON.stringify(error));
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        // Check if it's a "table does not exist" error
+        if (errorMessage.includes('relation "public.user_onboarding" does not exist')) {
+          if (import.meta.env.DEV) {
+            console.warn('Onboarding table not created yet. Using localStorage-only mode.');
+          }
+        } else {
+          // Log other errors normally
+          console.error('Error checking first-time user status:', errorMessage);
+        }
+
         // If database check fails, assume first-time user for better UX
         setIsFirstTimeUser(true);
         setTimeout(() => {
