@@ -163,13 +163,21 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         }
 
         const hasCompletedFirstTime = data?.completed_flows?.includes('first-time-user');
+        const hasAcceptedTerms = data?.completed_flows?.includes('terms-accepted');
+
         setIsFirstTimeUser(!hasCompletedFirstTime);
 
-        // Start onboarding for first-time users
-        if (!hasCompletedFirstTime) {
-          setTimeout(() => {
-            startOnboarding('first-time-user');
-          }, 1000); // Delay to let page load
+        if (!hasAcceptedTerms && !termsAccepted) {
+          setNeedsTermsAcceptance(true);
+        } else {
+          setTermsAccepted(true);
+
+          // Start onboarding for first-time users (after terms)
+          if (!hasCompletedFirstTime) {
+            setTimeout(() => {
+              startOnboarding('first-time-user');
+            }, 1000); // Delay to let page load
+          }
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
