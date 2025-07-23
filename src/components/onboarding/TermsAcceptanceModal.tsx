@@ -188,7 +188,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-3 p-4 border rounded-lg">
+                <div className="flex items-start space-x-2 sm:space-x-3 p-3 sm:p-4 border rounded-lg">
                   <Checkbox
                     id="terms-accept"
                     checked={termsAccepted}
