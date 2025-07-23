@@ -874,59 +874,72 @@ export class AccurateClothingAnalyzer {
   private performExhaustiveFilenameAnalysis(fname: string, categoryKeywords: any): {category: string, confidence: number, score: number} {
     let bestMatch = { category: "", confidence: 0, score: 0 };
 
-    for (const [category, keywordGroups] of Object.entries(categoryKeywords)) {
-      let categoryScore = 0;
-      let maxConfidence = 0;
-      let matchCount = 0;
+    try {
+      for (const [category, keywordGroups] of Object.entries(categoryKeywords)) {
+        if (!keywordGroups || typeof keywordGroups !== 'object') continue;
 
-      // Primary keywords - exact matches get highest weight
-      for (const keyword of keywordGroups.primary) {
-        const exactMatch = fname.includes(keyword);
-        const wordBoundaryMatch = new RegExp(`\\b${keyword}\\b`, 'i').test(fname);
+        const groups = keywordGroups as any;
+        let categoryScore = 0;
+        let maxConfidence = 0;
+        let matchCount = 0;
 
-        if (exactMatch) {
-          const weight = wordBoundaryMatch ? 15 : 10; // Bonus for word boundary
-          const keywordScore = weight * (keyword.length / 15);
-          const confidence = keyword.length / fname.length;
-          categoryScore += keywordScore;
-          maxConfidence = Math.max(maxConfidence, confidence);
-          matchCount++;
+        // Primary keywords - exact matches get highest weight
+        const primaryKeywords = groups.primary || [];
+        for (const keyword of primaryKeywords) {
+          if (typeof keyword !== 'string') continue;
+          const exactMatch = fname.includes(keyword);
+          const wordBoundaryMatch = new RegExp(`\\b${keyword}\\b`, 'i').test(fname);
+
+          if (exactMatch) {
+            const weight = wordBoundaryMatch ? 15 : 10; // Bonus for word boundary
+            const keywordScore = weight * (keyword.length / 15);
+            const confidence = keyword.length / Math.max(fname.length, 1);
+            categoryScore += keywordScore;
+            maxConfidence = Math.max(maxConfidence, confidence);
+            matchCount++;
+          }
+        }
+
+        // Secondary keywords - good indicators
+        const secondaryKeywords = groups.secondary || [];
+        for (const keyword of secondaryKeywords) {
+          if (typeof keyword !== 'string') continue;
+          const exactMatch = fname.includes(keyword);
+          const wordBoundaryMatch = new RegExp(`\\b${keyword}\\b`, 'i').test(fname);
+
+          if (exactMatch) {
+            const weight = wordBoundaryMatch ? 10 : 6;
+            const keywordScore = weight * (keyword.length / 15);
+            const confidence = keyword.length / Math.max(fname.length, 1);
+            categoryScore += keywordScore;
+            maxConfidence = Math.max(maxConfidence, confidence * 0.9);
+            matchCount++;
+          }
+        }
+
+        // Modifiers - provide context
+        const modifiers = groups.modifiers || [];
+        for (const modifier of modifiers) {
+          if (typeof modifier === 'string' && fname.includes(modifier)) {
+            categoryScore += 3;
+            matchCount++;
+          }
+        }
+
+        // Bonus for multiple matches (indicates strong category signal)
+        if (matchCount > 1) {
+          categoryScore += matchCount * 2;
+          maxConfidence += 0.1;
+        }
+
+        // Update best match
+        if (categoryScore > bestMatch.score) {
+          bestMatch = { category, confidence: Math.min(maxConfidence, 0.95), score: categoryScore };
         }
       }
-
-      // Secondary keywords - good indicators
-      for (const keyword of keywordGroups.secondary) {
-        const exactMatch = fname.includes(keyword);
-        const wordBoundaryMatch = new RegExp(`\\b${keyword}\\b`, 'i').test(fname);
-
-        if (exactMatch) {
-          const weight = wordBoundaryMatch ? 10 : 6;
-          const keywordScore = weight * (keyword.length / 15);
-          const confidence = keyword.length / fname.length;
-          categoryScore += keywordScore;
-          maxConfidence = Math.max(maxConfidence, confidence * 0.9);
-          matchCount++;
-        }
-      }
-
-      // Modifiers - provide context
-      for (const modifier of keywordGroups.modifiers) {
-        if (fname.includes(modifier)) {
-          categoryScore += 3;
-          matchCount++;
-        }
-      }
-
-      // Bonus for multiple matches (indicates strong category signal)
-      if (matchCount > 1) {
-        categoryScore += matchCount * 2;
-        maxConfidence += 0.1;
-      }
-
-      // Update best match
-      if (categoryScore > bestMatch.score) {
-        bestMatch = { category, confidence: Math.min(maxConfidence, 0.95), score: categoryScore };
-      }
+    } catch (error) {
+      console.warn('Exhaustive filename analysis failed:', error);
+      return { category: "tops", confidence: 0.3, score: 0 };
     }
 
     return bestMatch;
