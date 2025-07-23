@@ -114,6 +114,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const [needsTermsAcceptance, setNeedsTermsAcceptance] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Check if user is first-time user
   useEffect(() => {
