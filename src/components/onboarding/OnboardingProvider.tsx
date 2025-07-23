@@ -192,11 +192,15 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
           console.error('Error checking first-time user status:', errorMessage);
         }
 
-        // If database check fails, assume first-time user for better UX
-        setIsFirstTimeUser(true);
-        setTimeout(() => {
-          startOnboarding('first-time-user');
-        }, 1000);
+        // If database check fails, show terms first, then onboarding
+        if (!termsAccepted) {
+          setNeedsTermsAcceptance(true);
+        } else {
+          setIsFirstTimeUser(true);
+          setTimeout(() => {
+            startOnboarding('first-time-user');
+          }, 1000);
+        }
       }
     };
 
