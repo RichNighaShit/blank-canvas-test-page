@@ -130,7 +130,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
           .single();
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error checking onboarding status:', error);
+          console.error('Error checking onboarding status:', error.message || JSON.stringify(error));
           return;
         }
 
