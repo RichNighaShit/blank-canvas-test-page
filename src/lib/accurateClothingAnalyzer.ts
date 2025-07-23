@@ -978,39 +978,44 @@ export class AccurateClothingAnalyzer {
    * Brand and style-based category inference
    */
   private performBrandStyleInference(fname: string): {category: string, confidence: number} {
-    // Common brand patterns that indicate specific categories
-    const brandPatterns = {
-      shoes: ['nike', 'adidas', 'jordan', 'converse', 'vans', 'timberland', 'ugg'],
-      accessories: ['gucci', 'lv', 'chanel', 'prada', 'coach', 'kate-spade'],
-      outerwear: ['north-face', 'patagonia', 'columbia', 'carhartt'],
-      bottoms: ['levis', 'wrangler', 'calvin-klein'],
-      dresses: ['zara', 'h&m', 'forever21']
-    };
+    try {
+      // Common brand patterns that indicate specific categories
+      const brandPatterns = {
+        shoes: ['nike', 'adidas', 'jordan', 'converse', 'vans', 'timberland', 'ugg'],
+        accessories: ['gucci', 'lv', 'chanel', 'prada', 'coach', 'kate-spade'],
+        outerwear: ['north-face', 'patagonia', 'columbia', 'carhartt'],
+        bottoms: ['levis', 'wrangler', 'calvin-klein'],
+        dresses: ['zara', 'h&m', 'forever21']
+      };
 
-    // Style indicators
-    const styleIndicators = {
-      shoes: ['athletic', 'sport', 'running', 'walking', 'dress-shoe'],
-      accessories: ['handbag', 'clutch', 'tote', 'backpack', 'jewelry'],
-      outerwear: ['winter', 'rain', 'wind', 'outdoor'],
-      bottoms: ['denim', 'chino', 'yoga', 'workout'],
-      dresses: ['formal', 'evening', 'cocktail', 'summer']
-    };
+      // Style indicators
+      const styleIndicators = {
+        shoes: ['athletic', 'sport', 'running', 'walking', 'dress-shoe'],
+        accessories: ['handbag', 'clutch', 'tote', 'backpack', 'jewelry'],
+        outerwear: ['winter', 'rain', 'wind', 'outdoor'],
+        bottoms: ['denim', 'chino', 'yoga', 'workout'],
+        dresses: ['formal', 'evening', 'cocktail', 'summer']
+      };
 
-    // Check brand patterns
-    for (const [category, brands] of Object.entries(brandPatterns)) {
-      if (brands.some(brand => fname.includes(brand))) {
-        return { category, confidence: 0.8 };
+      // Check brand patterns
+      for (const [category, brands] of Object.entries(brandPatterns)) {
+        if (brands.some(brand => fname.includes(brand))) {
+          return { category, confidence: 0.8 };
+        }
       }
-    }
 
-    // Check style indicators
-    for (const [category, styles] of Object.entries(styleIndicators)) {
-      if (styles.some(style => fname.includes(style))) {
-        return { category, confidence: 0.65 };
+      // Check style indicators
+      for (const [category, styles] of Object.entries(styleIndicators)) {
+        if (styles.some(style => fname.includes(style))) {
+          return { category, confidence: 0.65 };
+        }
       }
-    }
 
-    return { category: "", confidence: 0 };
+      return { category: "", confidence: 0 };
+    } catch (error) {
+      console.warn('Brand style inference failed:', error);
+      return { category: "tops", confidence: 0.3 };
+    }
   }
 
   /**
