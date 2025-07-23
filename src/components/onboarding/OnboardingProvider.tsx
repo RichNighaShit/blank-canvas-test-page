@@ -272,7 +272,6 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         .upsert({
           user_id: user.id,
           completed_flows: [currentFlow.id],
-          onboarding_completed: true,
           completed_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
