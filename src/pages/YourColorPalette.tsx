@@ -612,7 +612,7 @@ const YourColorPalette = () => {
                   <CardContent>
                     <div className="grid md:grid-cols-2 gap-6">
                       {colorAnalysis.idealColors.map((category, index) => (
-                        <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+                        <div key={index} className="bg-gradient-to-br from-muted/30 to-muted/50 rounded-xl p-5 border border-border">
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
                             <h3 className="font-semibold text-gray-800">{category.category}</h3>
