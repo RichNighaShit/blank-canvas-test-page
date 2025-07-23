@@ -3,9 +3,7 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import { PerformanceDashboard } from "./components/PerformanceDashboard";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { OnboardingProvider } from "./components/onboarding";
-import { EnhancedOnboardingOverlay } from "./components/onboarding/EnhancedOnboardingOverlay";
-import { TermsAcceptanceModal } from "./components/onboarding/TermsAcceptanceModal";
-import { useOnboarding } from "./components/onboarding/OnboardingProvider";
+import { AppContent } from "./components/AppContent";
 import Auth from "./pages/Auth"; // Regular import to avoid dynamic import issues
 
 // Lazy load components for better bundle splitting
