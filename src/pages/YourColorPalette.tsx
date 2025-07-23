@@ -495,7 +495,7 @@ const YourColorPalette = () => {
                             {colorAnalysis.season.charAt(0).toUpperCase() + colorAnalysis.season.slice(1)} - {colorAnalysis.subSeason}
                           </Badge>
                         </div>
-                        <p className="text-gray-700 text-base leading-relaxed max-w-2xl mx-auto">
+                        <p className="text-foreground/80 text-base leading-relaxed max-w-2xl mx-auto">
                           {colorAnalysis.description}
                         </p>
                       </div>
