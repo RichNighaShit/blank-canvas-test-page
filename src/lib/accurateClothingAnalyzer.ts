@@ -1143,7 +1143,7 @@ export class AccurateClothingAnalyzer {
   /**
    * Advanced color distribution analysis
    */
-  private analyzeColorDistribution(data: Uint8ClampedArray, width: number, height: number): ColorAnalysisResult {
+  private analyzeAdvancedColorDistribution(data: Uint8ClampedArray, width: number, height: number): ColorAnalysisResult {
     const colorMap = new Map<string, number>();
     let totalVariance = 0;
 
