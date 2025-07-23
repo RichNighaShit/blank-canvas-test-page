@@ -119,7 +119,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
   // Check if user is first-time user
   useEffect(() => {
     const checkFirstTimeUser = async () => {
-      if (!user) return;
+      if (!user || hasInitialized) return;
 
       try {
         // Check localStorage first (faster)
