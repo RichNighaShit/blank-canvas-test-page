@@ -109,6 +109,14 @@ function App() {
             }
           />
           <Route
+            path="/style-me"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <StyleRecommendations />
+              </Suspense>
+            }
+          />
+          <Route
             path="/analytics"
             element={
               <Suspense fallback={<PageLoader />}>
