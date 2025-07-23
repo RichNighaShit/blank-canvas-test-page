@@ -251,6 +251,11 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
   };
 
   const skipOnboarding = () => {
+    // Clear session flag
+    if (user) {
+      sessionStorage.removeItem(`onboarding_session_${user.id}`);
+    }
+
     setIsActive(false);
     setCurrentFlow(null);
     setCurrentStepIndex(0);
