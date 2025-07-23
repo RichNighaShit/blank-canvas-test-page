@@ -130,6 +130,18 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
           .single();
 
         if (error && error.code !== 'PGRST116') {
+          // Check if it's a "table does not exist" error and handle gracefully
+          if (error.message?.includes('relation "public.user_onboarding" does not exist')) {
+            if (import.meta.env.DEV) {
+              console.warn('Onboarding table not created yet. Using localStorage-only mode.');
+            }
+            // Assume first-time user and start onboarding
+            setIsFirstTimeUser(true);
+            setTimeout(() => {
+              startOnboarding('first-time-user');
+            }, 1000);
+            return;
+          }
           console.error('Error checking onboarding status:', error.message || JSON.stringify(error));
           return;
         }
