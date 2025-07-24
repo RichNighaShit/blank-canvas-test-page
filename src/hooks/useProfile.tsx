@@ -18,14 +18,45 @@ const getErrorMessage = (error: any): string => {
   return 'Unknown error occurred';
 };
 
-// Test basic Supabase connectivity
-const testConnection = async (): Promise<boolean> => {
+// Test basic Supabase connectivity with detailed diagnostics
+const testConnection = async (): Promise<{ connected: boolean; details: string }> => {
   try {
-    const { data, error } = await supabase.from('profiles').select('count').limit(1);
-    return !error;
+    console.log('Testing Supabase connection...');
+
+    // Test 1: Check auth status
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError) {
+      return { connected: false, details: `Auth error: ${authError.message}` };
+    }
+    if (!user) {
+      return { connected: false, details: 'User not authenticated' };
+    }
+    console.log('✓ Auth check passed, user ID:', user.id);
+
+    // Test 2: Simple query with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('count')
+      .limit(1)
+      .abortSignal(controller.signal);
+
+    clearTimeout(timeoutId);
+
+    if (error) {
+      return { connected: false, details: `Query error: ${error.message}` };
+    }
+
+    console.log('✓ Database connection successful');
+    return { connected: true, details: 'Connection successful' };
+
   } catch (error) {
-    console.error('Connection test failed:', error);
-    return false;
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      return { connected: false, details: 'Connection timeout (5s)' };
+    }
+    return { connected: false, details: `Connection test failed: ${error}` };
   }
 };
 
