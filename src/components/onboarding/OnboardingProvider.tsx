@@ -279,8 +279,8 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     if (!currentFlow || !user) return;
 
     try {
-      // Try to save to database, but don't fail if table doesn't exist
-      const { error } = await supabase
+      // Try to save to database - attempt enhanced schema first
+      let { error } = await supabase
         .from('user_onboarding')
         .upsert({
           user_id: user.id,
@@ -290,6 +290,21 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         }, {
           onConflict: 'user_id'
         });
+
+      // If enhanced columns don't exist, use basic schema
+      if (error && error.message?.includes('column') && error.message?.includes('does not exist')) {
+        console.log('Using basic schema for onboarding completion');
+        const basicResult = await supabase
+          .from('user_onboarding')
+          .upsert({
+            user_id: user.id,
+            completed_flows: [currentFlow.id],
+            completed_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          });
+        error = basicResult.error;
+      }
 
       if (error) {
         if (error.message?.includes('relation "user_onboarding" does not exist')) {
