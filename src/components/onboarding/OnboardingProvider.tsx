@@ -367,8 +367,8 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     setNeedsTermsAcceptance(false);
 
     try {
-      // Try to save to database
-      await supabase
+      // Try to save to database - attempt enhanced schema first
+      let { error: enhancedError } = await supabase
         .from('user_onboarding')
         .upsert({
           user_id: user.id,
@@ -380,6 +380,20 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         }, {
           onConflict: 'user_id'
         });
+
+      // If enhanced columns don't exist, use basic schema
+      if (enhancedError && enhancedError.message?.includes('column') && enhancedError.message?.includes('does not exist')) {
+        console.log('Using basic schema for terms acceptance');
+        await supabase
+          .from('user_onboarding')
+          .upsert({
+            user_id: user.id,
+            completed_flows: ['terms-accepted'],
+            completed_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          });
+      }
     } catch (error) {
       // Silently fail - localStorage is sufficient
       if (import.meta.env.DEV) {
