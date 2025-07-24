@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { checkSupabaseHealth } from "@/lib/supabaseHealth";
 
 // Utility function to extract error messages safely
 const getErrorMessage = (error: any): string => {
