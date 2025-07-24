@@ -58,11 +58,7 @@ function App() {
           {/* All other routes with Suspense for lazy loading */}
           <Route
             path="/"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <Dashboard />
-              </Suspense>
-            }
+            element={<HomePage />}
           />
           <Route
             path="/dashboard"
