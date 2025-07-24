@@ -242,7 +242,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
           </div>
         </ScrollArea>
 
-        <div className="p-4 sm:p-6 pt-4 border-t bg-muted/30 flex-shrink-0">
+        <div className="p-4 sm:p-6 pt-4 border-t bg-muted/30 flex-shrink-0 mt-auto">
           <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 justify-end">
             <Button
               variant="outline"
