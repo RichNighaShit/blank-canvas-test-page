@@ -445,14 +445,14 @@ const Index = () => {
 
             <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <h2 className="text-section font-heading mb-6">
-                Your Style Revolution Starts Now
+                Ready to Organize Your Style?
               </h2>
             </div>
 
             <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90 leading-relaxed">
-                Transform your wardrobe experience with AI-powered personal styling.
-                Discover your perfect look and build unshakeable style confidence.
+                Start your style journey with color analysis and digital wardrobe organization.
+                Discover what works best for you.
               </p>
             </div>
 
