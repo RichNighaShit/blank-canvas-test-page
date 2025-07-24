@@ -452,25 +452,62 @@ const Index = () => {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-32 px-4 text-center bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-          <div className="max-w-4xl mx-auto animate-fade-in-up">
-            <h2 className="text-section font-heading mb-6">
-              Ready to Transform Your Style?
-            </h2>
-            <p className="text-xl mb-12 max-w-2xl mx-auto opacity-90 leading-relaxed">
-              Join the style revolution and discover your perfect look with our AI-powered personal styling platform.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Button 
-                size="lg" 
-                className="bg-white text-purple-600 hover:bg-gray-50 text-xl px-12 py-6 font-bold shadow-floating"
-                onClick={() => navigate('/auth')}
-              >
-                Get Started for Free
-                <ArrowRight className="ml-3 h-6 w-6" />
-              </Button>
-              <p className="text-sm opacity-75">No credit card required • Free forever plan available</p>
+        {/* Enhanced CTA Section */}
+        <section className="py-32 px-4 text-center bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 text-white relative overflow-hidden">
+          {/* Background pattern */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.1),transparent)] opacity-50"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(255,255,255,0.05),transparent)] opacity-50"></div>
+
+          <div className="max-w-4xl mx-auto relative z-10">
+            <div className="animate-fade-in-up">
+              <Badge variant="secondary" className="mb-8 px-6 py-3 bg-white/20 text-white border-0 backdrop-blur-sm">
+                <Sparkles className="mr-2 h-5 w-5" />
+                Join 100,000+ Style Enthusiasts
+              </Badge>
+            </div>
+
+            <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <h2 className="text-section font-heading mb-6">
+                Your Style Revolution Starts Now
+              </h2>
+            </div>
+
+            <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90 leading-relaxed">
+                Transform your wardrobe experience with AI-powered personal styling.
+                Discover your perfect look and build unshakeable style confidence.
+              </p>
+            </div>
+
+            <div className="animate-fade-in-up mb-8" style={{ animationDelay: '0.3s' }}>
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <Button
+                  size="lg"
+                  className="bg-white text-purple-600 hover:bg-gray-50 hover:scale-105 text-xl px-12 py-6 font-bold shadow-floating transform transition-all duration-300"
+                  onClick={() => navigate('/auth')}
+                >
+                  <Crown className="mr-3 h-6 w-6" />
+                  Start Free Trial
+                  <ArrowRight className="ml-3 h-6 w-6" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm opacity-75">
+                <div className="flex items-center">
+                  <Check className="h-4 w-4 mr-2" />
+                  No credit card required
+                </div>
+                <div className="flex items-center">
+                  <Check className="h-4 w-4 mr-2" />
+                  Cancel anytime
+                </div>
+                <div className="flex items-center">
+                  <Check className="h-4 w-4 mr-2" />
+                  30-day money back guarantee
+                </div>
+              </div>
             </div>
           </div>
         </section>
