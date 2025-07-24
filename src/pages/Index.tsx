@@ -156,35 +156,38 @@ const Index = () => {
             </div>
             
             <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <h1 className="text-display font-heading mb-8 bg-gradient-to-r from-purple-900 via-purple-700 to-pink-700 bg-clip-text text-transparent leading-tight">
-                Your Personal Style Revolution
+              <h1 className="text-6xl md:text-7xl lg:text-8xl font-heading mb-8 bg-gradient-to-r from-purple-900 via-purple-700 to-pink-700 bg-clip-text text-transparent leading-tight">
+                Your AI Style
+                <br />
+                <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Revolution</span>
               </h1>
             </div>
-            
+
             <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light">
-                Transform your wardrobe experience with AI-powered outfit recommendations, 
-                smart organization, and personalized style insights that evolve with your unique taste.
+                Discover your perfect style with <span className="font-semibold text-purple-700">AI-powered outfit recommendations</span>,
+                smart wardrobe organization, and personalized insights that evolve with your unique taste.
               </p>
             </div>
-            
+
             <div className="animate-fade-in-up flex flex-col sm:flex-row gap-6 justify-center items-center" style={{ animationDelay: '0.3s' }}>
-              <Button 
-                size="lg" 
-                className="btn-premium text-xl px-12 py-6 text-white shadow-glow"
+              <Button
+                size="lg"
+                className="btn-premium text-xl px-12 py-6 text-white shadow-glow hover:scale-105 transform transition-all duration-300"
                 onClick={() => navigate('/auth')}
               >
+                <Sparkles className="mr-3 h-6 w-6" />
                 Start Your Style Journey
                 <ArrowRight className="ml-3 h-6 w-6" />
               </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="text-xl px-12 py-6 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-300"
-                onClick={() => navigate('/virtual-try-on')}
+              <Button
+                variant="outline"
+                size="lg"
+                className="text-xl px-12 py-6 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 hover:scale-105 transition-all duration-300"
+                onClick={() => window.scrollTo({ top: document.getElementById('how-it-works')?.offsetTop || 800, behavior: 'smooth' })}
               >
-                <Zap className="mr-3 h-6 w-6" />
-                Try Virtual Try-On
+                <Camera className="mr-3 h-6 w-6" />
+                See How It Works
               </Button>
             </div>
           </div>
