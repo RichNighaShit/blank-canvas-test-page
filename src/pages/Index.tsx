@@ -267,6 +267,59 @@ const Index = () => {
           </div>
         </section>
 
+        {/* How It Works Section */}
+        <section className="py-32 px-4 bg-gradient-to-b from-gray-50 to-white">
+          <div className="container mx-auto">
+            <div className="text-center mb-20 animate-fade-in-up">
+              <Badge variant="secondary" className="mb-6 px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 border-0">
+                <Clock className="mr-2 h-4 w-4" />
+                Simple Process
+              </Badge>
+              <h2 className="text-section font-heading mb-6 text-gray-900">
+                How DripMuse Works
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                Get started in minutes and transform your style experience with our intuitive 4-step process
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+              {/* Connection lines for desktop */}
+              <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-200 via-blue-200 to-purple-200 transform -translate-y-1/2 z-0"></div>
+
+              {howItWorks.map((step, index) => {
+                const Icon = step.icon;
+                return (
+                  <div key={index} className="relative z-10 text-center animate-fade-in-up" style={{ animationDelay: `${index * 0.2}s` }}>
+                    <div className="relative mb-8">
+                      <div className="w-20 h-20 mx-auto bg-white rounded-full shadow-elegant border-4 border-purple-100 flex items-center justify-center mb-4">
+                        <Icon className="h-10 w-10 text-purple-600" />
+                      </div>
+                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">{step.step}</span>
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-heading text-gray-900 mb-3">{step.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed">{step.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="text-center mt-16 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
+              <Button
+                size="lg"
+                className="btn-premium text-lg px-10 py-4 text-white shadow-glow"
+                onClick={() => navigate('/auth')}
+              >
+                <Sparkles className="mr-3 h-5 w-5" />
+                Start Your Journey Today
+                <ArrowRight className="ml-3 h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </section>
+
         {/* Benefits Section */}
         <section className="py-32 bg-gradient-to-br from-purple-50 to-pink-50 mx-4 rounded-3xl">
           <div className="max-w-6xl mx-auto px-8 text-center">
