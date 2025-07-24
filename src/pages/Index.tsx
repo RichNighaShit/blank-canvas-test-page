@@ -92,19 +92,48 @@ const Index = () => {
   ];
 
   const benefits = [
-    'Save 30+ minutes every morning choosing outfits',
-    'Discover new style combinations from your existing wardrobe',
-    'Make smarter shopping decisions with AI guidance',
-    'Track your fashion preferences and style evolution',
-    'Get professional styling advice powered by AI',
-    'Connect with a community of fashion enthusiasts'
+    'Save 30+ minutes every morning with instant outfit recommendations',
+    'Discover hundreds of new style combinations from your existing wardrobe',
+    'Make confident shopping decisions with AI-powered purchase guidance',
+    'Track your fashion preferences and style evolution over time',
+    'Get professional-level styling advice available 24/7',
+    'Connect with a global community of fashion enthusiasts',
+    'Reduce fashion waste by maximizing your wardrobe potential',
+    'Build confidence with outfits tailored to your body type and lifestyle'
   ];
 
   const stats = [
-    { number: '50K+', label: 'Fashion Enthusiasts', icon: Users },
-    { number: '2M+', label: 'Outfits Created', icon: Sparkles },
-    { number: '95%', label: 'Satisfaction Rate', icon: Star },
-    { number: '10M+', label: 'Style Recommendations', icon: TrendingUp }
+    { number: '100K+', label: 'Active Users', icon: Users },
+    { number: '5M+', label: 'Outfits Created', icon: Sparkles },
+    { number: '98%', label: 'User Satisfaction', icon: Star },
+    { number: '25M+', label: 'AI Recommendations', icon: TrendingUp }
+  ];
+
+  const howItWorks = [
+    {
+      step: 1,
+      icon: Smartphone,
+      title: 'Upload Your Wardrobe',
+      description: 'Take photos of your clothes and let our AI automatically categorize and organize them'
+    },
+    {
+      step: 2,
+      icon: Brain,
+      title: 'AI Learning',
+      description: 'Our system learns your style preferences, body type, and lifestyle requirements'
+    },
+    {
+      step: 3,
+      icon: Wand2,
+      title: 'Get Recommendations',
+      description: 'Receive personalized outfit suggestions based on weather, occasion, and your unique style'
+    },
+    {
+      step: 4,
+      icon: Trophy,
+      title: 'Style Evolution',
+      description: 'Track your fashion journey and continuously improve your personal style confidence'
+    }
   ];
 
   return (
