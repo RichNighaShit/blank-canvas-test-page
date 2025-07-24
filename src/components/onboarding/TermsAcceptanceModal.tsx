@@ -89,8 +89,8 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6">
-          <Badge variant="secondary" className="w-full justify-center py-2 mb-6 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-0">
+        <div className="px-4 sm:px-6 flex-shrink-0">
+          <Badge variant="secondary" className="w-full justify-center py-2 mb-4 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-0">
             <AlertCircle className="mr-2 h-4 w-4" />
             Required for New Users - One Time Only
           </Badge>
