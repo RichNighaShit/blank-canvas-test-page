@@ -235,18 +235,29 @@ const Index = () => {
               {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
-                  <Card key={index} className="card-interactive group border-0 shadow-elegant bg-white/80 backdrop-blur-sm animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <Card key={index} className="card-interactive group border-0 shadow-elegant bg-white/80 backdrop-blur-sm animate-fade-in-up hover:shadow-glow transition-all duration-500" style={{ animationDelay: `${index * 0.1}s` }}>
                     <CardHeader className="pb-4">
-                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
                         <Icon className="h-8 w-8 text-white" />
                       </div>
-                      <CardTitle className="text-2xl font-heading text-gray-900">{feature.title}</CardTitle>
+                      <CardTitle className="text-xl font-heading text-gray-900 mb-3">{feature.title}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-muted-foreground text-lg leading-relaxed mb-6">{feature.description}</p>
-                      <div className="flex items-center text-purple-600 font-semibold group-hover:text-purple-700 transition-colors">
-                        <span>Learn More</span>
-                        <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                      <p className="text-muted-foreground leading-relaxed mb-4">{feature.description}</p>
+
+                      {/* Feature details */}
+                      <div className="space-y-2 mb-6">
+                        {feature.details.map((detail, idx) => (
+                          <div key={idx} className="flex items-center text-sm text-gray-600">
+                            <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-3"></div>
+                            {detail}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center text-purple-600 font-semibold group-hover:text-purple-700 transition-colors cursor-pointer">
+                        <span>Explore Feature</span>
+                        <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </div>
                     </CardContent>
                   </Card>
