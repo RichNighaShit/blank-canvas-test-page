@@ -103,10 +103,10 @@ const Index = () => {
   ];
 
   const stats = [
-    { number: '100K+', label: 'Active Users', icon: Users },
-    { number: '5M+', label: 'Outfits Created', icon: Sparkles },
-    { number: '98%', label: 'User Satisfaction', icon: Star },
-    { number: '25M+', label: 'AI Recommendations', icon: TrendingUp }
+    { number: 'AI-Powered', label: 'Outfit Recommendations', icon: Brain },
+    { number: 'Smart', label: 'Wardrobe Organization', icon: Shirt },
+    { number: 'Color', label: 'Analysis Technology', icon: Palette },
+    { number: '24/7', label: 'Style Assistant', icon: Sparkles }
   ];
 
   const howItWorks = [
