@@ -463,8 +463,8 @@ const Index = () => {
                   className="bg-white text-purple-600 hover:bg-gray-50 hover:scale-105 text-xl px-12 py-6 font-bold shadow-floating transform transition-all duration-300"
                   onClick={() => navigate('/auth')}
                 >
-                  <Crown className="mr-3 h-6 w-6" />
-                  Start Free Trial
+                  <Palette className="mr-3 h-6 w-6" />
+                  Get Started
                   <ArrowRight className="ml-3 h-6 w-6" />
                 </Button>
               </div>
