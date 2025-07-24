@@ -405,51 +405,30 @@ const Index = () => {
               <p className="text-xl text-muted-foreground">Join thousands who've transformed their style journey</p>
             </div>
 
-            {/* Testimonials Grid */}
+            {/* Key Features Highlight */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-              <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-elegant animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                <blockquote className="text-gray-700 mb-6 italic leading-relaxed">
-                  "DripMuse completely transformed how I approach my wardrobe. The AI recommendations are spot-on!"
-                </blockquote>
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                    <span className="text-white font-bold">SJ</span>
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold text-gray-900">Sarah Johnson</p>
-                    <p className="text-sm text-muted-foreground">Fashion Blogger</p>
-                  </div>
-                </div>
+              <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-elegant animate-fade-in-up text-center" style={{ animationDelay: '0.1s' }}>
+                <Palette className="h-12 w-12 mx-auto mb-4 text-purple-600" />
+                <h4 className="font-semibold text-gray-900 mb-2">Color Analysis</h4>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  Discover which colors make you look and feel your best with AI-powered color analysis technology.
+                </p>
               </Card>
 
-              <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-elegant animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                <blockquote className="text-gray-700 mb-6 italic leading-relaxed">
-                  "I save so much time in the morning and always feel confident in my outfit choices now."
-                </blockquote>
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                    <span className="text-white font-bold">MR</span>
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold text-gray-900">Mike Rodriguez</p>
-                    <p className="text-sm text-muted-foreground">Marketing Director</p>
-                  </div>
-                </div>
+              <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-elegant animate-fade-in-up text-center" style={{ animationDelay: '0.2s' }}>
+                <Shirt className="h-12 w-12 mx-auto mb-4 text-blue-600" />
+                <h4 className="font-semibold text-gray-900 mb-2">Digital Wardrobe</h4>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  Keep all your clothing organized in one place with photo uploads and smart categorization.
+                </p>
               </Card>
 
-              <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-elegant animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                <blockquote className="text-gray-700 mb-6 italic leading-relaxed">
-                  "The virtual try-on feature is amazing! I can see how clothes look before wearing them."
-                </blockquote>
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 flex items-center justify-center">
-                    <span className="text-white font-bold">AL</span>
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold text-gray-900">Anna Lee</p>
-                    <p className="text-sm text-muted-foreground">Graphic Designer</p>
-                  </div>
-                </div>
+              <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-elegant animate-fade-in-up text-center" style={{ animationDelay: '0.3s' }}>
+                <Sparkles className="h-12 w-12 mx-auto mb-4 text-pink-600" />
+                <h4 className="font-semibold text-gray-900 mb-2">Smart Recommendations</h4>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  Get outfit suggestions that match your style, the weather, and the occasion you're dressing for.
+                </p>
               </Card>
             </div>
           </div>
