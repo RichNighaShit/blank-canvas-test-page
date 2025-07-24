@@ -74,29 +74,25 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
 
   return (
     <Dialog open={isOpen} modal>
-      <DialogContent className="max-w-2xl h-[85vh] w-[95vw] sm:w-full p-0 gap-0 flex flex-col">
-        <DialogHeader className="p-4 sm:p-6 pb-0 flex-shrink-0">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+      <DialogContent className="max-w-2xl max-h-[90vh] w-[95vw] sm:w-full p-0">
+        <div className="flex flex-col h-full max-h-[90vh]">
+          <div className="p-4 sm:p-6 text-center border-b bg-gradient-to-br from-purple-50 to-pink-50">
+            <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full">
               <FileText className="h-8 w-8 text-white" />
             </div>
+            <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Welcome to DripMuse
+            </h2>
+            <p className="text-muted-foreground mb-4">
+              Before we begin your style journey, please review and accept our terms
+            </p>
+            <Badge variant="secondary" className="inline-flex items-center py-2 px-4 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-0">
+              <AlertCircle className="mr-2 h-4 w-4" />
+              Required for New Users - One Time Only
+            </Badge>
           </div>
-          <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Welcome to DripMuse
-          </DialogTitle>
-          <DialogDescription className="text-center text-lg text-muted-foreground">
-            Before we begin your style journey, please review and accept our terms
-          </DialogDescription>
-        </DialogHeader>
 
-        <div className="px-4 sm:px-6 flex-shrink-0">
-          <Badge variant="secondary" className="w-full justify-center py-2 mb-4 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-0">
-            <AlertCircle className="mr-2 h-4 w-4" />
-            Required for New Users - One Time Only
-          </Badge>
-        </div>
-
-        <ScrollArea className="flex-1 px-4 sm:px-6 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 240px)' }}>
+          <ScrollArea className="flex-1 p-4 sm:p-6">
           <div className="space-y-6">
             {/* Service Summary */}
             <div className="space-y-4">
@@ -242,37 +238,32 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
           </div>
         </ScrollArea>
 
-        <div className="p-4 sm:p-6 pt-4 border-t bg-muted/30 flex-shrink-0 mt-auto">
-          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 justify-end">
-            <Button
-              variant="outline"
-              onClick={onDecline}
-              className="text-gray-600 hover:text-gray-700"
-            >
-              I'll Review Later
-            </Button>
-            <Button
-              onClick={handleAccept}
-              disabled={!canProceed}
-              className={`${
-                canProceed 
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg' 
-                  : ''
-              }`}
-            >
-              {canProceed ? (
-                <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                  Accept & Continue
-                </>
-              ) : (
-                'Please Accept All Terms'
-              )}
-            </Button>
+          <div className="p-4 sm:p-6 border-t bg-white">
+            <div className="flex justify-center">
+              <Button
+                onClick={handleAccept}
+                disabled={!canProceed}
+                size="lg"
+                className={`w-full sm:w-auto px-8 py-3 ${
+                  canProceed
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg transform hover:scale-105 transition-all duration-200'
+                    : 'bg-gray-200 text-gray-500'
+                }`}
+              >
+                {canProceed ? (
+                  <>
+                    <CheckCircle2 className="mr-2 h-5 w-5" />
+                    Accept & Continue to DripMuse
+                  </>
+                ) : (
+                  'Please Accept All Terms Above'
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-4">
+              By continuing, you confirm that you have read, understood, and agree to our terms and privacy policy.
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground text-center mt-3">
-            This agreement is required only once. You can review these documents anytime in the app footer.
-          </p>
         </div>
       </DialogContent>
     </Dialog>
