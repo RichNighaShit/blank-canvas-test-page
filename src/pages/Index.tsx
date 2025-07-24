@@ -396,13 +396,8 @@ const Index = () => {
         <section className="py-32 px-4 text-center bg-gradient-to-br from-purple-50 to-pink-50">
           <div className="max-w-6xl mx-auto">
             <div className="mb-16 animate-fade-in-up">
-              <div className="flex justify-center mb-6">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-8 w-8 fill-yellow-400 text-yellow-400 mx-1" />
-                ))}
-              </div>
-              <h3 className="text-3xl font-heading mb-4 text-gray-900">Loved by Fashion Enthusiasts Worldwide</h3>
-              <p className="text-xl text-muted-foreground">Join thousands who've transformed their style journey</p>
+              <h3 className="text-3xl font-heading mb-4 text-gray-900">Your Personal Style Assistant</h3>
+              <p className="text-xl text-muted-foreground">Discover your perfect colors and organize your wardrobe with AI technology</p>
             </div>
 
             {/* Key Features Highlight */}
