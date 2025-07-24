@@ -139,26 +139,30 @@ export const useProfile = () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
+      // Start with a minimal query to test basic connectivity
+      console.log('Attempting minimal profile query first...');
       let { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, user_id, display_name")
         .eq("user_id", user.id)
         .single()
         .abortSignal(controller.signal);
 
       clearTimeout(timeoutId);
 
-      // If the full query fails, try a minimal query
-      if (error && error.message?.includes('column')) {
-        console.log("Full query failed, trying minimal query...");
-        const fallbackResult = await supabase
+      // If minimal query succeeds, try to get more fields
+      if (!error && data) {
+        console.log('✓ Minimal query successful, fetching full profile...');
+        const fullResult = await supabase
           .from("profiles")
-          .select("id, user_id, display_name, location, preferred_style")
+          .select("*")
           .eq("user_id", user.id)
           .single();
 
-        data = fallbackResult.data;
-        error = fallbackResult.error;
+        // Use full data if available, otherwise stick with minimal
+        if (!fullResult.error && fullResult.data) {
+          data = fullResult.data;
+        }
       }
 
       if (error) {
