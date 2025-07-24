@@ -140,10 +140,10 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
           setNeedsTermsAcceptance(true);
         }
 
-        // Check database - use basic query first to check if table exists
+        // Check database with enhanced schema
         const { data, error } = await supabase
           .from('user_onboarding')
-          .select('completed_flows')
+          .select('completed_flows, terms_accepted, privacy_accepted, age_confirmed, onboarding_completed')
           .eq('user_id', user.id)
           .single();
 
