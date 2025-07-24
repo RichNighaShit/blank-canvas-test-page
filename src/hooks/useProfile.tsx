@@ -81,11 +81,27 @@ export const useProfile = () => {
 
     try {
       console.log("Fetching profile for user:", user.id);
+
+      // Check if user is authenticated
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        console.error("User not authenticated");
+        setLoading(false);
+        return;
+      }
+
+      // Add timeout and better error handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .single()
+        .abortSignal(controller.signal);
+
+      clearTimeout(timeoutId);
 
       if (error) {
         if (error.code === "PGRST116") {
