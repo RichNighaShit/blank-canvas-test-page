@@ -132,9 +132,40 @@ export const useProfile = () => {
 
       if (!connectionTest.connected) {
         console.error('Connection test failed:', connectionTest.details);
+        setIsOffline(true);
+
+        // Try to load from localStorage as fallback
+        const localProfile = localStorage.getItem(`profile_${user.id}`);
+        if (localProfile) {
+          try {
+            const parsedProfile = JSON.parse(localProfile);
+            console.log('✓ Loaded profile from localStorage cache');
+            setProfile(parsedProfile);
+            profileCache[user.id] = parsedProfile;
+            setLoading(false);
+            return;
+          } catch (parseError) {
+            console.error('Failed to parse cached profile:', parseError);
+          }
+        }
+
+        // If no cache available, create a basic offline profile
+        const offlineProfile: Profile = {
+          id: 'offline',
+          user_id: user.id,
+          display_name: user.email?.split('@')[0] || 'User',
+          location: '',
+          culture: '',
+          preferred_style: '',
+        };
+
+        console.log('Created offline profile');
+        setProfile(offlineProfile);
         setLoading(false);
         return;
       }
+
+      setIsOffline(false);
 
       // Add timeout and better error handling
       const controller = new AbortController();
