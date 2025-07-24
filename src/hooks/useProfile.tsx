@@ -161,6 +161,14 @@ export const useProfile = () => {
       console.error("Unexpected error fetching profile:", error);
       const errorMessage = getErrorMessage(error);
       console.error("Unexpected error details:", errorMessage);
+
+      // Handle specific error types
+      if (error instanceof TypeError && error.message.includes('NetworkError')) {
+        console.error("Network error detected - possible connectivity issue");
+        // You could implement retry logic here
+      } else if (error instanceof DOMException && error.name === 'AbortError') {
+        console.error("Request timed out after 10 seconds");
+      }
     } finally {
       setLoading(false);
     }
