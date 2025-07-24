@@ -92,14 +92,14 @@ const Index = () => {
   ];
 
   const benefits = [
-    'Save 30+ minutes every morning with instant outfit recommendations',
-    'Discover hundreds of new style combinations from your existing wardrobe',
-    'Make confident shopping decisions with AI-powered purchase guidance',
-    'Track your fashion preferences and style evolution over time',
-    'Get professional-level styling advice available 24/7',
-    'Connect with a global community of fashion enthusiasts',
-    'Reduce fashion waste by maximizing your wardrobe potential',
-    'Build confidence with outfits tailored to your body type and lifestyle'
+    'Save time every morning with personalized outfit recommendations',
+    'Discover new style combinations from your existing wardrobe',
+    'Find colors that complement your skin tone and enhance your look',
+    'Keep track of your clothing items in an organized digital wardrobe',
+    'Get outfit suggestions based on weather and occasion',
+    'Build confidence with colors and styles that suit you best',
+    'Track your style preferences and see what you wear most',
+    'Plan outfits ahead of time for events and occasions'
   ];
 
   const stats = [
