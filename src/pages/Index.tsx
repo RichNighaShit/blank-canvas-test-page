@@ -345,27 +345,101 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Social Proof */}
-        <section className="py-32 px-4 text-center">
-          <div className="max-w-4xl mx-auto animate-fade-in-up">
-            <div className="flex justify-center mb-8">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-8 w-8 fill-yellow-400 text-yellow-400 mx-1" />
-              ))}
+        {/* Trust & Security Section */}
+        <section className="py-20 px-4 bg-white border-y border-gray-100">
+          <div className="container mx-auto">
+            <div className="text-center mb-16 animate-fade-in-up">
+              <h3 className="text-2xl font-heading mb-4 text-gray-900">Trusted by Fashion Lovers Worldwide</h3>
+              <p className="text-muted-foreground">Your privacy and data security are our top priorities</p>
             </div>
-            <h3 className="text-3xl font-heading mb-6 text-gray-900">Loved by Fashion Enthusiasts Worldwide</h3>
-            <blockquote className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto italic leading-relaxed">
-              "DripMuse completely transformed how I approach my wardrobe. The AI recommendations are incredibly accurate, 
-              and I've discovered so many new outfit combinations I never would have thought of. It's like having a personal stylist available 24/7!"
-            </blockquote>
-            <div className="flex items-center justify-center space-x-6">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">SJ</span>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-2xl flex items-center justify-center">
+                  <Shield className="h-8 w-8 text-green-600" />
+                </div>
+                <h4 className="font-semibold text-gray-900 mb-2">Privacy Protected</h4>
+                <p className="text-sm text-muted-foreground">Your photos and data are encrypted and never shared without permission</p>
               </div>
-              <div className="text-left">
-                <p className="font-semibold text-gray-900 text-lg">Sarah Johnson</p>
-                <p className="text-muted-foreground">Fashion Blogger & Influencer</p>
+
+              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-2xl flex items-center justify-center">
+                  <Clock className="h-8 w-8 text-blue-600" />
+                </div>
+                <h4 className="font-semibold text-gray-900 mb-2">24/7 Support</h4>
+                <p className="text-sm text-muted-foreground">Round-the-clock customer support to help with any questions</p>
               </div>
+
+              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+                <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-2xl flex items-center justify-center">
+                  <Trophy className="h-8 w-8 text-purple-600" />
+                </div>
+                <h4 className="font-semibold text-gray-900 mb-2">Award Winning</h4>
+                <p className="text-sm text-muted-foreground">Recognized as the #1 AI fashion platform by industry experts</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Enhanced Social Proof */}
+        <section className="py-32 px-4 text-center bg-gradient-to-br from-purple-50 to-pink-50">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-16 animate-fade-in-up">
+              <div className="flex justify-center mb-6">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-8 w-8 fill-yellow-400 text-yellow-400 mx-1" />
+                ))}
+              </div>
+              <h3 className="text-3xl font-heading mb-4 text-gray-900">Loved by Fashion Enthusiasts Worldwide</h3>
+              <p className="text-xl text-muted-foreground">Join thousands who've transformed their style journey</p>
+            </div>
+
+            {/* Testimonials Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+              <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-elegant animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                <blockquote className="text-gray-700 mb-6 italic leading-relaxed">
+                  "DripMuse completely transformed how I approach my wardrobe. The AI recommendations are spot-on!"
+                </blockquote>
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                    <span className="text-white font-bold">SJ</span>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-900">Sarah Johnson</p>
+                    <p className="text-sm text-muted-foreground">Fashion Blogger</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-elegant animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                <blockquote className="text-gray-700 mb-6 italic leading-relaxed">
+                  "I save so much time in the morning and always feel confident in my outfit choices now."
+                </blockquote>
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                    <span className="text-white font-bold">MR</span>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-900">Mike Rodriguez</p>
+                    <p className="text-sm text-muted-foreground">Marketing Director</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-elegant animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+                <blockquote className="text-gray-700 mb-6 italic leading-relaxed">
+                  "The virtual try-on feature is amazing! I can see how clothes look before wearing them."
+                </blockquote>
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 flex items-center justify-center">
+                    <span className="text-white font-bold">AL</span>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-900">Anna Lee</p>
+                    <p className="text-sm text-muted-foreground">Graphic Designer</p>
+                  </div>
+                </div>
+              </Card>
             </div>
           </div>
         </section>
