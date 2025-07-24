@@ -84,6 +84,7 @@ export const useProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const [isOffline, setIsOffline] = useState(false);
   const { user } = useAuth();
 
   // Subscribe to global cache invalidation
