@@ -25,7 +25,7 @@ import {
 interface TermsAcceptanceModalProps {
   isOpen: boolean;
   onAccept: () => void;
-  onDecline: () => void;
+  onDecline?: () => void; // Made optional since we're removing the decline button
 }
 
 export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
