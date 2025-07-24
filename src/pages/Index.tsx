@@ -279,7 +279,7 @@ const Index = () => {
         </section>
 
         {/* How It Works Section */}
-        <section className="py-32 px-4 bg-gradient-to-b from-gray-50 to-white">
+        <section id="how-it-works" className="py-32 px-4 bg-gradient-to-b from-gray-50 to-white">
           <div className="container mx-auto">
             <div className="text-center mb-20 animate-fade-in-up">
               <Badge variant="secondary" className="mb-6 px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 border-0">
