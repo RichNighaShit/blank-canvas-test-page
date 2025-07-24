@@ -137,10 +137,6 @@ export const useProfile = () => {
             .insert({
               user_id: user.id,
               display_name: user.email?.split("@")[0] || "User",
-              location: "",
-              preferred_style: null,
-              favorite_colors: [],
-              goals: [],
             })
             .select()
             .single();
