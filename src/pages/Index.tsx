@@ -112,27 +112,27 @@ const Index = () => {
   const howItWorks = [
     {
       step: 1,
-      icon: Smartphone,
-      title: 'Upload Your Wardrobe',
-      description: 'Take photos of your clothes and let our AI automatically categorize and organize them'
+      icon: Camera,
+      title: 'Complete Color Analysis',
+      description: 'Upload a photo for AI-powered color analysis to discover your perfect color palette'
     },
     {
       step: 2,
-      icon: Brain,
-      title: 'AI Learning',
-      description: 'Our system learns your style preferences, body type, and lifestyle requirements'
+      icon: Shirt,
+      title: 'Add Your Clothes',
+      description: 'Upload photos of your clothing items and organize them into categories'
     },
     {
       step: 3,
-      icon: Wand2,
-      title: 'Get Recommendations',
-      description: 'Receive personalized outfit suggestions based on weather, occasion, and your unique style'
+      icon: Sparkles,
+      title: 'Get Style Recommendations',
+      description: 'Receive outfit suggestions based on your colors, wardrobe, weather, and occasion'
     },
     {
       step: 4,
-      icon: Trophy,
-      title: 'Style Evolution',
-      description: 'Track your fashion journey and continuously improve your personal style confidence'
+      icon: BarChart3,
+      title: 'Track Your Style',
+      description: 'Monitor your style choices and see analytics about your fashion preferences'
     }
   ];
 
