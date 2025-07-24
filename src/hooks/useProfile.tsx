@@ -95,7 +95,7 @@ export const useProfile = () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("user_id", user.id)
@@ -103,6 +103,19 @@ export const useProfile = () => {
         .abortSignal(controller.signal);
 
       clearTimeout(timeoutId);
+
+      // If the full query fails, try a minimal query
+      if (error && error.message?.includes('column')) {
+        console.log("Full query failed, trying minimal query...");
+        const fallbackResult = await supabase
+          .from("profiles")
+          .select("id, user_id, display_name, location, preferred_style")
+          .eq("user_id", user.id)
+          .single();
+
+        data = fallbackResult.data;
+        error = fallbackResult.error;
+      }
 
       if (error) {
         if (error.code === "PGRST116") {
