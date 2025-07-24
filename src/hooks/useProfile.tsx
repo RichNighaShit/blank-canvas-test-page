@@ -128,11 +128,11 @@ export const useProfile = () => {
       console.log("Fetching profile for user:", user.id);
 
       // Run connection diagnostics first
-      const connectionTest = await testConnection();
-      console.log('Connection test result:', connectionTest);
+      const healthCheck = await checkSupabaseHealth();
+      console.log('Supabase health check:', healthCheck);
 
-      if (!connectionTest.connected) {
-        console.error('Connection test failed:', connectionTest.details);
+      if (!healthCheck.healthy) {
+        console.error('Health check failed:', healthCheck.details);
         setIsOffline(true);
 
         // Try to load from localStorage as fallback
