@@ -178,7 +178,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         }
 
         const hasCompletedFirstTime = data?.completed_flows?.includes('first-time-user') || data?.onboarding_completed;
-        const hasAcceptedTerms = data?.terms_accepted;
+        const hasAcceptedTerms = data?.terms_accepted || data?.completed_flows?.includes('terms-accepted');
 
         setIsFirstTimeUser(!hasCompletedFirstTime);
 
