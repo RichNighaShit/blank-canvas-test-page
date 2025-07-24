@@ -5,6 +5,7 @@ import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { OnboardingProvider } from "./components/onboarding";
 import { AppContent } from "./components/AppContent";
 import NetworkStatus from "./components/NetworkStatus";
+import HomePage from "./components/HomePage";
 import Auth from "./pages/Auth"; // Regular import to avoid dynamic import issues
 
 // Lazy load components for better bundle splitting
