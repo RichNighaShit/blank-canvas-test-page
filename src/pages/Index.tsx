@@ -474,15 +474,15 @@ const Index = () => {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm opacity-75">
                 <div className="flex items-center">
                   <Check className="h-4 w-4 mr-2" />
-                  No credit card required
+                  Free to start
                 </div>
                 <div className="flex items-center">
                   <Check className="h-4 w-4 mr-2" />
-                  Cancel anytime
+                  Easy to use
                 </div>
                 <div className="flex items-center">
                   <Check className="h-4 w-4 mr-2" />
-                  30-day money back guarantee
+                  Organize your style
                 </div>
               </div>
             </div>
