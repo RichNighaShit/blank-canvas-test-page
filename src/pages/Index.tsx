@@ -42,52 +42,52 @@ const Index = () => {
 
   const features = [
     {
-      icon: Brain,
-      title: 'AI Personal Stylist',
-      description: 'Advanced machine learning algorithms analyze your style preferences, body type, and lifestyle to provide personalized outfit recommendations that evolve with your taste.',
+      icon: Palette,
+      title: 'Color Analysis & Palette',
+      description: 'Discover your perfect color palette with AI-powered analysis that determines which colors complement your skin tone, hair, and eyes.',
       color: 'from-purple-500 to-purple-600',
       gradient: 'from-purple-500/10 to-purple-600/10',
-      details: ['Color palette analysis', 'Body type considerations', 'Occasion-based suggestions', 'Weather integration']
+      details: ['Skin tone analysis', 'Seasonal color matching', 'Personalized palette', 'Color recommendations']
     },
     {
       icon: Shirt,
-      title: 'Smart Wardrobe Management',
-      description: 'Upload photos of your clothes and let our AI automatically categorize, tag, and organize your entire wardrobe with intelligent visual recognition technology.',
+      title: 'Digital Wardrobe',
+      description: 'Organize your clothing collection by uploading photos. Categorize items by type, color, season, and occasion for easy browsing.',
       color: 'from-blue-500 to-blue-600',
       gradient: 'from-blue-500/10 to-blue-600/10',
-      details: ['Automatic categorization', 'Visual search', 'Outfit history', 'Wear frequency tracking']
+      details: ['Photo upload', 'Item categorization', 'Digital organization', 'Quick browsing']
     },
     {
-      icon: Wand2,
-      title: 'Virtual Try-On Experience',
-      description: 'See how outfits look on you with cutting-edge AR technology. Mix and match pieces virtually before making real-world style decisions.',
+      icon: Sparkles,
+      title: 'Outfit Recommendations',
+      description: 'Get personalized outfit suggestions based on your wardrobe, color palette, weather conditions, and the occasion you\'re dressing for.',
       color: 'from-pink-500 to-pink-600',
       gradient: 'from-pink-500/10 to-pink-600/10',
-      details: ['AR visualization', 'Real-time fitting', 'Size adjustment', 'Multiple angles']
+      details: ['Weather-based suggestions', 'Occasion matching', 'Color coordination', 'Personal style preferences']
     },
     {
       icon: BarChart3,
-      title: 'Style Analytics & Insights',
-      description: 'Get detailed insights into your fashion patterns, color preferences, and style evolution with comprehensive analytics and trend tracking.',
+      title: 'Style Analytics',
+      description: 'Track your fashion choices and see insights about your style patterns, most-worn items, and color preferences over time.',
       color: 'from-emerald-500 to-emerald-600',
       gradient: 'from-emerald-500/10 to-emerald-600/10',
-      details: ['Style timeline', 'Color analysis', 'Trend identification', 'Preference learning']
+      details: ['Wear frequency tracking', 'Style pattern analysis', 'Color usage insights', 'Wardrobe statistics']
     },
     {
       icon: Target,
-      title: 'Smart Shopping Assistant',
-      description: 'Never buy clothes that don\'t match your wardrobe again. Our AI suggests pieces that perfectly complement your existing items and fill style gaps.',
+      title: 'Style Goals & Planning',
+      description: 'Set style goals, plan outfits for upcoming events, and track your progress toward building your ideal wardrobe.',
       color: 'from-orange-500 to-orange-600',
       gradient: 'from-orange-500/10 to-orange-600/10',
-      details: ['Gap analysis', 'Budget optimization', 'Brand recommendations', 'Seasonal planning']
+      details: ['Goal setting', 'Outfit planning', 'Progress tracking', 'Style development']
     },
     {
       icon: Heart,
-      title: 'Personal Style Journey',
-      description: 'Track your style evolution over time, set fashion goals, and receive guidance to develop your unique personal aesthetic with confidence.',
+      title: 'Personal Style Profile',
+      description: 'Build a comprehensive style profile including your preferences, body type, lifestyle, and fashion goals for better recommendations.',
       color: 'from-rose-500 to-rose-600',
       gradient: 'from-rose-500/10 to-rose-600/10',
-      details: ['Style development', 'Goal setting', 'Progress tracking', 'Confidence building']
+      details: ['Style preferences', 'Body type settings', 'Lifestyle factors', 'Fashion goals']
     }
   ];
 
