@@ -148,7 +148,7 @@ export const PrivacyPolicy: React.FC = () => {
         </CardHeader>
 
         <CardContent className="p-4 sm:p-6">
-          <ScrollArea className="h-[60vh] sm:h-[500px] pr-2 sm:pr-4">
+          <ScrollArea className="h-[65vh] sm:h-[500px] pr-2 sm:pr-4">
             <div className="space-y-8">
               <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start gap-3">
