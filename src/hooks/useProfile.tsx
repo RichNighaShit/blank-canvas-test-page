@@ -131,6 +131,21 @@ export const useProfile = () => {
           console.error("Error fetching profile:", error);
           const errorMessage = getErrorMessage(error);
           console.error("Error details:", errorMessage);
+
+          // Check for specific network errors
+          if (error.message && error.message.includes('NetworkError')) {
+            console.error("Network connectivity issue detected. Checking connection...");
+            // Try a simple health check
+            try {
+              const response = await fetch('https://dskruszbxlndmnhwcudx.supabase.co/health', {
+                method: 'GET',
+                mode: 'no-cors'
+              });
+              console.log("Supabase health check status:", response.status);
+            } catch (healthError) {
+              console.error("Health check failed:", healthError);
+            }
+          }
         }
       } else {
         console.log("Profile fetched successfully:", data);
