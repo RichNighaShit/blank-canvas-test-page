@@ -359,6 +359,9 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         .from('user_onboarding')
         .upsert({
           user_id: user.id,
+          terms_accepted: true,
+          privacy_accepted: true,
+          age_confirmed: true,
           completed_flows: ['terms-accepted'],
           completed_at: new Date().toISOString()
         }, {
