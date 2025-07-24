@@ -48,6 +48,7 @@ function App() {
     <OnboardingProvider>
       <AppContent>
         <div className="min-h-screen bg-background">
+          <NetworkStatus />
           <RouteErrorBoundary>
         <Routes>
           {/* Auth route loads immediately without lazy loading */}
