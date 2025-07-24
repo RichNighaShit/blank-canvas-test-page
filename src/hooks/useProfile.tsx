@@ -309,7 +309,7 @@ export const useProfile = () => {
     await fetchProfile(true);
   };
 
-  return { profile, loading, refetch };
+  return { profile, loading, refetch, isOffline };
 };
 
 // Export global cache invalidation function
