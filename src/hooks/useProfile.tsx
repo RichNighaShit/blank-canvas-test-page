@@ -163,12 +163,35 @@ export const useProfile = () => {
       const errorMessage = getErrorMessage(error);
       console.error("Unexpected error details:", errorMessage);
 
-      // Handle specific error types
+      // Handle specific error types with retry logic
       if (error instanceof TypeError && error.message.includes('NetworkError')) {
         console.error("Network error detected - possible connectivity issue");
-        // You could implement retry logic here
+        if (retryCount < 2) {
+          console.log(`Retrying in 2 seconds... (attempt ${retryCount + 1}/2)`);
+          setRetryCount(prev => prev + 1);
+          setTimeout(() => {
+            fetchProfile(forceRefresh);
+          }, 2000);
+          return;
+        } else {
+          console.error("Max retries reached for network error");
+          setRetryCount(0);
+        }
       } else if (error instanceof DOMException && error.name === 'AbortError') {
         console.error("Request timed out after 10 seconds");
+        if (retryCount < 1) {
+          console.log("Retrying after timeout...");
+          setRetryCount(prev => prev + 1);
+          setTimeout(() => {
+            fetchProfile(forceRefresh);
+          }, 1000);
+          return;
+        } else {
+          console.error("Max retries reached for timeout");
+          setRetryCount(0);
+        }
+      } else {
+        setRetryCount(0);
       }
     } finally {
       setLoading(false);
