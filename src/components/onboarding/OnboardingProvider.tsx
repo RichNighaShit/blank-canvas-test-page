@@ -140,12 +140,25 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
           setNeedsTermsAcceptance(true);
         }
 
-        // Check database with enhanced schema
-        const { data, error } = await supabase
+        // Check database - try enhanced schema first, fallback to basic
+        let { data, error } = await supabase
           .from('user_onboarding')
           .select('completed_flows, terms_accepted, privacy_accepted, age_confirmed, onboarding_completed')
           .eq('user_id', user.id)
           .single();
+
+        // If enhanced columns don't exist, fallback to basic query
+        if (error && error.message?.includes('column') && error.message?.includes('does not exist')) {
+          console.log('Using basic schema - enhanced columns not available yet');
+          const basicQuery = await supabase
+            .from('user_onboarding')
+            .select('completed_flows')
+            .eq('user_id', user.id)
+            .single();
+
+          data = basicQuery.data;
+          error = basicQuery.error;
+        }
 
         if (error && error.code !== 'PGRST116') {
           // Check if it's a "table does not exist" error and handle gracefully
