@@ -261,6 +261,16 @@ export const useProfile = () => {
       const errorMessage = getErrorMessage(error);
       console.error("Unexpected error details:", errorMessage);
 
+      // Log the error with context
+      logError(error, {
+        action: 'fetchProfile',
+        userId: user.id,
+        retryCount,
+        forceRefresh,
+        userAgent: navigator.userAgent,
+        online: navigator.onLine
+      });
+
       // Handle specific error types with retry logic
       if (error instanceof TypeError && error.message.includes('NetworkError')) {
         console.error("Network error detected - possible connectivity issue");
