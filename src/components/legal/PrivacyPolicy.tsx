@@ -123,7 +123,7 @@ export const PrivacyPolicy: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6">
       <Card className="shadow-elegant">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
@@ -147,10 +147,10 @@ export const PrivacyPolicy: React.FC = () => {
           </div>
         </CardHeader>
 
-        <CardContent>
-          <ScrollArea className="h-[500px] pr-4">
+        <CardContent className="p-4 sm:p-6">
+          <ScrollArea className="h-[65vh] sm:h-[500px] pr-2 sm:pr-4">
             <div className="space-y-8">
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-blue-600 mt-1" />
                   <div>
@@ -179,7 +179,7 @@ export const PrivacyPolicy: React.FC = () => {
                       </h3>
                     </div>
                     
-                    <ul className="space-y-2 ml-13">
+                    <ul className="space-y-2 ml-8 sm:ml-13">
                       {section.content.map((item, itemIndex) => (
                         <li key={itemIndex} className="flex items-start gap-3 text-gray-600">
                           <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
@@ -195,7 +195,7 @@ export const PrivacyPolicy: React.FC = () => {
                 );
               })}
 
-              <div className="mt-8 p-6 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg border border-green-200">
+              <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg border border-green-200">
                 <div className="space-y-4">
                   <h4 className="font-semibold text-green-900 flex items-center gap-2">
                     <Shield className="h-5 w-5" />
@@ -210,7 +210,7 @@ export const PrivacyPolicy: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-purple-50 border border-purple-200 rounded-lg">
                 <p className="text-purple-800 text-sm">
                   <strong>Questions about Privacy:</strong> This policy explains our practices 
                   clearly, but if you have questions or concerns about how we handle your data, 

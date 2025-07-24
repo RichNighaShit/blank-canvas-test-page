@@ -1,0 +1,76 @@
+import { supabase } from '@/integrations/supabase/client';
+
+export interface HealthCheckResult {
+  healthy: boolean;
+  details: string;
+  timestamp: Date;
+  latency?: number;
+}
+
+export const checkSupabaseHealth = async (): Promise<HealthCheckResult> => {
+  const startTime = Date.now();
+  
+  try {
+    // Check 1: Authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError) {
+      return {
+        healthy: false,
+        details: `Authentication failed: ${authError.message}`,
+        timestamp: new Date(),
+        latency: Date.now() - startTime
+      };
+    }
+
+    // Check 2: Database connectivity
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
+    const { error: dbError } = await supabase
+      .from('profiles')
+      .select('count')
+      .limit(1)
+      .abortSignal(controller.signal);
+    
+    clearTimeout(timeoutId);
+    
+    if (dbError) {
+      return {
+        healthy: false,
+        details: `Database error: ${dbError.message}`,
+        timestamp: new Date(),
+        latency: Date.now() - startTime
+      };
+    }
+
+    return {
+      healthy: true,
+      details: 'All systems operational',
+      timestamp: new Date(),
+      latency: Date.now() - startTime
+    };
+    
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      return {
+        healthy: false,
+        details: 'Connection timeout (5 seconds)',
+        timestamp: new Date(),
+        latency: Date.now() - startTime
+      };
+    }
+    
+    return {
+      healthy: false,
+      details: `Unexpected error: ${error}`,
+      timestamp: new Date(),
+      latency: Date.now() - startTime
+    };
+  }
+};
+
+// Helper to create a simple connectivity test
+export const isSupabaseReachable = async (): Promise<boolean> => {
+  const result = await checkSupabaseHealth();
+  return result.healthy;
+};

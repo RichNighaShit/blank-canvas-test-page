@@ -121,7 +121,7 @@ export const TermsOfUse: React.FC<TermsOfUseProps> = ({
         </CardHeader>
 
         <CardContent>
-          <ScrollArea className="h-[500px] pr-4">
+          <ScrollArea className="h-[65vh] sm:h-[500px] pr-2 sm:pr-4">
             <div className="space-y-8">
               {sections.map((section, index) => {
                 const Icon = section.icon;

@@ -94,135 +94,11 @@ const ModernHeader = () => {
           </span>
         </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-2">
-          {navigationItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className={cn(
-                  "flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200",
-                  isActive(item.path)
-                    ? "bg-primary text-primary-foreground shadow-button"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-
         <div className="flex items-center space-x-4">
           <ThemeToggle />
 
-          {/* Mobile Menu */}
-          {isMobile && (
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-2">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent
-                side="right"
-                className="w-[320px] bg-background/95 backdrop-blur-md"
-              >
-                <div className="flex flex-col space-y-6 mt-8">
-                  <div className="flex items-center gap-3 pb-4 border-b">
-                    <img
-                      src="https://i.ibb.co/cSpbSRn7/logo.png"
-                      alt="DripMuse Logo"
-                      className="w-8 h-8 object-contain"
-                    />
-                    <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                      DripMuse
-                    </span>
-                  </div>
-
-                  {navigationItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <button
-                        key={item.path}
-                        onClick={() => {
-                          navigate(item.path);
-                          setMobileMenuOpen(false);
-                        }}
-                        className={cn(
-                          "flex items-center gap-4 text-left text-lg py-4 px-4 rounded-xl transition-all duration-200",
-                          isActive(item.path)
-                            ? "bg-primary text-primary-foreground shadow-button"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                        )}
-                      >
-                        <Icon className="h-5 w-5" />
-                        {item.label}
-                      </button>
-                    );
-                  })}
-
-                  {user && (
-                    <>
-                      <hr className="border-border/50 my-4" />
-                      <button
-                        onClick={() => {
-                          navigate("/edit-profile");
-                          setMobileMenuOpen(false);
-                        }}
-                        className="flex items-center gap-4 text-left text-lg text-muted-foreground hover:text-foreground transition-colors py-4 px-4 rounded-xl hover:bg-muted/50"
-                      >
-                        <Settings className="h-5 w-5" />
-                        Edit Profile
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleSignOut();
-                          setMobileMenuOpen(false);
-                        }}
-                        className="flex items-center gap-4 text-left text-lg text-muted-foreground hover:text-foreground transition-colors py-4 px-4 rounded-xl hover:bg-muted/50"
-                      >
-                        <LogOut className="h-5 w-5" />
-                        Sign Out
-                      </button>
-                    </>
-                  )}
-
-                  {!user && (
-                    <>
-                      <hr className="border-border/50 my-4" />
-                      <Button
-                        variant="ghost"
-                        size="lg"
-                        onClick={() => {
-                          handleSignIn();
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        Sign In
-                      </Button>
-                      <Button
-                        size="lg"
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                        onClick={() => {
-                          handleGetStarted();
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        Get Started
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
-          )}
-
-          {/* Desktop User Menu */}
-          {!isMobile && user && (
+          {/* Authenticated User Menu */}
+          {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -265,28 +141,19 @@ const ModernHeader = () => {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
+                  onClick={() => navigate("/dashboard")}
+                  className="py-3"
+                >
+                  <BarChart3 className="mr-3 h-4 w-4" />
+                  Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onClick={() => navigate("/edit-profile")}
                   className="py-3"
                 >
                   <Settings className="mr-3 h-4 w-4" />
                   Edit Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => navigate("/profile/palette")}
-                  className="py-3"
-                >
-                  <Palette className="mr-3 h-4 w-4" />
-                  Your Color Palette
-                </DropdownMenuItem>
-                {import.meta.env.DEV && (
-                  <DropdownMenuItem
-                    onClick={() => navigate("/color-analysis-test")}
-                    className="py-3"
-                  >
-                    <TestTube className="mr-3 h-4 w-4" />
-                    Color Analysis Test
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="py-3">
                   <LogOut className="mr-3 h-4 w-4" />
@@ -296,20 +163,11 @@ const ModernHeader = () => {
             </DropdownMenu>
           )}
 
-          {/* Desktop Auth Buttons */}
-          {!isMobile && !user && (
-            <>
-              <Button variant="ghost" size="lg" onClick={handleSignIn}>
-                Sign In
-              </Button>
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-button"
-                onClick={handleGetStarted}
-              >
-                Get Started
-              </Button>
-            </>
+          {/* Sign In Button for unauthenticated users */}
+          {!user && (
+            <Button variant="outline" onClick={handleSignIn}>
+              Sign In
+            </Button>
           )}
         </div>
       </div>

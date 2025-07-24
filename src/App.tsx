@@ -4,6 +4,8 @@ import { PerformanceDashboard } from "./components/PerformanceDashboard";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { OnboardingProvider } from "./components/onboarding";
 import { AppContent } from "./components/AppContent";
+import NetworkStatus from "./components/NetworkStatus";
+import HomePage from "./components/HomePage";
 import Auth from "./pages/Auth"; // Regular import to avoid dynamic import issues
 
 // Lazy load components for better bundle splitting
@@ -47,6 +49,7 @@ function App() {
     <OnboardingProvider>
       <AppContent>
         <div className="min-h-screen bg-background">
+          <NetworkStatus />
           <RouteErrorBoundary>
         <Routes>
           {/* Auth route loads immediately without lazy loading */}
@@ -55,11 +58,7 @@ function App() {
           {/* All other routes with Suspense for lazy loading */}
           <Route
             path="/"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <Dashboard />
-              </Suspense>
-            }
+            element={<HomePage />}
           />
           <Route
             path="/dashboard"

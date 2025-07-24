@@ -114,11 +114,12 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const [needsTermsAcceptance, setNeedsTermsAcceptance] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Check if user is first-time user
   useEffect(() => {
     const checkFirstTimeUser = async () => {
-      if (!user) return;
+      if (!user || hasInitialized) return;
 
       try {
         // Check localStorage first (faster)
@@ -128,6 +129,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         if (localFlag === 'true') {
           setIsFirstTimeUser(false);
           setTermsAccepted(true);
+          setHasInitialized(true);
           return;
         }
 
@@ -138,12 +140,25 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
           setNeedsTermsAcceptance(true);
         }
 
-        // Check database
-        const { data, error } = await supabase
-          .from('user_onboarding' as any) // Use 'as any' to bypass TypeScript checks temporarily
-          .select('completed_flows')
+        // Check database - try enhanced schema first, fallback to basic
+        let { data, error } = await supabase
+          .from('user_onboarding')
+          .select('completed_flows, terms_accepted, privacy_accepted, age_confirmed, onboarding_completed')
           .eq('user_id', user.id)
           .single();
+
+        // If enhanced columns don't exist, fallback to basic query
+        if (error && error.message?.includes('column') && error.message?.includes('does not exist')) {
+          console.log('Using basic schema - enhanced columns not available yet');
+          const basicQuery = await supabase
+            .from('user_onboarding')
+            .select('completed_flows')
+            .eq('user_id', user.id)
+            .single();
+
+          data = basicQuery.data;
+          error = basicQuery.error;
+        }
 
         if (error && error.code !== 'PGRST116') {
           // Check if it's a "table does not exist" error and handle gracefully
@@ -162,8 +177,8 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
           return;
         }
 
-        const hasCompletedFirstTime = data?.completed_flows?.includes('first-time-user');
-        const hasAcceptedTerms = data?.completed_flows?.includes('terms-accepted');
+        const hasCompletedFirstTime = data?.completed_flows?.includes('first-time-user') || data?.onboarding_completed;
+        const hasAcceptedTerms = data?.terms_accepted || data?.completed_flows?.includes('terms-accepted');
 
         setIsFirstTimeUser(!hasCompletedFirstTime);
 
@@ -179,6 +194,8 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
             }, 1000); // Delay to let page load
           }
         }
+
+        setHasInitialized(true);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -201,15 +218,29 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
             startOnboarding('first-time-user');
           }, 1000);
         }
+
+        setHasInitialized(true);
       }
     };
 
     checkFirstTimeUser();
-  }, [user]);
+  }, [user, hasInitialized]);
 
   const startOnboarding = (flowId: string) => {
     const flow = onboardingFlows.find(f => f.id === flowId);
-    if (!flow) return;
+    if (!flow || !user) return;
+
+    // Check if onboarding was already started in this session
+    const sessionKey = `onboarding_session_${user.id}`;
+    const sessionFlag = sessionStorage.getItem(sessionKey);
+
+    if (sessionFlag === 'active') {
+      console.log('Onboarding already active in this session, skipping');
+      return;
+    }
+
+    // Mark onboarding as active for this session
+    sessionStorage.setItem(sessionKey, 'active');
 
     setCurrentFlow(flow);
     setCurrentStepIndex(0);
@@ -233,6 +264,11 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
   };
 
   const skipOnboarding = () => {
+    // Clear session flag
+    if (user) {
+      sessionStorage.removeItem(`onboarding_session_${user.id}`);
+    }
+
     setIsActive(false);
     setCurrentFlow(null);
     setCurrentStepIndex(0);
@@ -243,16 +279,32 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     if (!currentFlow || !user) return;
 
     try {
-      // Try to save to database, but don't fail if table doesn't exist
-      const { error } = await supabase
-        .from('user_onboarding' as any) // Use 'as any' to bypass TypeScript checks temporarily
+      // Try to save to database - attempt enhanced schema first
+      let { error } = await supabase
+        .from('user_onboarding')
         .upsert({
           user_id: user.id,
           completed_flows: [currentFlow.id],
+          onboarding_completed: true,
           completed_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
         });
+
+      // If enhanced columns don't exist, use basic schema
+      if (error && error.message?.includes('column') && error.message?.includes('does not exist')) {
+        console.log('Using basic schema for onboarding completion');
+        const basicResult = await supabase
+          .from('user_onboarding')
+          .upsert({
+            user_id: user.id,
+            completed_flows: [currentFlow.id],
+            completed_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          });
+        error = basicResult.error;
+      }
 
       if (error) {
         if (error.message?.includes('relation "user_onboarding" does not exist')) {
@@ -279,6 +331,9 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     // Always save to localStorage as backup
     localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
 
+    // Clear session flag
+    sessionStorage.removeItem(`onboarding_session_${user.id}`);
+
     setIsActive(false);
     setCurrentFlow(null);
     setCurrentStepIndex(0);
@@ -292,16 +347,31 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
 
     try {
-      // Try to save to database if available
-      await supabase
-        .from('user_onboarding' as any) // Use 'as any' to bypass TypeScript checks temporarily
+      // Try to save to database - attempt enhanced schema first
+      let { error: enhancedError } = await supabase
+        .from('user_onboarding')
         .upsert({
           user_id: user.id,
           completed_flows: ['first-time-user'],
+          onboarding_completed: true,
           completed_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
         });
+
+      // If enhanced columns don't exist, use basic schema
+      if (enhancedError && enhancedError.message?.includes('column') && enhancedError.message?.includes('does not exist')) {
+        console.log('Using basic schema for marking as experienced');
+        await supabase
+          .from('user_onboarding')
+          .upsert({
+            user_id: user.id,
+            completed_flows: ['first-time-user'],
+            completed_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          });
+      }
     } catch (error) {
       // Silently fail if database is not available - localStorage is sufficient
       if (import.meta.env.DEV) {
@@ -310,6 +380,11 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     }
 
     setIsFirstTimeUser(false);
+
+    // Clear session flag
+    if (user) {
+      sessionStorage.removeItem(`onboarding_session_${user.id}`);
+    }
   };
 
   const acceptTerms = async () => {
@@ -321,16 +396,33 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     setNeedsTermsAcceptance(false);
 
     try {
-      // Try to save to database
-      await supabase
-        .from('user_onboarding' as any)
+      // Try to save to database - attempt enhanced schema first
+      let { error: enhancedError } = await supabase
+        .from('user_onboarding')
         .upsert({
           user_id: user.id,
+          terms_accepted: true,
+          privacy_accepted: true,
+          age_confirmed: true,
           completed_flows: ['terms-accepted'],
           completed_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
         });
+
+      // If enhanced columns don't exist, use basic schema
+      if (enhancedError && enhancedError.message?.includes('column') && enhancedError.message?.includes('does not exist')) {
+        console.log('Using basic schema for terms acceptance');
+        await supabase
+          .from('user_onboarding')
+          .upsert({
+            user_id: user.id,
+            completed_flows: ['terms-accepted'],
+            completed_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          });
+      }
     } catch (error) {
       // Silently fail - localStorage is sufficient
       if (import.meta.env.DEV) {
