@@ -242,6 +242,13 @@ export const useProfile = () => {
         setProfile(data);
         profileCache[user.id] = data;
 
+        // Save to localStorage for offline fallback
+        try {
+          localStorage.setItem(`profile_${user.id}`, JSON.stringify(data));
+        } catch (storageError) {
+          console.warn('Failed to save profile to localStorage:', storageError);
+        }
+
         // Notify all listeners of the profile update
         if (profileCacheListeners[user.id]) {
           profileCacheListeners[user.id].forEach(fn => fn());
