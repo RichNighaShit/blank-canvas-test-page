@@ -18,6 +18,17 @@ const getErrorMessage = (error: any): string => {
   return 'Unknown error occurred';
 };
 
+// Test basic Supabase connectivity
+const testConnection = async (): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.from('profiles').select('count').limit(1);
+    return !error;
+  } catch (error) {
+    console.error('Connection test failed:', error);
+    return false;
+  }
+};
+
 interface Profile {
   id: string;
   user_id: string;
