@@ -167,7 +167,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-center">Please confirm your agreement</h3>
               <div className="space-y-3">
-                <div className="flex items-start space-x-2 sm:space-x-3 p-3 sm:p-4 border rounded-lg">
+                <div className="flex items-start space-x-3 p-4 border-2 rounded-lg hover:border-purple-200 transition-colors bg-gray-50/50">
                   <Checkbox
                     id="age-confirm"
                     checked={ageConfirmed}
@@ -175,10 +175,10 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                     className="mt-1"
                   />
                   <div className="space-y-1">
-                    <label htmlFor="age-confirm" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
+                    <label htmlFor="age-confirm" className="text-sm font-medium leading-none cursor-pointer">
                       Age Confirmation
                     </label>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       I confirm that I am at least 13 years old (or the minimum age in my jurisdiction) and have the right to agree to these terms.
                     </p>
                   </div>
