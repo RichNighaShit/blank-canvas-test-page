@@ -125,10 +125,12 @@ export const useProfile = () => {
     try {
       console.log("Fetching profile for user:", user.id);
 
-      // Check if user is authenticated
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        console.error("User not authenticated");
+      // Run connection diagnostics first
+      const connectionTest = await testConnection();
+      console.log('Connection test result:', connectionTest);
+
+      if (!connectionTest.connected) {
+        console.error('Connection test failed:', connectionTest.details);
         setLoading(false);
         return;
       }
