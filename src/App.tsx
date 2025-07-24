@@ -4,6 +4,7 @@ import { PerformanceDashboard } from "./components/PerformanceDashboard";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { OnboardingProvider } from "./components/onboarding";
 import { AppContent } from "./components/AppContent";
+import NetworkStatus from "./components/NetworkStatus";
 import Auth from "./pages/Auth"; // Regular import to avoid dynamic import issues
 
 // Lazy load components for better bundle splitting
