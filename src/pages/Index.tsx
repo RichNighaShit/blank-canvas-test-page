@@ -5,20 +5,29 @@ import ModernHeader from '@/components/ModernHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Sparkles, 
-  Shirt, 
-  BarChart3, 
-  ShoppingBag, 
-  Camera, 
-  Users, 
+import {
+  Sparkles,
+  Shirt,
+  BarChart3,
+  ShoppingBag,
+  Camera,
+  Users,
   ArrowRight,
   Check,
   Star,
   Zap,
   Crown,
   Palette,
-  TrendingUp
+  TrendingUp,
+  Brain,
+  Target,
+  Heart,
+  Smartphone,
+  Clock,
+  Shield,
+  Trophy,
+  Wand2,
+  ChevronDown
 } from 'lucide-react';
 
 const Index = () => {
