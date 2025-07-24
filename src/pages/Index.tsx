@@ -439,7 +439,7 @@ const Index = () => {
             <div className="animate-fade-in-up">
               <Badge variant="secondary" className="mb-8 px-6 py-3 bg-white/20 text-white border-0 backdrop-blur-sm">
                 <Sparkles className="mr-2 h-5 w-5" />
-                Join 100,000+ Style Enthusiasts
+                AI-Powered Style Assistant
               </Badge>
             </div>
 
