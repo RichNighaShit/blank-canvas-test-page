@@ -209,7 +209,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-2 sm:space-x-3 p-3 sm:p-4 border rounded-lg">
+                <div className="flex items-start space-x-3 p-4 border-2 rounded-lg hover:border-purple-200 transition-colors bg-gray-50/50">
                   <Checkbox
                     id="privacy-accept"
                     checked={privacyAccepted}
@@ -217,15 +217,15 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                     className="mt-1"
                   />
                   <div className="space-y-1">
-                    <label htmlFor="privacy-accept" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
+                    <label htmlFor="privacy-accept" className="text-sm font-medium leading-none cursor-pointer">
                       Privacy Policy Agreement
                     </label>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       I understand and agree to the{' '}
-                      <button 
+                      <button
                         type="button"
                         onClick={() => window.open('/privacy', '_blank')}
-                        className="text-blue-600 hover:text-blue-700 underline"
+                        className="text-purple-600 hover:text-purple-700 underline font-medium"
                       >
                         Privacy Policy
                       </button>
