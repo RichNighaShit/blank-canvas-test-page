@@ -58,16 +58,12 @@ const Auth: React.FC = () => {
     const tab = searchParams.get("tab");
     const mode = searchParams.get("mode");
 
-    if (mode === "password-reset") {
-      setAuthMode("password-reset");
-    } else if (mode === "email-verified") {
+    if (mode === "email-verified") {
       setAuthMode("email-verified");
     } else if (mode === "oauth-success") {
       setAuthMode("oauth-success");
     } else if (tab === "signup") {
       setAuthMode("signup");
-    } else if (tab === "reset") {
-      setAuthMode("reset");
     }
   }, [searchParams]);
 
