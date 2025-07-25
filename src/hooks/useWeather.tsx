@@ -202,11 +202,16 @@ export const useWeather = (location?: string) => {
       try {
         console.log(`Trying alternative location: ${altLocation}`);
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const timeoutId: NodeJS.Timeout = setTimeout(() => controller.abort(), 6000); // Increased timeout
 
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(altLocation)}&count=1&language=en&format=json`,
-          { signal: controller.signal },
+          {
+            signal: controller.signal,
+            headers: {
+              'Cache-Control': 'no-cache',
+            }
+          },
         );
 
         clearTimeout(timeoutId);
