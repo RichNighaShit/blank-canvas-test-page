@@ -50,6 +50,18 @@ export const useUserFlow = () => {
         return;
       }
 
+      // Timeout fallback to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.warn('Onboarding status fetch timeout, using default values');
+        setOnboardingStatus({
+          terms_accepted: false,
+          privacy_accepted: false,
+          age_confirmed: false,
+          onboarding_completed: false,
+          tutorial_skipped: false
+        });
+      }, 5000);
+
       try {
         const { data, error } = await supabase
           .from('user_onboarding')
