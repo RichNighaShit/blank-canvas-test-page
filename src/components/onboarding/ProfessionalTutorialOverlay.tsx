@@ -328,20 +328,10 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
                 <Target className="mr-1 h-3 w-3" />
                 Step {currentStepIndex + 1}
               </Badge>
-              {!currentStep.targetSelector && !isPaused && (
-                <div className="flex items-center gap-1 text-xs text-white/80">
-                  <Eye className="h-3 w-3" />
-                  Auto-advancing...
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handlePause}
-                    className="h-5 w-5 p-0 text-white/80 hover:text-white ml-1"
-                  >
-                    <PauseCircle className="h-3 w-3" />
-                  </Button>
-                </div>
-              )}
+              <div className="flex items-center gap-1 text-xs text-white/80">
+                <Eye className="h-3 w-3" />
+                Interactive Tutorial
+              </div>
             </div>
             <h3 className="text-lg font-bold">{currentStep.title}</h3>
           </div>
