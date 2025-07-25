@@ -34,7 +34,6 @@ interface OnboardingContextType {
   previousStep: () => void;
   skipOnboarding: () => void;
   completeOnboarding: () => void;
-  markAsExperienced: () => void;
   acceptTerms: () => void;
   declineTerms: () => void;
 }
@@ -57,45 +56,42 @@ const onboardingFlows: OnboardingFlow[] = [
     steps: [
       {
         id: 'welcome',
-        title: 'Welcome to DripMuse! 👋',
-        description: 'Let\'s take a quick tour to get you started with your AI fashion stylist.',
+        title: 'Welcome to DripMuse! ✨',
+        description: 'Ready to transform your style? Let\'s take a quick interactive tour to show you how your AI fashion stylist works. You can interact with everything you see!',
         position: 'center'
       },
       {
         id: 'dashboard-overview',
-        title: 'Your Dashboard',
-        description: 'This is your style command center. Here you\'ll see outfit recommendations, wardrobe analytics, and quick actions.',
+        title: 'Your Style Command Center',
+        description: 'This is your personal dashboard where the magic happens. Here you\'ll find outfit recommendations, wardrobe insights, and style analytics—all powered by AI.',
         page: '/dashboard',
         position: 'center'
       },
       {
         id: 'wardrobe-setup',
-        title: 'Build Your Wardrobe',
-        description: 'Add your clothing items here. Upload photos and our AI will automatically categorize and analyze them.',
+        title: 'Click Here: Build Your Digital Wardrobe',
+        description: 'Start by adding your clothes! Simply upload photos and our AI will analyze colors, styles, and create categories automatically. Click this button to try it!',
         targetSelector: '[data-tour="wardrobe-nav"]',
-        position: 'bottom',
-        page: '/wardrobe'
+        position: 'bottom'
       },
       {
         id: 'color-palette',
-        title: 'Discover Your Colors',
-        description: 'Complete your color analysis to get personalized recommendations that complement your skin tone.',
+        title: 'Discover Your Perfect Colors',
+        description: 'Complete a quick color analysis to discover which colors make you look amazing. Our AI will analyze your skin tone and recommend your ideal palette.',
         targetSelector: '[data-tour="color-palette-nav"]',
-        position: 'bottom',
-        page: '/profile/palette'
+        position: 'bottom'
       },
       {
         id: 'style-me',
-        title: 'Get Styled',
-        description: 'Once you\'ve added items, come here for AI-powered outfit recommendations based on weather, occasion, and your style.',
+        title: 'Get AI-Powered Outfit Ideas',
+        description: 'Once you have some clothes uploaded, this is where you\'ll get personalized outfit recommendations based on the weather, your schedule, and your style preferences.',
         targetSelector: '[data-tour="style-me-nav"]',
-        position: 'bottom',
-        page: '/recommendations'
+        position: 'bottom'
       },
       {
         id: 'completion',
-        title: 'You\'re All Set! 🎉',
-        description: 'You\'re ready to start your style journey. Remember, the more you use DripMuse, the better it gets at understanding your preferences.',
+        title: 'Your Style Journey Begins Now! 🚀',
+        description: 'You\'re all set to start using DripMuse! The more you interact with the app, the smarter your AI stylist becomes. Ready to build your perfect wardrobe?',
         position: 'center'
       }
     ]
@@ -116,132 +112,95 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
-  // Check if user is first-time user
+  // Check user onboarding status from backend
   useEffect(() => {
-    const checkFirstTimeUser = async () => {
+    const checkUserOnboardingStatus = async () => {
       if (!user || hasInitialized) return;
 
-      try {
-        // Check localStorage first (faster)
-        const localFlag = localStorage.getItem(`onboarding_completed_${user.id}`);
-        const termsFlag = localStorage.getItem(`terms_accepted_${user.id}`);
+      // Add a small delay to ensure auth is fully established
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-        if (localFlag === 'true') {
-          setIsFirstTimeUser(false);
-          setTermsAccepted(true);
+      try {
+        // Check database for authoritative data with proper error handling
+        const { data, error } = await supabase
+          .from('user_onboarding')
+          .select('terms_accepted, privacy_accepted, age_confirmed, onboarding_completed, tutorial_skipped, completed_flows')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error && error.code === 'PGRST116') {
+          // No record exists - this is a completely new user
+          console.log('New user detected - no onboarding record');
+          setIsFirstTimeUser(true);
+          setNeedsTermsAcceptance(true);
+          setTermsAccepted(false);
           setHasInitialized(true);
           return;
         }
 
-        // Check if terms were accepted separately
-        if (termsFlag === 'true') {
-          setTermsAccepted(true);
-        } else {
+        if (error) {
+          // Handle other errors gracefully
+          console.warn('Error checking onboarding status, using safe defaults:', error);
+          // Default to showing terms for new users to be safe
+          setIsFirstTimeUser(true);
           setNeedsTermsAcceptance(true);
-        }
-
-        // Check database - try enhanced schema first, fallback to basic
-        let { data, error } = await supabase
-          .from('user_onboarding')
-          .select('completed_flows, terms_accepted, privacy_accepted, age_confirmed, onboarding_completed')
-          .eq('user_id', user.id)
-          .single();
-
-        // If enhanced columns don't exist, fallback to basic query
-        if (error && error.message?.includes('column') && error.message?.includes('does not exist')) {
-          console.log('Using basic schema - enhanced columns not available yet');
-          const basicQuery = await supabase
-            .from('user_onboarding')
-            .select('completed_flows')
-            .eq('user_id', user.id)
-            .single();
-
-          data = basicQuery.data;
-          error = basicQuery.error;
-        }
-
-        if (error && error.code !== 'PGRST116') {
-          // Check if it's a "table does not exist" error and handle gracefully
-          if (error.message?.includes('relation "public.user_onboarding" does not exist')) {
-            if (import.meta.env.DEV) {
-              console.warn('Onboarding table not created yet. Using localStorage-only mode.');
-            }
-            // Assume first-time user and start onboarding
-            setIsFirstTimeUser(true);
-            setTimeout(() => {
-              startOnboarding('first-time-user');
-            }, 1000);
-            return;
-          }
-          console.error('Error checking onboarding status:', error.message || JSON.stringify(error));
+          setTermsAccepted(false);
+          setHasInitialized(true);
           return;
         }
 
-        const hasCompletedFirstTime = data?.completed_flows?.includes('first-time-user') || data?.onboarding_completed;
-        const hasAcceptedTerms = data?.terms_accepted || data?.completed_flows?.includes('terms-accepted');
+        // Process successful response
+        const hasAcceptedTerms = data?.terms_accepted && data?.privacy_accepted && data?.age_confirmed;
+        const hasCompletedOnboarding = data?.onboarding_completed || data?.tutorial_skipped;
 
-        setIsFirstTimeUser(!hasCompletedFirstTime);
+        setTermsAccepted(!!hasAcceptedTerms);
+        setIsFirstTimeUser(!hasCompletedOnboarding);
 
-        if (!hasAcceptedTerms && !termsAccepted) {
+        if (!hasAcceptedTerms) {
           setNeedsTermsAcceptance(true);
+        } else if (!hasCompletedOnboarding) {
+          setNeedsTermsAcceptance(false);
+          // Delay starting onboarding to ensure UI is ready
+          setTimeout(() => {
+            startOnboarding('first-time-user');
+          }, 1000);
         } else {
-          setTermsAccepted(true);
-
-          // Start onboarding for first-time users (after terms)
-          if (!hasCompletedFirstTime) {
-            setTimeout(() => {
-              startOnboarding('first-time-user');
-            }, 1000); // Delay to let page load
-          }
+          setNeedsTermsAcceptance(false);
         }
 
         setHasInitialized(true);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-
-        // Check if it's a "table does not exist" error
-        if (errorMessage.includes('relation "public.user_onboarding" does not exist')) {
-          if (import.meta.env.DEV) {
-            console.warn('Onboarding table not created yet. Using localStorage-only mode.');
-          }
-        } else {
-          // Log other errors normally
-          console.error('Error checking first-time user status:', errorMessage);
-        }
-
-        // If database check fails, show terms first, then onboarding
-        if (!termsAccepted) {
-          setNeedsTermsAcceptance(true);
-        } else {
-          setIsFirstTimeUser(true);
-          setTimeout(() => {
-            startOnboarding('first-time-user');
-          }, 1000);
-        }
-
+        console.warn('Exception in onboarding check, using safe defaults:', error);
+        // Safe fallback - assume new user
+        setIsFirstTimeUser(true);
+        setNeedsTermsAcceptance(true);
+        setTermsAccepted(false);
         setHasInitialized(true);
       }
     };
 
-    checkFirstTimeUser();
+    checkUserOnboardingStatus();
   }, [user, hasInitialized]);
 
   const startOnboarding = (flowId: string) => {
     const flow = onboardingFlows.find(f => f.id === flowId);
-    if (!flow || !user) return;
-
-    // Check if onboarding was already started in this session
-    const sessionKey = `onboarding_session_${user.id}`;
-    const sessionFlag = sessionStorage.getItem(sessionKey);
-
-    if (sessionFlag === 'active') {
-      console.log('Onboarding already active in this session, skipping');
+    if (!flow || !user || !termsAccepted || needsTermsAcceptance) {
+      console.log('Cannot start onboarding: missing prerequisites', {
+        hasFlow: !!flow,
+        hasUser: !!user,
+        termsAccepted,
+        needsTermsAcceptance
+      });
       return;
     }
 
-    // Mark onboarding as active for this session
-    sessionStorage.setItem(sessionKey, 'active');
+    // Prevent starting if already active
+    if (isActive) {
+      console.log('Onboarding already active, skipping');
+      return;
+    }
 
+    console.log('Starting onboarding flow:', flowId);
     setCurrentFlow(flow);
     setCurrentStepIndex(0);
     setIsActive(true);
@@ -263,73 +222,29 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     }
   };
 
-  const skipOnboarding = () => {
-    // Clear session flag
-    if (user) {
-      sessionStorage.removeItem(`onboarding_session_${user.id}`);
-    }
-
-    setIsActive(false);
-    setCurrentFlow(null);
-    setCurrentStepIndex(0);
-    markAsExperienced();
-  };
-
-  const completeOnboarding = async () => {
-    if (!currentFlow || !user) return;
+  const skipOnboarding = async () => {
+    if (!user) return;
 
     try {
-      // Try to save to database - attempt enhanced schema first
-      let { error } = await supabase
+      // Mark tutorial as skipped in database
+      const { error } = await supabase
         .from('user_onboarding')
         .upsert({
           user_id: user.id,
-          completed_flows: [currentFlow.id],
+          tutorial_skipped: true,
           onboarding_completed: true,
-          completed_at: new Date().toISOString()
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
         });
 
-      // If enhanced columns don't exist, use basic schema
-      if (error && error.message?.includes('column') && error.message?.includes('does not exist')) {
-        console.log('Using basic schema for onboarding completion');
-        const basicResult = await supabase
-          .from('user_onboarding')
-          .upsert({
-            user_id: user.id,
-            completed_flows: [currentFlow.id],
-            completed_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id'
-          });
-        error = basicResult.error;
-      }
-
       if (error) {
-        if (error.message?.includes('relation "user_onboarding" does not exist')) {
-          if (import.meta.env.DEV) {
-            console.warn('Onboarding table not set up yet. Using localStorage only.');
-          }
-        } else {
-          const errorMessage = error?.message || error?.details || 'Unknown database error';
-          const errorCode = error?.code || 'NO_CODE';
-          console.error('Error saving onboarding completion:', {
-            message: errorMessage,
-            code: errorCode,
-            fullError: error
-          });
-        }
+        console.error('Error saving tutorial skip:', error);
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.warn('Database unavailable for onboarding. Using localStorage only.',
-          error instanceof Error ? error.message : String(error));
-      }
+      console.error('Database error during tutorial skip:', error);
     }
-
-    // Always save to localStorage as backup
-    localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
 
     // Clear session flag
     sessionStorage.removeItem(`onboarding_session_${user.id}`);
@@ -340,101 +255,88 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     setIsFirstTimeUser(false);
   };
 
-  const markAsExperienced = async () => {
-    if (!user) return;
-
-    // Always save to localStorage first
-    localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
+  const completeOnboarding = async () => {
+    if (!currentFlow || !user) return;
 
     try {
-      // Try to save to database - attempt enhanced schema first
-      let { error: enhancedError } = await supabase
+      // Mark onboarding as completed in database
+      const { error } = await supabase
         .from('user_onboarding')
         .upsert({
           user_id: user.id,
-          completed_flows: ['first-time-user'],
           onboarding_completed: true,
-          completed_at: new Date().toISOString()
+          completed_flows: [currentFlow.id],
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
         });
 
-      // If enhanced columns don't exist, use basic schema
-      if (enhancedError && enhancedError.message?.includes('column') && enhancedError.message?.includes('does not exist')) {
-        console.log('Using basic schema for marking as experienced');
-        await supabase
-          .from('user_onboarding')
-          .upsert({
-            user_id: user.id,
-            completed_flows: ['first-time-user'],
-            completed_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id'
-          });
+      if (error) {
+        console.error('Error saving onboarding completion:', error);
       }
     } catch (error) {
-      // Silently fail if database is not available - localStorage is sufficient
-      if (import.meta.env.DEV) {
-        console.warn('Database unavailable for onboarding persistence. Using localStorage only.');
-      }
+      console.error('Database error during onboarding completion:', error);
     }
-
-    setIsFirstTimeUser(false);
 
     // Clear session flag
-    if (user) {
-      sessionStorage.removeItem(`onboarding_session_${user.id}`);
-    }
+    sessionStorage.removeItem(`onboarding_session_${user.id}`);
+
+    setIsActive(false);
+    setCurrentFlow(null);
+    setCurrentStepIndex(0);
+    setIsFirstTimeUser(false);
   };
 
-  const acceptTerms = async () => {
-    if (!user) return;
 
-    // Save to localStorage immediately
-    localStorage.setItem(`terms_accepted_${user.id}`, 'true');
+
+  const acceptTerms = async () => {
+    if (!user) {
+      console.warn('Cannot accept terms: no user available');
+      return;
+    }
+
     setTermsAccepted(true);
     setNeedsTermsAcceptance(false);
 
     try {
-      // Try to save to database - attempt enhanced schema first
-      let { error: enhancedError } = await supabase
+      // Save terms acceptance to database with timeout
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Database timeout')), 5000)
+      );
+
+      const dbPromise = supabase
         .from('user_onboarding')
         .upsert({
           user_id: user.id,
           terms_accepted: true,
           privacy_accepted: true,
           age_confirmed: true,
-          completed_flows: ['terms-accepted'],
-          completed_at: new Date().toISOString()
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
         });
 
-      // If enhanced columns don't exist, use basic schema
-      if (enhancedError && enhancedError.message?.includes('column') && enhancedError.message?.includes('does not exist')) {
-        console.log('Using basic schema for terms acceptance');
-        await supabase
-          .from('user_onboarding')
-          .upsert({
-            user_id: user.id,
-            completed_flows: ['terms-accepted'],
-            completed_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id'
-          });
+      const { error } = await Promise.race([dbPromise, timeoutPromise]) as any;
+
+      if (error) {
+        console.warn('Error saving terms acceptance, continuing anyway:', error);
+      }
+
+      // Start onboarding tutorial ONLY if user is first-time
+      if (isFirstTimeUser) {
+        setTimeout(() => {
+          startOnboarding('first-time-user');
+        }, 800);
       }
     } catch (error) {
-      // Silently fail - localStorage is sufficient
-      if (import.meta.env.DEV) {
-        console.warn('Database unavailable for terms tracking. Using localStorage only.');
+      console.warn('Database error during terms acceptance, continuing anyway:', error);
+      // Continue with onboarding even if database fails
+      if (isFirstTimeUser) {
+        setTimeout(() => {
+          startOnboarding('first-time-user');
+        }, 800);
       }
-    }
-
-    // Start onboarding after terms acceptance if first-time user
-    if (isFirstTimeUser) {
-      setTimeout(() => {
-        startOnboarding('first-time-user');
-      }, 500);
     }
   };
 
@@ -461,7 +363,6 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     previousStep,
     skipOnboarding,
     completeOnboarding,
-    markAsExperienced,
     acceptTerms,
     declineTerms
   };

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { getNetworkConfig, shouldUseMockData } from "@/lib/networkUtils";
 
 export interface WeatherData {
   temperature: number; // Celsius
@@ -17,6 +18,47 @@ export const useWeather = (location?: string) => {
   const [locationPermission, setLocationPermission] = useState<
     "granted" | "denied" | "prompt" | "unavailable"
   >("prompt");
+
+  // Generate realistic weather based on location and time
+  const generateMockWeather = (locationName?: string): WeatherData => {
+    const hour = new Date().getHours();
+    const isDay = hour >= 6 && hour <= 18;
+    const season = Math.floor((new Date().getMonth() + 1) / 3); // 0=winter, 1=spring, 2=summer, 3=fall
+
+    // Base temperature on season and time
+    let baseTemp = 20; // Spring/Fall default
+    if (season === 0) baseTemp = 8;  // Winter
+    if (season === 2) baseTemp = 28; // Summer
+
+    // Add some randomness and time variation
+    const tempVariation = (Math.random() - 0.5) * 8;
+    const timeVariation = isDay ? 3 : -3;
+    const temperature = Math.round(baseTemp + tempVariation + timeVariation);
+
+    // Choose condition based on season and randomness
+    const conditions = ['clear', 'clouds', 'rain'];
+    const weights = season === 0 ? [0.3, 0.5, 0.2] : season === 2 ? [0.6, 0.3, 0.1] : [0.4, 0.4, 0.2];
+    const random = Math.random();
+    let condition = 'clear';
+    let cumulative = 0;
+    for (let i = 0; i < conditions.length; i++) {
+      cumulative += weights[i];
+      if (random <= cumulative) {
+        condition = conditions[i];
+        break;
+      }
+    }
+
+    return {
+      temperature,
+      condition,
+      humidity: Math.round(40 + Math.random() * 40), // 40-80%
+      windSpeed: Math.round(2 + Math.random() * 15), // 2-17 km/h
+      description: `${condition.charAt(0).toUpperCase() + condition.slice(1)} conditions${locationName ? ` in ${locationName}` : ''}`,
+      location: locationName || location || "Your area",
+      source: "default",
+    };
+  };
 
   const getCurrentPosition = (): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
@@ -57,18 +99,29 @@ export const useWeather = (location?: string) => {
     longitude: number,
     locationName?: string,
   ) => {
-    let timeoutId: number | null = null;
     const controller = new AbortController();
+    let timeoutId: NodeJS.Timeout | null = null;
 
     try {
-      // Add timeout for weather API as well
-      timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      // Add timeout for weather API with better cleanup
+      timeoutId = setTimeout(() => {
+        controller.abort();
+      }, networkConfig.weatherTimeout);
 
       const weatherRes = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m,precipitation,weathercode,windspeed_10m&timezone=auto`,
-        { signal: controller.signal },
+        {
+          signal: controller.signal,
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache',
+          }
+        },
       );
 
+      // Clear timeout immediately after successful fetch
       if (timeoutId) {
         clearTimeout(timeoutId);
         timeoutId = null;
@@ -137,15 +190,31 @@ export const useWeather = (location?: string) => {
       setWeather(realWeather);
       setError(null);
     } catch (err: any) {
-      // Clean up timeout if still active
+      // Always clean up timeout if still active
       if (timeoutId) {
         clearTimeout(timeoutId);
+        timeoutId = null;
       }
 
+      // Comprehensive error handling for different error types
       if (err.name === "AbortError") {
-        throw new Error("Weather request timed out");
+        console.warn("Weather API request was aborted (likely timeout)");
+        throw new Error("Weather request timed out - please try again");
+      } else if (
+        err.message?.includes("Failed to fetch") ||
+        err.message?.includes("NetworkError") ||
+        err.message?.includes("CORS") ||
+        err.message?.includes("blocked") ||
+        err.name === "TypeError"
+      ) {
+        console.warn("Network/CORS error accessing weather API:", err.message);
+        throw new Error("Weather service temporarily unavailable");
+      } else if (err.message?.includes("404") || err.message?.includes("Not Found")) {
+        throw new Error("Weather data not available for this location");
+      } else {
+        console.error("Unexpected weather API error:", err);
+        throw new Error("Weather service error - using default conditions");
       }
-      throw new Error(`Failed to fetch weather data: ${err.message}`);
     }
   };
 
@@ -188,11 +257,16 @@ export const useWeather = (location?: string) => {
       try {
         console.log(`Trying alternative location: ${altLocation}`);
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const timeoutId: NodeJS.Timeout = setTimeout(() => controller.abort(), 3000); // Fast timeout
 
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(altLocation)}&count=1&language=en&format=json`,
-          { signal: controller.signal },
+          {
+            signal: controller.signal,
+            headers: {
+              'Cache-Control': 'no-cache',
+            }
+          },
         );
 
         clearTimeout(timeoutId);
@@ -213,9 +287,21 @@ export const useWeather = (location?: string) => {
     return null;
   };
 
-  const fetchWeather = async (userLocation?: string) => {
+  const fetchWeather = async (userLocation?: string, retryCount = 0) => {
     setLoading(true);
     setError(null);
+
+    const networkConfig = getNetworkConfig();
+
+    // Use mock weather immediately in restrictive environments
+    if (shouldUseMockData()) {
+      console.log("Using mock weather due to restrictive network environment");
+      const mockWeather = generateMockWeather(userLocation || location);
+      setWeather(mockWeather);
+      setError("Using simulated weather in this environment.");
+      setLoading(false);
+      return;
+    }
 
     try {
       // ALWAYS try to get user's GPS location first (this will prompt for permission)
@@ -249,14 +335,22 @@ export const useWeather = (location?: string) => {
 
             // Geocode city name to lat/lon using Open-Meteo's geocoding API
       const controller = new AbortController();
-      let timeoutId: number | null = null;
+      let timeoutId: NodeJS.Timeout | null = null;
 
       try {
-        timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        timeoutId = setTimeout(() => controller.abort(), 4000); // 4 second timeout - fail fast
 
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationToUse)}&count=1&language=en&format=json`,
-          { signal: controller.signal },
+          {
+            signal: controller.signal,
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache',
+            }
+          },
         );
 
         if (timeoutId) {
@@ -317,36 +411,41 @@ export const useWeather = (location?: string) => {
           clearTimeout(timeoutId);
         }
 
-        // Handle specific error types
+        // Handle specific geocoding error types
         if (geocodingError.name === "AbortError") {
-          throw new Error("Weather service request timed out");
-        } else if (geocodingError.message?.includes("Failed to fetch")) {
-          throw new Error("Network error - unable to reach weather service");
+          throw new Error("Location lookup timed out");
+        } else if (
+          geocodingError.message?.includes("Failed to fetch") ||
+          geocodingError.message?.includes("NetworkError") ||
+          geocodingError.message?.includes("CORS") ||
+          geocodingError.name === "TypeError"
+        ) {
+          console.warn("Network error during location lookup:", geocodingError.message);
+          throw new Error("Location service temporarily unavailable");
         } else {
           throw geocodingError;
         }
       }
     } catch (err: any) {
-      console.error(
-        "Weather fetch error:",
-        err instanceof Error ? err.message : String(err),
-      );
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error("Weather fetch error:", errorMessage);
 
-      // Provide default weather data as final fallback
-      const defaultWeather: WeatherData = {
-        temperature: 22, // Comfortable default temperature
-        condition: "clear",
-        humidity: 60,
-        windSpeed: 5,
-        description: "Weather data unavailable - using default conditions",
-        location: userLocation || location || "Unknown location",
-        source: "default",
-      };
+      // Skip retries in restrictive environments - use mock weather immediately
+      console.log("Weather API failed, using simulated weather immediately");
 
-      setWeather(defaultWeather);
-      setError(
-        "Using default weather conditions. Location-specific weather not available.",
-      );
+      // Use realistic mock weather as final fallback
+      const mockWeather = generateMockWeather(userLocation || location);
+      setWeather(mockWeather);
+
+      if (errorMessage.includes("temporarily unavailable") || errorMessage.includes("Network")) {
+        setError("Weather service is offline. Showing simulated conditions based on your location and season.");
+      } else {
+        setError(
+          retryCount > 0
+            ? "Weather service is having issues. Using simulated weather conditions."
+            : "Using simulated weather conditions. Real-time data unavailable.",
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -374,15 +473,23 @@ export const useWeather = (location?: string) => {
 
   const getWeatherStatus = () => {
     if (loading) return "Loading weather data...";
-    if (error) return "Weather information not available";
+    if (error) {
+      if (error.includes("offline") || error.includes("No internet")) {
+        return "Offline - simulated weather";
+      } else if (error.includes("temporarily unavailable")) {
+        return "Service offline - simulated weather";
+      } else {
+        return "Using simulated weather";
+      }
+    }
     if (weather) {
       switch (weather.source) {
         case "gps":
-          return `Weather data from your location`;
+          return `Live weather from your location`;
         case "profile":
-          return `Weather data from your profile location`;
+          return `Live weather from your profile location`;
         case "default":
-          return `Weather data from default location`;
+          return error ? "Simulated weather conditions" : `Weather data from default location`;
         default:
           return "Weather data available";
       }

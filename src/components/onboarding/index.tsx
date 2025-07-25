@@ -1,4 +1,3 @@
 export { OnboardingProvider, useOnboarding } from './OnboardingProvider';
-export { OnboardingOverlay } from './OnboardingOverlay';
-export { EnhancedOnboardingOverlay } from './EnhancedOnboardingOverlay';
+export { ProfessionalTutorialOverlay } from './ProfessionalTutorialOverlay';
 export { TermsAcceptanceModal } from './TermsAcceptanceModal';

@@ -149,44 +149,45 @@ const Index = () => {
           
           <div className="relative z-10 max-w-6xl mx-auto text-center">
             <div className="animate-fade-in-up">
-              <Badge variant="secondary" className="mb-8 px-6 py-3 text-lg font-semibold bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-0">
-                <Crown className="mr-2 h-5 w-5" />
-                The Future of Personal Styling
+              <Badge variant="secondary" className="mb-8 px-6 py-3 text-lg font-semibold bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-0 animate-pulse">
+                <Sparkles className="mr-2 h-5 w-5 animate-pulse" />
+                AI-Powered Fashion Revolution
               </Badge>
             </div>
-            
+
             <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <h1 className="text-6xl md:text-7xl lg:text-8xl font-heading mb-8 bg-gradient-to-r from-purple-900 via-purple-700 to-pink-700 bg-clip-text text-transparent leading-tight">
-                Your AI Style
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-heading mb-8 bg-gradient-to-r from-purple-900 via-purple-700 to-pink-700 bg-clip-text text-transparent leading-tight">
+                Your Perfect Style
                 <br />
-                <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Revolution</span>
+                <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Starts Here</span>
               </h1>
             </div>
 
             <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light">
-                Discover your perfect style with <span className="font-semibold text-purple-700">AI-powered outfit recommendations</span>,
-                smart wardrobe organization, and personalized insights that evolve with your unique taste.
+              <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light px-4">
+                Discover colors that make you glow, organize your wardrobe effortlessly, and get
+                <span className="font-semibold text-purple-700"> personalized outfit recommendations</span> that match your style,
+                weather, and occasion. Transform how you dress with smart technology.
               </p>
             </div>
 
-            <div className="animate-fade-in-up flex flex-col sm:flex-row gap-6 justify-center items-center" style={{ animationDelay: '0.3s' }}>
+            <div className="animate-fade-in-up flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center px-4" style={{ animationDelay: '0.3s' }}>
               <Button
                 size="lg"
-                className="btn-premium text-xl px-12 py-6 text-white shadow-glow hover:scale-105 transform transition-all duration-300"
+                className="btn-premium text-lg md:text-xl px-8 md:px-12 py-4 md:py-6 text-white shadow-glow hover:scale-105 transform transition-all duration-300 w-full sm:w-auto"
                 onClick={() => navigate('/auth')}
               >
-                <Sparkles className="mr-3 h-6 w-6" />
-                Start Your Style Journey
-                <ArrowRight className="ml-3 h-6 w-6" />
+                <Palette className="mr-3 h-5 w-5 md:h-6 md:w-6" />
+                Start Color Analysis
+                <ArrowRight className="ml-3 h-5 w-5 md:h-6 md:w-6" />
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="text-xl px-12 py-6 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 hover:scale-105 transition-all duration-300"
+                className="text-lg md:text-xl px-8 md:px-12 py-4 md:py-6 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 hover:scale-105 transition-all duration-300 bg-white/90 backdrop-blur-sm w-full sm:w-auto"
                 onClick={() => window.scrollTo({ top: document.getElementById('how-it-works')?.offsetTop || 800, behavior: 'smooth' })}
               >
-                <Camera className="mr-3 h-6 w-6" />
+                <Camera className="mr-3 h-5 w-5 md:h-6 md:w-6" />
                 See How It Works
               </Button>
             </div>
@@ -207,9 +208,9 @@ const Index = () => {
         </section>
 
         {/* Stats Section */}
-        <section className="py-20 bg-white/50 backdrop-blur-sm border-y border-purple-100">
+        <section className="py-12 md:py-20 bg-white/50 backdrop-blur-sm border-y border-purple-100">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
@@ -490,67 +491,115 @@ const Index = () => {
         </section>
 
         {/* Footer */}
-        <footer className="py-12 px-4 bg-white/10 backdrop-blur-sm border-t border-white/20">
+        <footer className="py-16 px-4 bg-gray-900 dark:bg-gray-950">
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="col-span-2">
-                <div className="flex items-center space-x-3 mb-4">
-                  <img
-                    src="https://i.ibb.co/cSpbSRn7/logo.png"
-                    alt="DripMuse Logo"
-                    className="w-8 h-8 object-contain"
-                  />
-                  <span className="text-xl font-bold text-white">DripMuse</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+              <div className="lg:col-span-2">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                    <Sparkles className="h-6 w-6 text-white" />
+                  </div>
+                  <span className="text-2xl font-bold text-white">DripMuse</span>
                 </div>
-                <p className="text-white/80 text-sm leading-relaxed max-w-md">
-                  Your AI-powered personal fashion stylist. Transform your wardrobe with intelligent
-                  recommendations, color analysis, and style insights.
+                <p className="text-gray-300 text-base leading-relaxed max-w-md mb-6">
+                  Transform your style with AI-powered outfit recommendations, smart wardrobe management,
+                  and personalized color analysis. Join thousands discovering their perfect look.
                 </p>
+                <div className="flex space-x-4">
+                  <div className="flex items-center text-gray-400 text-sm">
+                    <Shield className="h-4 w-4 mr-2" />
+                    Privacy Protected
+                  </div>
+                  <div className="flex items-center text-gray-400 text-sm">
+                    <Clock className="h-4 w-4 mr-2" />
+                    24/7 Support
+                  </div>
+                </div>
               </div>
 
               <div>
-                <h4 className="font-semibold text-white mb-4">Legal</h4>
-                <ul className="space-y-2">
+                <h4 className="font-semibold text-white mb-4 text-lg">Features</h4>
+                <ul className="space-y-3">
+                  <li>
+                    <div className="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer flex items-center">
+                      <Palette className="h-4 w-4 mr-2 text-purple-400" />
+                      Color Analysis
+                    </div>
+                  </li>
+                  <li>
+                    <div className="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer flex items-center">
+                      <Shirt className="h-4 w-4 mr-2 text-blue-400" />
+                      Digital Wardrobe
+                    </div>
+                  </li>
+                  <li>
+                    <div className="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer flex items-center">
+                      <Sparkles className="h-4 w-4 mr-2 text-pink-400" />
+                      Style Recommendations
+                    </div>
+                  </li>
+                  <li>
+                    <div className="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer flex items-center">
+                      <BarChart3 className="h-4 w-4 mr-2 text-emerald-400" />
+                      Style Analytics
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-4 text-lg">Company</h4>
+                <ul className="space-y-3">
                   <li>
                     <button
                       onClick={() => navigate('/terms')}
-                      className="text-white/70 hover:text-white text-sm transition-colors"
+                      className="text-gray-300 hover:text-white text-sm transition-colors text-left"
                     >
-                      Terms of Use
+                      Terms of Service
                     </button>
                   </li>
                   <li>
                     <button
                       onClick={() => navigate('/privacy')}
-                      className="text-white/70 hover:text-white text-sm transition-colors"
+                      className="text-gray-300 hover:text-white text-sm transition-colors text-left"
                     >
                       Privacy Policy
                     </button>
                   </li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-white mb-4">Support</h4>
-                <ul className="space-y-2">
                   <li>
-                    <span className="text-white/70 text-sm">
-                      support@dripmuse.com
-                    </span>
+                    <a href="mailto:support@dripmuse.com" className="text-gray-300 hover:text-white text-sm transition-colors">
+                      Contact Support
+                    </a>
                   </li>
                   <li>
-                    <span className="text-white/70 text-sm">
-                      Available 24/7
-                    </span>
+                    <a href="mailto:hello@dripmuse.com" className="text-gray-300 hover:text-white text-sm transition-colors">
+                      General Inquiries
+                    </a>
                   </li>
                 </ul>
               </div>
             </div>
 
-            <div className="border-t border-white/20 mt-8 pt-8 text-center">
-              <p className="text-white/60 text-sm">
-                © 2024 DripMuse. All rights reserved. AI-powered fashion styling platform.
-              </p>
+            <div className="border-t border-gray-700 pt-8">
+              <div className="flex flex-col sm:flex-row justify-between items-center">
+                <p className="text-gray-400 text-sm mb-4 sm:mb-0">
+                  © 2024 DripMuse. All rights reserved. Built with ❤️ for fashion enthusiasts.
+                </p>
+                <div className="flex space-x-6">
+                  <span className="text-gray-400 text-xs flex items-center">
+                    <Brain className="h-3 w-3 mr-1" />
+                    AI-Powered
+                  </span>
+                  <span className="text-gray-400 text-xs flex items-center">
+                    <Smartphone className="h-3 w-3 mr-1" />
+                    Mobile-First
+                  </span>
+                  <span className="text-gray-400 text-xs flex items-center">
+                    <Heart className="h-3 w-3 mr-1" />
+                    Made with Love
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </footer>

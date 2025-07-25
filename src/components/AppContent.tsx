@@ -1,6 +1,6 @@
 import React from 'react';
 import { useOnboarding } from './onboarding/OnboardingProvider';
-import { EnhancedOnboardingOverlay } from './onboarding/EnhancedOnboardingOverlay';
+import { ProfessionalTutorialOverlay } from './onboarding/ProfessionalTutorialOverlay';
 import { TermsAcceptanceModal } from './onboarding/TermsAcceptanceModal';
 
 interface AppContentProps {
@@ -8,21 +8,25 @@ interface AppContentProps {
 }
 
 export const AppContent: React.FC<AppContentProps> = ({ children }) => {
-  const { needsTermsAcceptance, acceptTerms, declineTerms } = useOnboarding();
+  const { needsTermsAcceptance, acceptTerms, declineTerms, isActive: isOnboardingActive } = useOnboarding();
 
   return (
     <>
       {children}
-      
+
       {/* Terms Acceptance Modal - shows first for new users */}
-      <TermsAcceptanceModal
-        isOpen={needsTermsAcceptance}
-        onAccept={acceptTerms}
-        onDecline={declineTerms}
-      />
-      
-      {/* Enhanced Onboarding Overlay - shows after terms acceptance */}
-      <EnhancedOnboardingOverlay />
+      {needsTermsAcceptance && (
+        <TermsAcceptanceModal
+          isOpen={needsTermsAcceptance}
+          onAccept={acceptTerms}
+          onDecline={declineTerms}
+        />
+      )}
+
+      {/* Professional Tutorial Overlay - shows ONLY after terms acceptance and when not showing terms */}
+      {!needsTermsAcceptance && isOnboardingActive && (
+        <ProfessionalTutorialOverlay />
+      )}
     </>
   );
 };
