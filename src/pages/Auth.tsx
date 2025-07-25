@@ -15,21 +15,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
   ArrowRight,
   Check,
   AlertCircle,
   Heart,
   Stars,
   Zap,
-  ArrowLeft,
-  Send,
   Timer,
-  Shield,
   User,
   CheckCircle2
 } from "lucide-react";
