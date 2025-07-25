@@ -322,18 +322,18 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
       >
         <Card className="bg-white/95 backdrop-blur-md border shadow-lg overflow-hidden max-w-sm">
           {/* Header with step info */}
-          <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
-            <div className="flex items-center justify-between mb-2">
-              <Badge variant="secondary" className="bg-white/20 text-white border-0">
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 text-white">
+            <div className="flex items-center justify-between mb-1">
+              <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs">
                 <Target className="mr-1 h-3 w-3" />
                 Step {currentStepIndex + 1}
               </Badge>
               <div className="flex items-center gap-1 text-xs text-white/80">
                 <Eye className="h-3 w-3" />
-                Interactive Tutorial
+                Interactive
               </div>
             </div>
-            <h3 className="text-lg font-bold">{currentStep.title}</h3>
+            <h3 className="text-base font-semibold">{currentStep.title}</h3>
           </div>
           
           <CardContent className="p-6">
