@@ -8,23 +8,29 @@ interface AppContentProps {
 }
 
 export const AppContent: React.FC<AppContentProps> = ({ children }) => {
-  const { needsTermsAcceptance, acceptTerms, declineTerms, isActive: isOnboardingActive } = useOnboarding();
+  const { 
+    needsTermsAcceptance, 
+    acceptTerms, 
+    declineTerms, 
+    isActive: isOnboardingActive,
+    termsAccepted 
+  } = useOnboarding();
 
   return (
     <>
       {children}
 
-      {/* Terms Acceptance Modal - shows first for new users */}
-      {needsTermsAcceptance && (
+      {/* Terms Acceptance Modal - shows ONLY when terms haven't been accepted */}
+      {needsTermsAcceptance && !termsAccepted && (
         <TermsAcceptanceModal
-          isOpen={needsTermsAcceptance}
+          isOpen={true}
           onAccept={acceptTerms}
           onDecline={declineTerms}
         />
       )}
 
-      {/* Professional Tutorial Overlay - shows ONLY after terms acceptance and when not showing terms */}
-      {!needsTermsAcceptance && isOnboardingActive && (
+      {/* Tutorial Overlay - shows ONLY when terms are accepted AND onboarding is active */}
+      {termsAccepted && !needsTermsAcceptance && isOnboardingActive && (
         <ProfessionalTutorialOverlay />
       )}
     </>
