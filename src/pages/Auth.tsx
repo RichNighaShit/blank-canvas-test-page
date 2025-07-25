@@ -322,7 +322,7 @@ const Auth: React.FC = () => {
         <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center p-12 text-center">
           <div className="max-w-md space-y-8">
             <div className="flex items-center justify-center mb-8">
-              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl p-4">
+              <div className="w-24 h-24 bg-white  flex items-center justify-center shadow-2xl p-4">
                 <img
                   src="https://i.ibb.co/cSpbSRn7/logo.png"
                   alt="DripMuse Logo"
