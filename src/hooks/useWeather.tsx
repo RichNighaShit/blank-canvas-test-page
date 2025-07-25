@@ -417,15 +417,8 @@ export const useWeather = (location?: string) => {
       const errorMessage = err instanceof Error ? err.message : String(err);
       console.error("Weather fetch error:", errorMessage);
 
-      // Retry logic for timeout errors (max 2 retries)
-      if (retryCount < 2 && (errorMessage.includes("timeout") || errorMessage.includes("timed out"))) {
-        console.log(`Retrying weather fetch (attempt ${retryCount + 1}/2)...`);
-        // Wait a bit before retrying
-        setTimeout(() => {
-          fetchWeather(userLocation, retryCount + 1);
-        }, 2000);
-        return;
-      }
+      // Skip retries in restrictive environments - use mock weather immediately
+      console.log("Weather API failed, using simulated weather immediately");
 
       // Use realistic mock weather as final fallback
       const mockWeather = generateMockWeather(userLocation || location);
