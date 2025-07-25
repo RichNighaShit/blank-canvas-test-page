@@ -152,15 +152,8 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
 
     const timer = setTimeout(updatePositions, 150);
     
-    // Set up auto-advance for info steps
-    if (!currentStep.targetSelector) {
-      const autoTimer = setTimeout(() => {
-        if (!isPaused) {
-          handleNext();
-        }
-      }, 6000);
-      setAutoAdvanceTimer(autoTimer);
-    }
+    // Removed auto-advance for better user control
+    // Users should manually progress through tutorial steps
     
     window.addEventListener('resize', updatePositions);
     
