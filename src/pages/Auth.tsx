@@ -446,13 +446,11 @@ const Auth: React.FC = () => {
             <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-lg">
               <CardHeader className="text-center space-y-4 pb-8">
                 <div className="lg:hidden flex items-center justify-center mb-4">
-                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg p-3">
-                    <img
-                      src="https://i.ibb.co/cSpbSRn7/logo.png"
-                      alt="DripMuse Logo"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
+                  <img
+                    src="https://i.ibb.co/cSpbSRn7/logo.png"
+                    alt="DripMuse Logo"
+                    className="w-20 h-20 object-contain drop-shadow-lg"
+                  />
                 </div>
                 
                 <div>
