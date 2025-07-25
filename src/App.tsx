@@ -2,8 +2,8 @@ import React, { Suspense } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { PerformanceDashboard } from "./components/PerformanceDashboard";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
-import { OnboardingProvider } from "./components/onboarding";
-import { AppContent } from "./components/AppContent";
+import { CleanOnboardingProvider } from "./components/onboarding/CleanOnboardingProvider";
+import { CleanAppContent } from "./components/CleanAppContent";
 import NetworkStatus from "./components/NetworkStatus";
 import HomePage from "./components/HomePage";
 import Auth from "./pages/Auth"; // Regular import to avoid dynamic import issues
@@ -47,8 +47,8 @@ const PageLoader = () => (
 function App() {
   return (
     <RouteErrorBoundary>
-      <OnboardingProvider>
-        <AppContent>
+      <CleanOnboardingProvider>
+        <CleanAppContent>
           <div className="min-h-screen bg-background">
             <NetworkStatus />
         <Routes>
@@ -190,8 +190,8 @@ function App() {
           {/* Performance Dashboard - Development Only */}
           {import.meta.env.DEV && <PerformanceDashboard />}
         </div>
-      </AppContent>
-    </OnboardingProvider>
+      </CleanAppContent>
+    </CleanOnboardingProvider>
     </RouteErrorBoundary>
   );
 }
