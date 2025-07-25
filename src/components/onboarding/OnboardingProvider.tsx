@@ -111,6 +111,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
   const [isActive, setIsActive] = useState(false);
   const [currentFlow, setCurrentFlow] = useState<OnboardingFlow | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [hasStartedTutorial, setHasStartedTutorial] = useState(false);
 
   // Auto-start tutorial when appropriate
   useEffect(() => {
