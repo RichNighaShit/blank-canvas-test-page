@@ -346,7 +346,6 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     previousStep,
     skipOnboarding,
     completeOnboarding,
-    markAsExperienced,
     acceptTerms,
     declineTerms
   };
