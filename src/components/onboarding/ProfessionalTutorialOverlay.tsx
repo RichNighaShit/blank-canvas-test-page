@@ -245,7 +245,7 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
           
           <path
             d={createSpotlightMask()}
-            fill="rgba(0, 0, 0, 0.4)"
+            fill="rgba(0, 0, 0, 0.2)"
             fillRule="evenodd"
           />
           
