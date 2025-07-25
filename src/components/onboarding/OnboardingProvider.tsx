@@ -218,16 +218,37 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     }
   };
 
-  const skipOnboarding = () => {
-    // Clear session flag
-    if (user) {
-      sessionStorage.removeItem(`onboarding_session_${user.id}`);
+  const skipOnboarding = async () => {
+    if (!user) return;
+
+    try {
+      // Mark tutorial as skipped in database
+      const { error } = await supabase
+        .from('user_onboarding')
+        .upsert({
+          user_id: user.id,
+          tutorial_skipped: true,
+          onboarding_completed: true,
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) {
+        console.error('Error saving tutorial skip:', error);
+      }
+    } catch (error) {
+      console.error('Database error during tutorial skip:', error);
     }
+
+    // Clear session flag
+    sessionStorage.removeItem(`onboarding_session_${user.id}`);
 
     setIsActive(false);
     setCurrentFlow(null);
     setCurrentStepIndex(0);
-    markAsExperienced();
+    setIsFirstTimeUser(false);
   };
 
   const completeOnboarding = async () => {
