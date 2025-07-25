@@ -36,7 +36,7 @@ export const useAuth = () => {
     const getInitialSession = async () => {
       try {
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Auth timeout')), 8000)
+          setTimeout(() => reject(new Error('Auth timeout')), 3000) // Shorter timeout
         );
 
         const authPromise = supabase.auth.getSession();
