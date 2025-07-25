@@ -32,12 +32,17 @@ export const useAuth = () => {
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session
+    // Get initial session with timeout and retry
     const getInitialSession = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Auth timeout')), 8000)
+        );
+
+        const authPromise = supabase.auth.getSession();
+
+        const { data: { session } } = await Promise.race([authPromise, timeoutPromise]) as any;
+
         if (mounted) {
           setSession(session);
           setUser(session?.user ?? null);
@@ -52,6 +57,9 @@ export const useAuth = () => {
           },
         });
         if (mounted) {
+          // Still set loading to false even on error
+          setSession(null);
+          setUser(null);
           setLoading(false);
         }
       }
