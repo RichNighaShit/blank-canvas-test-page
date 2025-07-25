@@ -75,6 +75,12 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
   return (
     <Dialog open={isOpen} modal>
       <DialogContent className="max-w-2xl max-h-[90vh] w-[95vw] sm:w-full p-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Terms and Privacy Acceptance</DialogTitle>
+          <DialogDescription>
+            Please review and accept our terms of use and privacy policy to continue using DripMuse.
+          </DialogDescription>
+        </DialogHeader>
         <div className="flex flex-col h-full max-h-[90vh]">
           <div className="p-4 sm:p-6 text-center border-b bg-gradient-to-br from-purple-50 to-pink-50">
             <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full">

@@ -363,7 +363,7 @@ export const EnhancedOnboardingOverlay: React.FC = () => {
       </div>
 
       {/* Enhanced Animation Styles */}
-      <style jsx>{`
+      <style jsx="true">{`
         @keyframes tutorialPulse {
           0%, 100% {
             opacity: 1;
