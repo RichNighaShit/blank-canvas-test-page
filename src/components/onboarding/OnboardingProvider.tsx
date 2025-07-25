@@ -287,52 +287,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     setIsFirstTimeUser(false);
   };
 
-  const markAsExperienced = async () => {
-    if (!user) return;
 
-    // Always save to localStorage first
-    localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
-
-    try {
-      // Try to save to database - attempt enhanced schema first
-      let { error: enhancedError } = await supabase
-        .from('user_onboarding')
-        .upsert({
-          user_id: user.id,
-          completed_flows: ['first-time-user'],
-          onboarding_completed: true,
-          completed_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        });
-
-      // If enhanced columns don't exist, use basic schema
-      if (enhancedError && enhancedError.message?.includes('column') && enhancedError.message?.includes('does not exist')) {
-        console.log('Using basic schema for marking as experienced');
-        await supabase
-          .from('user_onboarding')
-          .upsert({
-            user_id: user.id,
-            completed_flows: ['first-time-user'],
-            completed_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id'
-          });
-      }
-    } catch (error) {
-      // Silently fail if database is not available - localStorage is sufficient
-      if (import.meta.env.DEV) {
-        console.warn('Database unavailable for onboarding persistence. Using localStorage only.');
-      }
-    }
-
-    setIsFirstTimeUser(false);
-
-    // Clear session flag
-    if (user) {
-      sessionStorage.removeItem(`onboarding_session_${user.id}`);
-    }
-  };
 
   const acceptTerms = async () => {
     if (!user) return;
