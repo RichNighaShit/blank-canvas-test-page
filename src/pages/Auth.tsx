@@ -109,7 +109,7 @@ const Auth: React.FC = () => {
       const hasLowerCase = /[a-z]/.test(password);
       const hasNumber = /\d/.test(password);
 
-      if (authMode === 'signup') {
+      if (authMode === 'signup' || authMode === 'password-reset') {
         if (hasMinLength && hasUpperCase && hasLowerCase && hasNumber) {
           setIsPasswordValid(true);
           setPasswordError("");
@@ -201,7 +201,7 @@ const Auth: React.FC = () => {
       } else {
         setResetEmailSent(true);
         toast({
-          title: "Reset email sent! 📧",
+          title: "Reset email sent! ���",
           description: "Check your inbox for password reset instructions.",
         });
       }
