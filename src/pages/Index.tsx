@@ -490,67 +490,115 @@ const Index = () => {
         </section>
 
         {/* Footer */}
-        <footer className="py-12 px-4 bg-white/10 backdrop-blur-sm border-t border-white/20">
+        <footer className="py-16 px-4 bg-gray-900 dark:bg-gray-950">
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="col-span-2">
-                <div className="flex items-center space-x-3 mb-4">
-                  <img
-                    src="https://i.ibb.co/cSpbSRn7/logo.png"
-                    alt="DripMuse Logo"
-                    className="w-8 h-8 object-contain"
-                  />
-                  <span className="text-xl font-bold text-white">DripMuse</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+              <div className="lg:col-span-2">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                    <Sparkles className="h-6 w-6 text-white" />
+                  </div>
+                  <span className="text-2xl font-bold text-white">DripMuse</span>
                 </div>
-                <p className="text-white/80 text-sm leading-relaxed max-w-md">
-                  Your AI-powered personal fashion stylist. Transform your wardrobe with intelligent
-                  recommendations, color analysis, and style insights.
+                <p className="text-gray-300 text-base leading-relaxed max-w-md mb-6">
+                  Transform your style with AI-powered outfit recommendations, smart wardrobe management,
+                  and personalized color analysis. Join thousands discovering their perfect look.
                 </p>
+                <div className="flex space-x-4">
+                  <div className="flex items-center text-gray-400 text-sm">
+                    <Shield className="h-4 w-4 mr-2" />
+                    Privacy Protected
+                  </div>
+                  <div className="flex items-center text-gray-400 text-sm">
+                    <Clock className="h-4 w-4 mr-2" />
+                    24/7 Support
+                  </div>
+                </div>
               </div>
 
               <div>
-                <h4 className="font-semibold text-white mb-4">Legal</h4>
-                <ul className="space-y-2">
+                <h4 className="font-semibold text-white mb-4 text-lg">Features</h4>
+                <ul className="space-y-3">
+                  <li>
+                    <div className="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer flex items-center">
+                      <Palette className="h-4 w-4 mr-2 text-purple-400" />
+                      Color Analysis
+                    </div>
+                  </li>
+                  <li>
+                    <div className="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer flex items-center">
+                      <Shirt className="h-4 w-4 mr-2 text-blue-400" />
+                      Digital Wardrobe
+                    </div>
+                  </li>
+                  <li>
+                    <div className="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer flex items-center">
+                      <Sparkles className="h-4 w-4 mr-2 text-pink-400" />
+                      Style Recommendations
+                    </div>
+                  </li>
+                  <li>
+                    <div className="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer flex items-center">
+                      <BarChart3 className="h-4 w-4 mr-2 text-emerald-400" />
+                      Style Analytics
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-4 text-lg">Company</h4>
+                <ul className="space-y-3">
                   <li>
                     <button
                       onClick={() => navigate('/terms')}
-                      className="text-white/70 hover:text-white text-sm transition-colors"
+                      className="text-gray-300 hover:text-white text-sm transition-colors text-left"
                     >
-                      Terms of Use
+                      Terms of Service
                     </button>
                   </li>
                   <li>
                     <button
                       onClick={() => navigate('/privacy')}
-                      className="text-white/70 hover:text-white text-sm transition-colors"
+                      className="text-gray-300 hover:text-white text-sm transition-colors text-left"
                     >
                       Privacy Policy
                     </button>
                   </li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-white mb-4">Support</h4>
-                <ul className="space-y-2">
                   <li>
-                    <span className="text-white/70 text-sm">
-                      support@dripmuse.com
-                    </span>
+                    <a href="mailto:support@dripmuse.com" className="text-gray-300 hover:text-white text-sm transition-colors">
+                      Contact Support
+                    </a>
                   </li>
                   <li>
-                    <span className="text-white/70 text-sm">
-                      Available 24/7
-                    </span>
+                    <a href="mailto:hello@dripmuse.com" className="text-gray-300 hover:text-white text-sm transition-colors">
+                      General Inquiries
+                    </a>
                   </li>
                 </ul>
               </div>
             </div>
 
-            <div className="border-t border-white/20 mt-8 pt-8 text-center">
-              <p className="text-white/60 text-sm">
-                © 2024 DripMuse. All rights reserved. AI-powered fashion styling platform.
-              </p>
+            <div className="border-t border-gray-700 pt-8">
+              <div className="flex flex-col sm:flex-row justify-between items-center">
+                <p className="text-gray-400 text-sm mb-4 sm:mb-0">
+                  © 2024 DripMuse. All rights reserved. Built with ❤️ for fashion enthusiasts.
+                </p>
+                <div className="flex space-x-6">
+                  <span className="text-gray-400 text-xs flex items-center">
+                    <Brain className="h-3 w-3 mr-1" />
+                    AI-Powered
+                  </span>
+                  <span className="text-gray-400 text-xs flex items-center">
+                    <Smartphone className="h-3 w-3 mr-1" />
+                    Mobile-First
+                  </span>
+                  <span className="text-gray-400 text-xs flex items-center">
+                    <Heart className="h-3 w-3 mr-1" />
+                    Made with Love
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </footer>
