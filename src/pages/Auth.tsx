@@ -496,8 +496,8 @@ const Auth: React.FC = () => {
                   </div>
                 )}
 
-                {/* Back button for reset mode */}
-                {authMode === 'reset' && (
+                {/* Back button for reset and password-reset modes */}
+                {(authMode === 'reset' || authMode === 'password-reset') && (
                   <Button
                     variant="ghost"
                     onClick={() => setAuthMode('signin')}
