@@ -326,10 +326,15 @@ const Auth: React.FC = () => {
 
   const handleGoogleSignIn = async () => {
     try {
+      // Use the current domain from window.location, not just origin
+      const currentDomain = window.location.href.includes('fly.dev')
+        ? window.location.origin
+        : window.location.origin.replace(':3000', ':8080');
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth?mode=oauth-success`,
+          redirectTo: `${currentDomain}/auth?mode=oauth-success`,
         },
       });
 
