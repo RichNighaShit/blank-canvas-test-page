@@ -36,7 +36,7 @@ import {
 
 const Auth: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'reset' | 'password-reset' | 'email-verified' | 'oauth-success'>('signin');
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'email-verified' | 'oauth-success'>('signin');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
