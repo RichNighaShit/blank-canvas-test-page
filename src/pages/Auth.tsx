@@ -444,14 +444,28 @@ const Auth: React.FC = () => {
                 
                 <div>
                   <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    {authMode === 'signin' ? 'Welcome Back' : authMode === 'signup' ? 'Join DripMuse' : 'Reset Password'}
+                    {authMode === 'signin' ? 'Welcome Back'
+                     : authMode === 'signup' ? 'Join DripMuse'
+                     : authMode === 'reset' ? 'Reset Password'
+                     : authMode === 'password-reset' ? 'Set New Password'
+                     : authMode === 'email-verified' ? 'Email Verified! 🎉'
+                     : authMode === 'oauth-success' ? 'Welcome to DripMuse! 🎉'
+                     : 'Welcome Back'}
                   </CardTitle>
                   <CardDescription className="text-gray-600 mt-2">
-                    {authMode === 'signin' 
+                    {authMode === 'signin'
                       ? 'Sign in to continue your style journey'
                       : authMode === 'signup'
                       ? 'Start your personalized fashion experience'
-                      : 'Enter your email to reset your password'
+                      : authMode === 'reset'
+                      ? 'Enter your email to reset your password'
+                      : authMode === 'password-reset'
+                      ? 'Please enter your new password'
+                      : authMode === 'email-verified'
+                      ? 'Your email has been verified! Let\'s set up your profile.'
+                      : authMode === 'oauth-success'
+                      ? 'Welcome! Let\'s personalize your fashion experience.'
+                      : 'Sign in to continue your style journey'
                     }
                   </CardDescription>
                 </div>
