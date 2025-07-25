@@ -85,7 +85,7 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
 );
 
 export const OnboardingRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <RouteGuard requiresAuth={true} requiresProfile={false} allowedStages={['onboarding']}>
+  <RouteGuard requiresAuth={true} requiresProfile={false} allowedStages={['onboarding', 'terms']}>
     {children}
   </RouteGuard>
 );
