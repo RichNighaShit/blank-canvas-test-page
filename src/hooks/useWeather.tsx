@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { getNetworkConfig, shouldUseMockData } from "@/lib/networkUtils";
 
 export interface WeatherData {
   temperature: number; // Celsius
@@ -105,7 +106,7 @@ export const useWeather = (location?: string) => {
       // Add timeout for weather API with better cleanup
       timeoutId = setTimeout(() => {
         controller.abort();
-      }, 5000); // 5 second timeout - fail fast in restrictive environments
+      }, networkConfig.weatherTimeout);
 
       const weatherRes = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m,precipitation,weathercode,windspeed_10m&timezone=auto`,
@@ -289,6 +290,18 @@ export const useWeather = (location?: string) => {
   const fetchWeather = async (userLocation?: string, retryCount = 0) => {
     setLoading(true);
     setError(null);
+
+    const networkConfig = getNetworkConfig();
+
+    // Use mock weather immediately in restrictive environments
+    if (shouldUseMockData()) {
+      console.log("Using mock weather due to restrictive network environment");
+      const mockWeather = generateMockWeather(userLocation || location);
+      setWeather(mockWeather);
+      setError("Using simulated weather in this environment.");
+      setLoading(false);
+      return;
+    }
 
     try {
       // ALWAYS try to get user's GPS location first (this will prompt for permission)
