@@ -336,8 +336,8 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
             <h3 className="text-base font-semibold">{currentStep.title}</h3>
           </div>
           
-          <CardContent className="p-6">
-            <p className="text-gray-700 leading-relaxed mb-6">
+          <CardContent className="p-4">
+            <p className="text-gray-700 text-sm leading-relaxed mb-4">
               {currentStep.description}
             </p>
             
