@@ -268,6 +268,57 @@
   }
 }
 
+/* Professional tutorial animations */
+@keyframes tutorialSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tutorialSpotlight {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes tutorialBounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Tutorial spotlight enhancements */
+.tutorial-spotlight-active [data-tour] {
+  position: relative;
+  z-index: 51;
+}
+
+.tutorial-element-highlight {
+  animation: tutorialSpotlight 0.6s ease-out;
+}
+
 /* Premium scroll styles */
 ::-webkit-scrollbar {
   width: 8px;
