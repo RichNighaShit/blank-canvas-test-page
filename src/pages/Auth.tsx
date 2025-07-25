@@ -939,7 +939,7 @@ const Auth: React.FC = () => {
             )}
 
             {/* Typing Indicator */}
-            {isTyping && authMode !== 'reset' && (
+            {isTyping && (authMode === 'signin' || authMode === 'signup') && (
               <div className="flex items-center gap-2 text-xs text-gray-500 justify-center">
                 <User className="h-3 w-3 animate-pulse" />
                 <span>AI is analyzing your input...</span>
