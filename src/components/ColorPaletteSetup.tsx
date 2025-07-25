@@ -105,7 +105,7 @@ export const ColorPaletteSetup: React.FC<ColorPaletteSetupProps> = ({
         .update({
           selected_palette_id: selectedPalette.id,
           color_palette_colors: selectedPalette.complementaryColors,
-          color_season_analysis: JSON.stringify(analysisToSave)
+          color_season_analysis: analysisToSave
         })
         .eq('user_id', user.id);
 
