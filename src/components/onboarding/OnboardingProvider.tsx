@@ -48,7 +48,7 @@ export const useOnboarding = () => {
   return context;
 };
 
-// Define onboarding flows - simplified and less annoying
+// Define onboarding flows
 const onboardingFlows: OnboardingFlow[] = [
   {
     id: 'first-time-user',
@@ -57,19 +57,41 @@ const onboardingFlows: OnboardingFlow[] = [
       {
         id: 'welcome',
         title: 'Welcome to DripMuse! ✨',
-        description: 'Your AI fashion stylist is ready to help you build the perfect wardrobe. Let\'s get you started with a quick 30-second tour.',
+        description: 'Ready to transform your style? Let\'s take a quick interactive tour to show you how your AI fashion stylist works. You can interact with everything you see!',
         position: 'center'
       },
       {
-        id: 'wardrobe-intro',
-        title: 'Build Your Digital Wardrobe',
-        description: 'Upload photos of your clothes and our AI will analyze colors, styles, and organize everything for you. Click "Wardrobe" in the navigation when you\'re ready!',
+        id: 'dashboard-overview',
+        title: 'Your Style Command Center',
+        description: 'This is your personal dashboard where the magic happens. Here you\'ll find outfit recommendations, wardrobe insights, and style analytics—all powered by AI.',
+        page: '/dashboard',
         position: 'center'
+      },
+      {
+        id: 'wardrobe-setup',
+        title: 'Click Here: Build Your Digital Wardrobe',
+        description: 'Start by adding your clothes! Simply upload photos and our AI will analyze colors, styles, and create categories automatically. Click this button to try it!',
+        targetSelector: '[data-tour="wardrobe-nav"]',
+        position: 'bottom'
+      },
+      {
+        id: 'color-palette',
+        title: 'Discover Your Perfect Colors',
+        description: 'Complete a quick color analysis to discover which colors make you look amazing. Our AI will analyze your skin tone and recommend your ideal palette.',
+        targetSelector: '[data-tour="color-palette-nav"]',
+        position: 'bottom'
+      },
+      {
+        id: 'style-me',
+        title: 'Get AI-Powered Outfit Ideas',
+        description: 'Once you have some clothes uploaded, this is where you\'ll get personalized outfit recommendations based on the weather, your schedule, and your style preferences.',
+        targetSelector: '[data-tour="style-me-nav"]',
+        position: 'bottom'
       },
       {
         id: 'completion',
-        title: 'You\'re All Set! 🚀',
-        description: 'Start by uploading some clothes to your wardrobe, then explore color analysis and outfit recommendations. The more you use DripMuse, the smarter it gets!',
+        title: 'Your Style Journey Begins Now! 🚀',
+        description: 'You\'re all set to start using DripMuse! The more you interact with the app, the smarter your AI stylist becomes. Ready to build your perfect wardrobe?',
         position: 'center'
       }
     ]
@@ -252,29 +274,6 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 
       if (error) {
         console.error('Error saving onboarding completion:', error);
-      }
-
-      // Ensure basic profile exists after onboarding
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!existingProfile) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: user.id,
-            display_name: user.email?.split('@')[0] || 'User',
-            location: '',
-            culture: '',
-            preferred_style: ''
-          });
-
-        if (profileError) {
-          console.error('Error creating profile during onboarding:', profileError);
-        }
       }
     } catch (error) {
       console.error('Database error during onboarding completion:', error);

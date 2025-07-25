@@ -106,7 +106,7 @@ export const useWeather = (location?: string) => {
       // Add timeout for weather API with better cleanup
       timeoutId = setTimeout(() => {
         controller.abort();
-      }, 10000); // 10 second timeout
+      }, networkConfig.weatherTimeout);
 
       const weatherRes = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m,precipitation,weathercode,windspeed_10m&timezone=auto`,

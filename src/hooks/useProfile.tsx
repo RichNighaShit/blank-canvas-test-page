@@ -179,7 +179,8 @@ export const useProfile = () => {
         .from("profiles")
         .select("id, user_id, display_name")
         .eq("user_id", user.id)
-        .single();
+        .single()
+        .abortSignal(controller.signal);
 
       clearTimeout(timeoutId);
 
@@ -240,15 +241,8 @@ export const useProfile = () => {
         }
       } else {
         console.log("Profile fetched successfully:", data);
-        // Ensure the profile has all required fields
-        const completeProfile = {
-          ...(data as any),
-          location: (data as any).location || '',
-          culture: (data as any).culture || '',
-          preferred_style: (data as any).preferred_style || ''
-        };
-        setProfile(completeProfile);
-        profileCache[user.id] = completeProfile;
+        setProfile(data);
+        profileCache[user.id] = data;
 
         // Save to localStorage for offline fallback
         try {
