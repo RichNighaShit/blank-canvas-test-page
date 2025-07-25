@@ -152,15 +152,8 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
 
     const timer = setTimeout(updatePositions, 150);
     
-    // Set up auto-advance for info steps
-    if (!currentStep.targetSelector) {
-      const autoTimer = setTimeout(() => {
-        if (!isPaused) {
-          handleNext();
-        }
-      }, 6000);
-      setAutoAdvanceTimer(autoTimer);
-    }
+    // Removed auto-advance for better user control
+    // Users should manually progress through tutorial steps
     
     window.addEventListener('resize', updatePositions);
     
@@ -252,7 +245,7 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
           
           <path
             d={createSpotlightMask()}
-            fill="rgba(0, 0, 0, 0.4)"
+            fill="rgba(0, 0, 0, 0.2)"
             fillRule="evenodd"
           />
           
@@ -327,34 +320,24 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
           maxWidth: currentStep.targetSelector ? '400px' : '500px'
         }}
       >
-        <Card className="bg-white/98 backdrop-blur-lg border-0 shadow-2xl overflow-hidden">
+        <Card className="bg-white/95 backdrop-blur-md border shadow-lg overflow-hidden max-w-sm">
           {/* Header with step info */}
-          <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
-            <div className="flex items-center justify-between mb-2">
-              <Badge variant="secondary" className="bg-white/20 text-white border-0">
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 text-white">
+            <div className="flex items-center justify-between mb-1">
+              <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs">
                 <Target className="mr-1 h-3 w-3" />
                 Step {currentStepIndex + 1}
               </Badge>
-              {!currentStep.targetSelector && !isPaused && (
-                <div className="flex items-center gap-1 text-xs text-white/80">
-                  <Eye className="h-3 w-3" />
-                  Auto-advancing...
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handlePause}
-                    className="h-5 w-5 p-0 text-white/80 hover:text-white ml-1"
-                  >
-                    <PauseCircle className="h-3 w-3" />
-                  </Button>
-                </div>
-              )}
+              <div className="flex items-center gap-1 text-xs text-white/80">
+                <Eye className="h-3 w-3" />
+                Interactive
+              </div>
             </div>
-            <h3 className="text-lg font-bold">{currentStep.title}</h3>
+            <h3 className="text-base font-semibold">{currentStep.title}</h3>
           </div>
           
-          <CardContent className="p-6">
-            <p className="text-gray-700 leading-relaxed mb-6">
+          <CardContent className="p-4">
+            <p className="text-gray-700 text-sm leading-relaxed mb-4">
               {currentStep.description}
             </p>
             

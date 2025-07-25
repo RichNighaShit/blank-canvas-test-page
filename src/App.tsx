@@ -7,6 +7,7 @@ import { AppContent } from "./components/AppContent";
 import NetworkStatus from "./components/NetworkStatus";
 import HomePage from "./components/HomePage";
 import Auth from "./pages/Auth"; // Regular import to avoid dynamic import issues
+import { PublicRoute, AuthenticatedRoute, ProtectedRoute, OnboardingRoute } from "./components/RouteGuard";
 
 // Lazy load components for better bundle splitting
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
@@ -52,131 +53,127 @@ function App() {
           <div className="min-h-screen bg-background">
             <NetworkStatus />
         <Routes>
-          {/* Auth route loads immediately without lazy loading */}
-          <Route path="/auth" element={<Auth />} />
+          {/* Public routes */}
+          <Route path="/auth" element={
+            <PublicRoute>
+              <Auth />
+            </PublicRoute>
+          } />
 
-          {/* All other routes with Suspense for lazy loading */}
-          <Route
-            path="/"
-            element={<HomePage />}
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <Dashboard />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/wardrobe"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <Wardrobe />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/wardrobe-setup"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <WardrobeSetup />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/edit-profile"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <EditProfile />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/profile/palette"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <YourColorPalette />
-              </Suspense>
-            }
-          />
+          <Route path="/" element={
+            <PublicRoute>
+              <HomePage />
+            </PublicRoute>
+          } />
 
-          <Route
-            path="/recommendations"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <StyleRecommendations />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/style-me"
-            element={<Navigate to="/recommendations" replace />}
-          />
-          <Route
-            path="/analytics"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <Analytics />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/wardrobe-analytics"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <WardrobeAnalyticsPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/virtual-try-on"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <VirtualTryOn />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/style-me-improved"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <StyleMeImproved />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/onboarding"
-            element={
+          {/* Onboarding route */}
+          <Route path="/onboarding" element={
+            <OnboardingRoute>
               <Suspense fallback={<PageLoader />}>
                 <Onboarding />
               </Suspense>
-            }
-          />
-          <Route
-            path="/index"
-            element={
+            </OnboardingRoute>
+          } />
+
+          {/* Protected routes requiring complete profile */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
               <Suspense fallback={<PageLoader />}>
-                <Index />
+                <Dashboard />
               </Suspense>
-            }
-          />
-          <Route
-            path="/terms"
-            element={
+            </ProtectedRoute>
+          } />
+          <Route path="/wardrobe" element={
+            <ProtectedRoute>
               <Suspense fallback={<PageLoader />}>
-                <TermsOfUsePage />
+                <Wardrobe />
               </Suspense>
-            }
-          />
-          <Route
-            path="/privacy"
-            element={
+            </ProtectedRoute>
+          } />
+
+          <Route path="/wardrobe-setup" element={
+            <ProtectedRoute>
               <Suspense fallback={<PageLoader />}>
-                <PrivacyPolicyPage />
+                <WardrobeSetup />
               </Suspense>
-            }
-          />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/edit-profile" element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <EditProfile />
+              </Suspense>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/profile/palette" element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <YourColorPalette />
+              </Suspense>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/recommendations" element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <StyleRecommendations />
+              </Suspense>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/style-me" element={<Navigate to="/recommendations" replace />} />
+
+          <Route path="/analytics" element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <Analytics />
+              </Suspense>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/wardrobe-analytics" element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <WardrobeAnalyticsPage />
+              </Suspense>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/virtual-try-on" element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <VirtualTryOn />
+              </Suspense>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/style-me-improved" element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <StyleMeImproved />
+              </Suspense>
+            </ProtectedRoute>
+          } />
+          {/* Public/Legal pages */}
+          <Route path="/index" element={
+            <Suspense fallback={<PageLoader />}>
+              <Index />
+            </Suspense>
+          } />
+
+          <Route path="/terms" element={
+            <Suspense fallback={<PageLoader />}>
+              <TermsOfUsePage />
+            </Suspense>
+          } />
+
+          <Route path="/privacy" element={
+            <Suspense fallback={<PageLoader />}>
+              <PrivacyPolicyPage />
+            </Suspense>
+          } />
           <Route
             path="*"
             element={

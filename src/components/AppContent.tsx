@@ -1,30 +1,35 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useOnboarding } from './onboarding/OnboardingProvider';
 import { ProfessionalTutorialOverlay } from './onboarding/ProfessionalTutorialOverlay';
 import { TermsAcceptanceModal } from './onboarding/TermsAcceptanceModal';
+import { useUserFlow } from '@/hooks/useUserFlow';
 
 interface AppContentProps {
   children: React.ReactNode;
 }
 
 export const AppContent: React.FC<AppContentProps> = ({ children }) => {
-  const { needsTermsAcceptance, acceptTerms, declineTerms, isActive: isOnboardingActive } = useOnboarding();
+  const { flowState } = useUserFlow();
+  const { acceptTerms, declineTerms, isActive: isOnboardingActive } = useOnboarding();
+
+  // Remove automatic navigation - let route guards handle it
 
   return (
     <>
       {children}
 
-      {/* Terms Acceptance Modal - shows first for new users */}
-      {needsTermsAcceptance && (
+      {/* Terms Acceptance Modal - shows for users who haven't accepted terms */}
+      {flowState.needsTermsAcceptance && (
         <TermsAcceptanceModal
-          isOpen={needsTermsAcceptance}
+          isOpen={flowState.needsTermsAcceptance}
           onAccept={acceptTerms}
           onDecline={declineTerms}
         />
       )}
 
-      {/* Professional Tutorial Overlay - shows ONLY after terms acceptance and when not showing terms */}
-      {!needsTermsAcceptance && isOnboardingActive && (
+      {/* Tutorial Overlay - shows only when user is ready and tutorial is active */}
+      {flowState.canShowTutorial && isOnboardingActive && (
         <ProfessionalTutorialOverlay />
       )}
     </>
