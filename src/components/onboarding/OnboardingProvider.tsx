@@ -120,8 +120,11 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     const checkUserOnboardingStatus = async () => {
       if (!user || hasInitialized) return;
 
+      // Add a small delay to ensure auth is fully established
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       try {
-        // Always check database first for authoritative data
+        // Check database for authoritative data with proper error handling
         const { data, error } = await supabase
           .from('user_onboarding')
           .select('terms_accepted, privacy_accepted, age_confirmed, onboarding_completed, tutorial_skipped, completed_flows')
@@ -139,40 +142,42 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         }
 
         if (error) {
-          console.error('Error checking onboarding status:', error);
-          // Fallback to showing terms for safety
+          // Handle other errors gracefully
+          console.warn('Error checking onboarding status, using safe defaults:', error);
+          // Default to showing terms for new users to be safe
+          setIsFirstTimeUser(true);
           setNeedsTermsAcceptance(true);
+          setTermsAccepted(false);
           setHasInitialized(true);
           return;
         }
 
-        // Check if user has accepted all required terms
-        const hasAcceptedTerms = data.terms_accepted && data.privacy_accepted && data.age_confirmed;
-        const hasCompletedOnboarding = data.onboarding_completed || data.tutorial_skipped;
+        // Process successful response
+        const hasAcceptedTerms = data?.terms_accepted && data?.privacy_accepted && data?.age_confirmed;
+        const hasCompletedOnboarding = data?.onboarding_completed || data?.tutorial_skipped;
 
-        setTermsAccepted(hasAcceptedTerms);
+        setTermsAccepted(!!hasAcceptedTerms);
         setIsFirstTimeUser(!hasCompletedOnboarding);
 
         if (!hasAcceptedTerms) {
-          // User hasn't accepted terms yet - show terms modal
           setNeedsTermsAcceptance(true);
         } else if (!hasCompletedOnboarding) {
-          // User accepted terms but hasn't completed tutorial
-          // Only start tutorial if terms modal is not showing
           setNeedsTermsAcceptance(false);
+          // Delay starting onboarding to ensure UI is ready
           setTimeout(() => {
             startOnboarding('first-time-user');
           }, 1000);
         } else {
-          // User has completed everything
           setNeedsTermsAcceptance(false);
         }
 
         setHasInitialized(true);
       } catch (error) {
-        console.error('Error in onboarding check:', error);
-        // Safe fallback
+        console.warn('Exception in onboarding check, using safe defaults:', error);
+        // Safe fallback - assume new user
+        setIsFirstTimeUser(true);
         setNeedsTermsAcceptance(true);
+        setTermsAccepted(false);
         setHasInitialized(true);
       }
     };
