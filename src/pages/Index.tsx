@@ -208,9 +208,9 @@ const Index = () => {
         </section>
 
         {/* Stats Section */}
-        <section className="py-20 bg-white/50 backdrop-blur-sm border-y border-purple-100">
+        <section className="py-12 md:py-20 bg-white/50 backdrop-blur-sm border-y border-purple-100">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
