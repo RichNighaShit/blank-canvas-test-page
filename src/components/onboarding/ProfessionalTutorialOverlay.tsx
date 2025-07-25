@@ -320,7 +320,7 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
           maxWidth: currentStep.targetSelector ? '400px' : '500px'
         }}
       >
-        <Card className="bg-white/98 backdrop-blur-lg border-0 shadow-2xl overflow-hidden">
+        <Card className="bg-white/95 backdrop-blur-md border shadow-lg overflow-hidden max-w-sm">
           {/* Header with step info */}
           <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
             <div className="flex items-center justify-between mb-2">
