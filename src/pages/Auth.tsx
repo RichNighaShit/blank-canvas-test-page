@@ -144,78 +144,7 @@ const Auth: React.FC = () => {
     }
   }, [email, password]);
 
-  const handleNewPasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isPasswordValid || password !== confirmPassword) return;
 
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      });
-
-      if (error) {
-        toast({
-          title: "Password update failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Password updated! 🎉",
-          description: "Your password has been successfully updated.",
-        });
-        navigate("/dashboard");
-      }
-    } catch (error) {
-      toast({
-        title: "Something went wrong",
-        description: "Please try again or contact support if the issue persists.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isEmailValid) return;
-
-    setIsLoading(true);
-    try {
-      // Use the current domain from window.location, not just origin
-      const currentDomain = window.location.href.includes('fly.dev')
-        ? window.location.origin
-        : window.location.origin.replace(':3000', ':8080');
-
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${currentDomain}/auth?mode=password-reset`,
-      });
-
-      if (error) {
-        toast({
-          title: "Reset failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        setResetEmailSent(true);
-        toast({
-          title: "Reset email sent! 📧",
-          description: "Check your inbox for password reset instructions.",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Something went wrong",
-        description: "Please try again or contact support if the issue persists.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
