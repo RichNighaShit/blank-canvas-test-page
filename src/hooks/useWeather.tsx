@@ -286,9 +286,34 @@ export const useWeather = (location?: string) => {
     return null;
   };
 
+  const checkNetworkConnectivity = async (): Promise<boolean> => {
+    try {
+      // Try a simple request to check connectivity
+      const response = await fetch('https://httpbin.org/status/200', {
+        method: 'HEAD',
+        mode: 'no-cors',
+        signal: AbortSignal.timeout(5000)
+      });
+      return true;
+    } catch {
+      return navigator.onLine; // Fallback to browser's online status
+    }
+  };
+
   const fetchWeather = async (userLocation?: string, retryCount = 0) => {
     setLoading(true);
     setError(null);
+
+    // Check network connectivity first
+    const isOnline = await checkNetworkConnectivity();
+    if (!isOnline) {
+      console.warn("No network connectivity detected");
+      const mockWeather = generateMockWeather(userLocation || location);
+      setWeather(mockWeather);
+      setError("No internet connection. Showing offline weather simulation.");
+      setLoading(false);
+      return;
+    }
 
     try {
       // ALWAYS try to get user's GPS location first (this will prompt for permission)
