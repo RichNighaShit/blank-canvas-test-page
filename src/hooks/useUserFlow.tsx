@@ -96,7 +96,8 @@ export const useUserFlow = () => {
 
   // Determine flow state based on auth, profile, and onboarding status
   useEffect(() => {
-    if (authLoading || profileLoading || !onboardingStatus) {
+    // Only show loading if auth is still loading OR if we have a user but no onboarding status yet
+    if (authLoading || (user && onboardingStatus === null)) {
       setFlowState({
         isLoading: true,
         needsAuth: false,
