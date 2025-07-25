@@ -149,44 +149,45 @@ const Index = () => {
           
           <div className="relative z-10 max-w-6xl mx-auto text-center">
             <div className="animate-fade-in-up">
-              <Badge variant="secondary" className="mb-8 px-6 py-3 text-lg font-semibold bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-0">
-                <Crown className="mr-2 h-5 w-5" />
-                The Future of Personal Styling
+              <Badge variant="secondary" className="mb-8 px-6 py-3 text-lg font-semibold bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-0 animate-pulse">
+                <Sparkles className="mr-2 h-5 w-5 animate-pulse" />
+                AI-Powered Fashion Revolution
               </Badge>
             </div>
-            
+
             <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <h1 className="text-6xl md:text-7xl lg:text-8xl font-heading mb-8 bg-gradient-to-r from-purple-900 via-purple-700 to-pink-700 bg-clip-text text-transparent leading-tight">
-                Your AI Style
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-heading mb-8 bg-gradient-to-r from-purple-900 via-purple-700 to-pink-700 bg-clip-text text-transparent leading-tight">
+                Your Perfect Style
                 <br />
-                <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Revolution</span>
+                <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Starts Here</span>
               </h1>
             </div>
 
             <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light">
-                Discover your perfect style with <span className="font-semibold text-purple-700">AI-powered outfit recommendations</span>,
-                smart wardrobe organization, and personalized insights that evolve with your unique taste.
+              <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light px-4">
+                Discover colors that make you glow, organize your wardrobe effortlessly, and get
+                <span className="font-semibold text-purple-700"> personalized outfit recommendations</span> that match your style,
+                weather, and occasion. Transform how you dress with smart technology.
               </p>
             </div>
 
-            <div className="animate-fade-in-up flex flex-col sm:flex-row gap-6 justify-center items-center" style={{ animationDelay: '0.3s' }}>
+            <div className="animate-fade-in-up flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center px-4" style={{ animationDelay: '0.3s' }}>
               <Button
                 size="lg"
-                className="btn-premium text-xl px-12 py-6 text-white shadow-glow hover:scale-105 transform transition-all duration-300"
+                className="btn-premium text-lg md:text-xl px-8 md:px-12 py-4 md:py-6 text-white shadow-glow hover:scale-105 transform transition-all duration-300 w-full sm:w-auto"
                 onClick={() => navigate('/auth')}
               >
-                <Sparkles className="mr-3 h-6 w-6" />
-                Start Your Style Journey
-                <ArrowRight className="ml-3 h-6 w-6" />
+                <Palette className="mr-3 h-5 w-5 md:h-6 md:w-6" />
+                Start Color Analysis
+                <ArrowRight className="ml-3 h-5 w-5 md:h-6 md:w-6" />
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="text-xl px-12 py-6 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 hover:scale-105 transition-all duration-300"
+                className="text-lg md:text-xl px-8 md:px-12 py-4 md:py-6 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 hover:scale-105 transition-all duration-300 bg-white/90 backdrop-blur-sm w-full sm:w-auto"
                 onClick={() => window.scrollTo({ top: document.getElementById('how-it-works')?.offsetTop || 800, behavior: 'smooth' })}
               >
-                <Camera className="mr-3 h-6 w-6" />
+                <Camera className="mr-3 h-5 w-5 md:h-6 md:w-6" />
                 See How It Works
               </Button>
             </div>
