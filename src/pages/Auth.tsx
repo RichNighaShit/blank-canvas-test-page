@@ -510,6 +510,153 @@ const Auth: React.FC = () => {
               </CardHeader>
 
               <CardContent className="space-y-6">
+                {/* Email Verified Success */}
+                {(authMode === 'email-verified' || authMode === 'oauth-success') && (
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                      <CheckCircle2 className="h-8 w-8 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {authMode === 'email-verified' ? 'Email verified successfully!' : 'Welcome to DripMuse!'}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {authMode === 'email-verified'
+                          ? 'Your account is now active. Let\'s set up your style profile.'
+                          : 'Your account is ready. Let\'s personalize your fashion experience.'
+                        }
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => navigate("/onboarding")}
+                      className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                    >
+                      <div className="flex items-center gap-2">
+                        Start Your Style Journey
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    </Button>
+                  </div>
+                )}
+
+                {/* New Password Form (after reset link click) */}
+                {authMode === 'password-reset' && (
+                  <form onSubmit={handleNewPasswordSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="new-password" className="text-sm font-medium text-gray-700">
+                        New Password
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="new-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Create a strong new password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className={`pl-10 pr-12 h-12 transition-all duration-200 ${
+                            password && isPasswordValid
+                              ? 'border-green-300 bg-green-50'
+                              : password && !isPasswordValid
+                              ? 'border-red-300 bg-red-50'
+                              : 'border-gray-200 focus:border-purple-300'
+                          }`}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      {passwordError && (
+                        <p className="text-xs text-red-500 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {passwordError}
+                        </p>
+                      )}
+                      {password && (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-xs">
+                            <div className={`w-2 h-2 rounded-full ${password.length >= 6 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                            <span className={password.length >= 6 ? 'text-green-600' : 'text-gray-500'}>
+                              At least 6 characters
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs">
+                            <div className={`w-2 h-2 rounded-full ${/[A-Z]/.test(password) && /[a-z]/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`} />
+                            <span className={/[A-Z]/.test(password) && /[a-z]/.test(password) ? 'text-green-600' : 'text-gray-500'}>
+                              Upper & lowercase letters
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs">
+                            <div className={`w-2 h-2 rounded-full ${/\d/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`} />
+                            <span className={/\d/.test(password) ? 'text-green-600' : 'text-gray-500'}>
+                              At least one number
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password" className="text-sm font-medium text-gray-700">
+                        Confirm New Password
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="confirm-password"
+                          type="password"
+                          placeholder="Confirm your new password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className={`pl-10 h-12 transition-all duration-200 ${
+                            confirmPassword && password === confirmPassword
+                              ? 'border-green-300 bg-green-50'
+                              : confirmPassword && password !== confirmPassword
+                              ? 'border-red-300 bg-red-50'
+                              : 'border-gray-200 focus:border-purple-300'
+                          }`}
+                          required
+                        />
+                        {confirmPassword && password === confirmPassword && (
+                          <Check className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
+                        )}
+                        {confirmPassword && password !== confirmPassword && (
+                          <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-red-500" />
+                        )}
+                      </div>
+                      {confirmPassword && password !== confirmPassword && (
+                        <p className="text-xs text-red-500 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          Passwords do not match
+                        </p>
+                      )}
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={!canSubmit}
+                      className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:transform-none disabled:shadow-none"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Updating password...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          Update Password
+                        </div>
+                      )}
+                    </Button>
+                  </form>
+                )}
+
                 {/* Password Reset Form */}
                 {authMode === 'reset' && (
                   <>
