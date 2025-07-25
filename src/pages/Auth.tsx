@@ -501,20 +501,9 @@ const Auth: React.FC = () => {
 
                     {/* Password Field */}
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                          Password
-                        </Label>
-                        {authMode === 'signin' && (
-                          <button
-                            type="button"
-                            onClick={() => setAuthMode('reset')}
-                            className="text-xs text-purple-600 hover:text-purple-700 underline"
-                          >
-                            Forgot password?
-                          </button>
-                        )}
-                      </div>
+                      <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                        Password
+                      </Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input
