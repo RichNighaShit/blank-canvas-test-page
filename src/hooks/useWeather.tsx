@@ -427,23 +427,19 @@ export const useWeather = (location?: string) => {
         return;
       }
 
-      // Provide default weather data as final fallback
-      const defaultWeather: WeatherData = {
-        temperature: 22, // Comfortable default temperature
-        condition: "clear",
-        humidity: 60,
-        windSpeed: 5,
-        description: "Weather data unavailable - using default conditions",
-        location: userLocation || location || "Unknown location",
-        source: "default",
-      };
+      // Use realistic mock weather as final fallback
+      const mockWeather = generateMockWeather(userLocation || location);
+      setWeather(mockWeather);
 
-      setWeather(defaultWeather);
-      setError(
-        retryCount > 0
-          ? "Weather service is temporarily unavailable. Using default conditions."
-          : "Using default weather conditions. Location-specific weather not available.",
-      );
+      if (errorMessage.includes("temporarily unavailable") || errorMessage.includes("Network")) {
+        setError("Weather service is offline. Showing simulated conditions based on your location and season.");
+      } else {
+        setError(
+          retryCount > 0
+            ? "Weather service is having issues. Using simulated weather conditions."
+            : "Using simulated weather conditions. Real-time data unavailable.",
+        );
+      }
     } finally {
       setLoading(false);
     }
