@@ -201,7 +201,7 @@ const Auth: React.FC = () => {
       } else {
         setResetEmailSent(true);
         toast({
-          title: "Reset email sent! ���",
+          title: "Reset email sent! 📧",
           description: "Check your inbox for password reset instructions.",
         });
       }
@@ -339,7 +339,7 @@ const Auth: React.FC = () => {
     }
   };
 
-  const canSubmit = isEmailValid && (authMode === 'reset' || isPasswordValid) && !isLoading;
+  const canSubmit = isEmailValid && (authMode === 'reset' || (isPasswordValid && (authMode !== 'password-reset' || password === confirmPassword))) && !isLoading;
 
   const getHelpMessage = () => {
     if (loginAttempts >= 3) {
