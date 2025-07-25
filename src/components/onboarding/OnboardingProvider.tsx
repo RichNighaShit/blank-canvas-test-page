@@ -294,14 +294,21 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 
 
   const acceptTerms = async () => {
-    if (!user) return;
+    if (!user) {
+      console.warn('Cannot accept terms: no user available');
+      return;
+    }
 
     setTermsAccepted(true);
     setNeedsTermsAcceptance(false);
 
     try {
-      // Save terms acceptance to database
-      const { error } = await supabase
+      // Save terms acceptance to database with timeout
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Database timeout')), 5000)
+      );
+
+      const dbPromise = supabase
         .from('user_onboarding')
         .upsert({
           user_id: user.id,
@@ -313,18 +320,26 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
           onConflict: 'user_id'
         });
 
+      const { error } = await Promise.race([dbPromise, timeoutPromise]) as any;
+
       if (error) {
-        console.error('Error saving terms acceptance:', error);
+        console.warn('Error saving terms acceptance, continuing anyway:', error);
       }
 
-      // Start onboarding tutorial ONLY if user is first-time and terms modal is completely closed
+      // Start onboarding tutorial ONLY if user is first-time
       if (isFirstTimeUser) {
         setTimeout(() => {
           startOnboarding('first-time-user');
-        }, 800); // Give time for modal to close
+        }, 800);
       }
     } catch (error) {
-      console.error('Database error during terms acceptance:', error);
+      console.warn('Database error during terms acceptance, continuing anyway:', error);
+      // Continue with onboarding even if database fails
+      if (isFirstTimeUser) {
+        setTimeout(() => {
+          startOnboarding('first-time-user');
+        }, 800);
+      }
     }
   };
 
