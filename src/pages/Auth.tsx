@@ -39,13 +39,11 @@ const Auth: React.FC = () => {
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'email-verified' | 'oauth-success'>('signin');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
-  const [resetEmailSent, setResetEmailSent] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [showHelpTips, setShowHelpTips] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
