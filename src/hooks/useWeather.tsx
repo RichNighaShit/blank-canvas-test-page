@@ -70,7 +70,10 @@ export const useWeather = (location?: string) => {
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m,precipitation,weathercode,windspeed_10m&timezone=auto`,
         {
           signal: controller.signal,
+          method: 'GET',
+          mode: 'cors',
           headers: {
+            'Accept': 'application/json',
             'Cache-Control': 'no-cache',
           }
         },
@@ -151,14 +154,24 @@ export const useWeather = (location?: string) => {
         timeoutId = null;
       }
 
-      // Better error handling for different error types
+      // Comprehensive error handling for different error types
       if (err.name === "AbortError") {
         console.warn("Weather API request was aborted (likely timeout)");
         throw new Error("Weather request timed out - please try again");
-      } else if (err.message?.includes("Failed to fetch") || err.message?.includes("NetworkError")) {
-        throw new Error("Network error - unable to reach weather service");
+      } else if (
+        err.message?.includes("Failed to fetch") ||
+        err.message?.includes("NetworkError") ||
+        err.message?.includes("CORS") ||
+        err.message?.includes("blocked") ||
+        err.name === "TypeError"
+      ) {
+        console.warn("Network/CORS error accessing weather API:", err.message);
+        throw new Error("Weather service temporarily unavailable");
+      } else if (err.message?.includes("404") || err.message?.includes("Not Found")) {
+        throw new Error("Weather data not available for this location");
       } else {
-        throw new Error(`Weather service error: ${err.message || "Unknown error"}`);
+        console.error("Unexpected weather API error:", err);
+        throw new Error("Weather service error - using default conditions");
       }
     }
   };
@@ -275,7 +288,15 @@ export const useWeather = (location?: string) => {
 
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationToUse)}&count=1&language=en&format=json`,
-          { signal: controller.signal },
+          {
+            signal: controller.signal,
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache',
+            }
+          },
         );
 
         if (timeoutId) {
@@ -336,11 +357,17 @@ export const useWeather = (location?: string) => {
           clearTimeout(timeoutId);
         }
 
-        // Handle specific error types
+        // Handle specific geocoding error types
         if (geocodingError.name === "AbortError") {
-          throw new Error("Weather service request timed out");
-        } else if (geocodingError.message?.includes("Failed to fetch")) {
-          throw new Error("Network error - unable to reach weather service");
+          throw new Error("Location lookup timed out");
+        } else if (
+          geocodingError.message?.includes("Failed to fetch") ||
+          geocodingError.message?.includes("NetworkError") ||
+          geocodingError.message?.includes("CORS") ||
+          geocodingError.name === "TypeError"
+        ) {
+          console.warn("Network error during location lookup:", geocodingError.message);
+          throw new Error("Location service temporarily unavailable");
         } else {
           throw geocodingError;
         }
