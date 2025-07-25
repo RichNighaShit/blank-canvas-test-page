@@ -34,7 +34,6 @@ interface OnboardingContextType {
   previousStep: () => void;
   skipOnboarding: () => void;
   completeOnboarding: () => void;
-  markAsExperienced: () => void;
   acceptTerms: () => void;
   declineTerms: () => void;
 }
