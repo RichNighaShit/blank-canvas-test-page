@@ -95,50 +95,7 @@ const Onboarding = () => {
     }
   }, [user, loading, navigate]);
 
-  useEffect(() => {
-    if (user) {
-      checkExistingProfile();
-    }
-  }, [user]);
-
-  // Utility to check if profile is complete
-  function isProfileComplete(profile: any): boolean {
-    if (!profile) return false;
-    // Check required fields from our schema
-    return Boolean(
-      profile.display_name &&
-        profile.location &&
-        profile.culture &&
-        profile.preferred_style &&
-        profile.display_name.trim() !== "" &&
-        profile.location.trim() !== "" &&
-        profile.culture.trim() !== "" &&
-        profile.preferred_style.trim() !== ""
-    );
-  }
-
-  const checkExistingProfile = async () => {
-    if (!user) return;
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-      if (data && !error && isProfileComplete(data)) {
-        // Profile is complete, redirect to dashboard
-        toast({
-          title: "Profile already exists",
-          description: "Redirecting to your dashboard...",
-        });
-        navigate("/dashboard");
-      }
-      // else: let user continue onboarding
-    } catch (error) {
-      // Profile doesn't exist, continue with onboarding
-      console.log("No existing profile found, continuing with onboarding");
-    }
-  };
+  // Removed redundant profile check - route guards handle this now
 
 
 
