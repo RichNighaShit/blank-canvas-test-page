@@ -104,18 +104,16 @@ const Onboarding = () => {
   // Utility to check if profile is complete
   function isProfileComplete(profile: any): boolean {
     if (!profile) return false;
-    // Adjust these fields as per your schema
+    // Check required fields from our schema
     return Boolean(
       profile.display_name &&
         profile.location &&
-        profile.gender_identity &&
+        profile.culture &&
         profile.preferred_style &&
         profile.display_name.trim() !== "" &&
         profile.location.trim() !== "" &&
-        profile.gender_identity.trim() !== "" &&
-        (Array.isArray(profile.preferred_style)
-          ? profile.preferred_style.length > 0
-          : profile.preferred_style.trim() !== ""),
+        profile.culture.trim() !== "" &&
+        profile.preferred_style.trim() !== ""
     );
   }
 
@@ -196,20 +194,25 @@ const Onboarding = () => {
 
       if (existingProfile) {
         // Profile exists, update it instead
+        const updateData = {
+          display_name: profileData.display_name,
+          location: profileData.location,
+          culture: profileData.gender_identity,
+          preferred_style: profileData.preferred_style.length > 0 ? profileData.preferred_style[0] : '',
+          favorite_colors: profileData.favorite_colors,
+          color_palette_colors: profileData.color_palette_colors,
+          goals: profileData.goals,
+          face_photo_url: profileData.face_photo_url,
+          selected_palette_id: profileData.selected_palette_id,
+          color_season_analysis: profileData.color_season_analysis,
+          updated_at: new Date().toISOString()
+        };
+
+        console.log('Updating profile with data:', updateData);
+
         const { error } = await supabase
           .from("profiles")
-          .update({
-            display_name: profileData.display_name,
-            location: profileData.location,
-            culture: profileData.gender_identity,
-            preferred_style: profileData.preferred_style[0],
-            favorite_colors: profileData.favorite_colors,
-            color_palette_colors: profileData.color_palette_colors,
-            goals: profileData.goals,
-            face_photo_url: profileData.face_photo_url,
-            selected_palette_id: profileData.selected_palette_id,
-            color_season_analysis: profileData.color_season_analysis,
-          })
+          .update(updateData)
           .eq("user_id", user.id);
 
         if (error) {
@@ -217,30 +220,43 @@ const Onboarding = () => {
         }
       } else {
         // Profile doesn't exist, create new one
-        const { error } = await supabase.from("profiles").insert({
+        const insertData = {
           user_id: user.id,
           display_name: profileData.display_name,
           location: profileData.location,
           culture: profileData.gender_identity,
-          preferred_style: profileData.preferred_style[0],
+          preferred_style: profileData.preferred_style.length > 0 ? profileData.preferred_style[0] : '',
           favorite_colors: profileData.favorite_colors,
           color_palette_colors: profileData.color_palette_colors,
           goals: profileData.goals,
           face_photo_url: profileData.face_photo_url,
           selected_palette_id: profileData.selected_palette_id,
           color_season_analysis: profileData.color_season_analysis,
-        });
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        console.log('Creating profile with data:', insertData);
+
+        const { error } = await supabase.from("profiles").insert(insertData);
 
         if (error) {
           throw error;
         }
       }
 
+      // Invalidate profile cache to ensure fresh data
+      if (window.profileCache) {
+        delete window.profileCache[user.id];
+      }
+
       toast({
         title: "Welcome to DripMuse!",
         description: "Your profile has been created successfully.",
       });
-      navigate("/wardrobe-setup");
+
+      // Navigate to dashboard instead of wardrobe-setup to trigger proper flow
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Profile creation/update error:", error);
 
