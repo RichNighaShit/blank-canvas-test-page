@@ -183,20 +183,23 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 
   const startOnboarding = (flowId: string) => {
     const flow = onboardingFlows.find(f => f.id === flowId);
-    if (!flow || !user) return;
-
-    // Check if onboarding was already started in this session
-    const sessionKey = `onboarding_session_${user.id}`;
-    const sessionFlag = sessionStorage.getItem(sessionKey);
-
-    if (sessionFlag === 'active') {
-      console.log('Onboarding already active in this session, skipping');
+    if (!flow || !user || !termsAccepted || needsTermsAcceptance) {
+      console.log('Cannot start onboarding: missing prerequisites', {
+        hasFlow: !!flow,
+        hasUser: !!user,
+        termsAccepted,
+        needsTermsAcceptance
+      });
       return;
     }
 
-    // Mark onboarding as active for this session
-    sessionStorage.setItem(sessionKey, 'active');
+    // Prevent starting if already active
+    if (isActive) {
+      console.log('Onboarding already active, skipping');
+      return;
+    }
 
+    console.log('Starting onboarding flow:', flowId);
     setCurrentFlow(flow);
     setCurrentStepIndex(0);
     setIsActive(true);
