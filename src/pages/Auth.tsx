@@ -277,7 +277,7 @@ const Auth: React.FC = () => {
     }
   };
 
-  const canSubmit = isEmailValid && (authMode === 'reset' || (isPasswordValid && (authMode !== 'password-reset' || password === confirmPassword))) && !isLoading;
+  const canSubmit = isEmailValid && isPasswordValid && !isLoading;
 
   const getHelpMessage = () => {
     if (loginAttempts >= 3) {
