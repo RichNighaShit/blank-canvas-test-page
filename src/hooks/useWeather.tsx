@@ -57,18 +57,26 @@ export const useWeather = (location?: string) => {
     longitude: number,
     locationName?: string,
   ) => {
-    let timeoutId: number | null = null;
     const controller = new AbortController();
+    let timeoutId: NodeJS.Timeout | null = null;
 
     try {
-      // Add timeout for weather API as well
-      timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      // Add timeout for weather API with better cleanup
+      timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 12000); // 12 second timeout (increased from 10)
 
       const weatherRes = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m,precipitation,weathercode,windspeed_10m&timezone=auto`,
-        { signal: controller.signal },
+        {
+          signal: controller.signal,
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        },
       );
 
+      // Clear timeout immediately after successful fetch
       if (timeoutId) {
         clearTimeout(timeoutId);
         timeoutId = null;
@@ -137,15 +145,21 @@ export const useWeather = (location?: string) => {
       setWeather(realWeather);
       setError(null);
     } catch (err: any) {
-      // Clean up timeout if still active
+      // Always clean up timeout if still active
       if (timeoutId) {
         clearTimeout(timeoutId);
+        timeoutId = null;
       }
 
+      // Better error handling for different error types
       if (err.name === "AbortError") {
-        throw new Error("Weather request timed out");
+        console.warn("Weather API request was aborted (likely timeout)");
+        throw new Error("Weather request timed out - please try again");
+      } else if (err.message?.includes("Failed to fetch") || err.message?.includes("NetworkError")) {
+        throw new Error("Network error - unable to reach weather service");
+      } else {
+        throw new Error(`Weather service error: ${err.message || "Unknown error"}`);
       }
-      throw new Error(`Failed to fetch weather data: ${err.message}`);
     }
   };
 
@@ -213,7 +227,7 @@ export const useWeather = (location?: string) => {
     return null;
   };
 
-  const fetchWeather = async (userLocation?: string) => {
+  const fetchWeather = async (userLocation?: string, retryCount = 0) => {
     setLoading(true);
     setError(null);
 
@@ -249,10 +263,10 @@ export const useWeather = (location?: string) => {
 
             // Geocode city name to lat/lon using Open-Meteo's geocoding API
       const controller = new AbortController();
-      let timeoutId: number | null = null;
+      let timeoutId: NodeJS.Timeout | null = null;
 
       try {
-        timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout (increased)
 
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationToUse)}&count=1&language=en&format=json`,
@@ -327,10 +341,18 @@ export const useWeather = (location?: string) => {
         }
       }
     } catch (err: any) {
-      console.error(
-        "Weather fetch error:",
-        err instanceof Error ? err.message : String(err),
-      );
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error("Weather fetch error:", errorMessage);
+
+      // Retry logic for timeout errors (max 2 retries)
+      if (retryCount < 2 && (errorMessage.includes("timeout") || errorMessage.includes("timed out"))) {
+        console.log(`Retrying weather fetch (attempt ${retryCount + 1}/2)...`);
+        // Wait a bit before retrying
+        setTimeout(() => {
+          fetchWeather(userLocation, retryCount + 1);
+        }, 2000);
+        return;
+      }
 
       // Provide default weather data as final fallback
       const defaultWeather: WeatherData = {
@@ -345,7 +367,9 @@ export const useWeather = (location?: string) => {
 
       setWeather(defaultWeather);
       setError(
-        "Using default weather conditions. Location-specific weather not available.",
+        retryCount > 0
+          ? "Weather service is temporarily unavailable. Using default conditions."
+          : "Using default weather conditions. Location-specific weather not available.",
       );
     } finally {
       setLoading(false);
