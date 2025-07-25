@@ -179,8 +179,7 @@ export const useProfile = () => {
         .from("profiles")
         .select("id, user_id, display_name")
         .eq("user_id", user.id)
-        .single()
-        .abortSignal(controller.signal);
+        .single();
 
       clearTimeout(timeoutId);
 
@@ -241,8 +240,8 @@ export const useProfile = () => {
         }
       } else {
         console.log("Profile fetched successfully:", data);
-        setProfile(data);
-        profileCache[user.id] = data;
+        setProfile(data as Profile);
+        profileCache[user.id] = data as Profile;
 
         // Save to localStorage for offline fallback
         try {
