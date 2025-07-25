@@ -380,8 +380,6 @@ const Auth: React.FC = () => {
                   <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                     {authMode === 'signin' ? 'Welcome Back'
                      : authMode === 'signup' ? 'Join DripMuse'
-                     : authMode === 'reset' ? 'Reset Password'
-                     : authMode === 'password-reset' ? 'Set New Password'
                      : authMode === 'email-verified' ? 'Email Verified! 🎉'
                      : authMode === 'oauth-success' ? 'Welcome to DripMuse! 🎉'
                      : 'Welcome Back'}
@@ -391,10 +389,6 @@ const Auth: React.FC = () => {
                       ? 'Sign in to continue your style journey'
                       : authMode === 'signup'
                       ? 'Start your personalized fashion experience'
-                      : authMode === 'reset'
-                      ? 'Enter your email to reset your password'
-                      : authMode === 'password-reset'
-                      ? 'Please enter your new password'
                       : authMode === 'email-verified'
                       ? 'Your email has been verified! Let\'s set up your profile.'
                       : authMode === 'oauth-success'
