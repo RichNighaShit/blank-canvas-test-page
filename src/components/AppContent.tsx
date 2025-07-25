@@ -10,14 +10,10 @@ interface AppContentProps {
 }
 
 export const AppContent: React.FC<AppContentProps> = ({ children }) => {
-  const { flowState, navigateToCorrectPage } = useUserFlow();
+  const { flowState } = useUserFlow();
   const { acceptTerms, declineTerms, isActive: isOnboardingActive } = useOnboarding();
-  const location = useLocation();
 
-  // Auto-navigate to correct page based on flow state
-  useEffect(() => {
-    navigateToCorrectPage(location.pathname);
-  }, [flowState, location.pathname]);
+  // Remove automatic navigation - let route guards handle it
 
   return (
     <>
