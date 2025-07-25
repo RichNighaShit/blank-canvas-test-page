@@ -871,7 +871,7 @@ const Auth: React.FC = () => {
                 )}
 
                 {/* OAuth Section - only for signin/signup */}
-                {authMode !== 'reset' && (
+                {(authMode === 'signin' || authMode === 'signup') && (
                   <>
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
