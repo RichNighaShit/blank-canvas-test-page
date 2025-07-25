@@ -73,9 +73,16 @@ const Auth: React.FC = () => {
 
   useEffect(() => {
     if (user && session) {
-      navigate("/dashboard");
+      // If user just verified email or completed OAuth, navigate to proper flow
+      if (authMode === 'email-verified' || authMode === 'oauth-success') {
+        // For new users, they should go through onboarding
+        navigate("/onboarding");
+      } else {
+        // For returning users, go to dashboard
+        navigate("/dashboard");
+      }
     }
-  }, [user, session, navigate]);
+  }, [user, session, navigate, authMode]);
 
   // Email validation
   useEffect(() => {
