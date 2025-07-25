@@ -227,11 +227,16 @@ const Auth: React.FC = () => {
     
     setIsLoading(true);
     try {
+      // Use the current domain from window.location, not just origin
+      const currentDomain = window.location.href.includes('fly.dev')
+        ? window.location.origin
+        : window.location.origin.replace(':3000', ':8080');
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth?mode=email-verified`,
+          emailRedirectTo: `${currentDomain}/auth?mode=email-verified`,
         },
       });
       
