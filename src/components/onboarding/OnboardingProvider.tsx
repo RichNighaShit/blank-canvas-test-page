@@ -168,6 +168,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     setIsActive(false);
     setCurrentFlow(null);
     setCurrentStepIndex(0);
+    setHasStartedTutorial(false); // Reset so it doesn't restart
   };
 
   const completeOnboarding = async () => {
