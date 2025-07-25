@@ -105,7 +105,7 @@ export const useWeather = (location?: string) => {
       // Add timeout for weather API with better cleanup
       timeoutId = setTimeout(() => {
         controller.abort();
-      }, 12000); // 12 second timeout (increased from 10)
+      }, 5000); // 5 second timeout - fail fast in restrictive environments
 
       const weatherRes = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m,precipitation,weathercode,windspeed_10m&timezone=auto`,
@@ -256,7 +256,7 @@ export const useWeather = (location?: string) => {
       try {
         console.log(`Trying alternative location: ${altLocation}`);
         const controller = new AbortController();
-        const timeoutId: NodeJS.Timeout = setTimeout(() => controller.abort(), 6000); // Increased timeout
+        const timeoutId: NodeJS.Timeout = setTimeout(() => controller.abort(), 3000); // Fast timeout
 
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(altLocation)}&count=1&language=en&format=json`,
@@ -325,7 +325,7 @@ export const useWeather = (location?: string) => {
       let timeoutId: NodeJS.Timeout | null = null;
 
       try {
-        timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout (increased)
+        timeoutId = setTimeout(() => controller.abort(), 4000); // 4 second timeout - fail fast
 
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationToUse)}&count=1&language=en&format=json`,
