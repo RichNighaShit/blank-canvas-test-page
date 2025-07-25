@@ -69,6 +69,8 @@ export const useUserFlow = () => {
           .eq('user_id', user.id)
           .single();
 
+        clearTimeout(timeoutId);
+
         if (error && error.code === 'PGRST116') {
           // No record exists - completely new user
           setOnboardingStatus({
