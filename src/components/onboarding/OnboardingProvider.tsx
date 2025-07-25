@@ -345,51 +345,35 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
   const acceptTerms = async () => {
     if (!user) return;
 
-    // Save to localStorage immediately
-    localStorage.setItem(`terms_accepted_${user.id}`, 'true');
     setTermsAccepted(true);
     setNeedsTermsAcceptance(false);
 
     try {
-      // Try to save to database - attempt enhanced schema first
-      let { error: enhancedError } = await supabase
+      // Save terms acceptance to database
+      const { error } = await supabase
         .from('user_onboarding')
         .upsert({
           user_id: user.id,
           terms_accepted: true,
           privacy_accepted: true,
           age_confirmed: true,
-          completed_flows: ['terms-accepted'],
-          completed_at: new Date().toISOString()
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
         });
 
-      // If enhanced columns don't exist, use basic schema
-      if (enhancedError && enhancedError.message?.includes('column') && enhancedError.message?.includes('does not exist')) {
-        console.log('Using basic schema for terms acceptance');
-        await supabase
-          .from('user_onboarding')
-          .upsert({
-            user_id: user.id,
-            completed_flows: ['terms-accepted'],
-            completed_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id'
-          });
+      if (error) {
+        console.error('Error saving terms acceptance:', error);
+      }
+
+      // Start onboarding tutorial ONLY if user is first-time and terms modal is completely closed
+      if (isFirstTimeUser) {
+        setTimeout(() => {
+          startOnboarding('first-time-user');
+        }, 800); // Give time for modal to close
       }
     } catch (error) {
-      // Silently fail - localStorage is sufficient
-      if (import.meta.env.DEV) {
-        console.warn('Database unavailable for terms tracking. Using localStorage only.');
-      }
-    }
-
-    // Start onboarding after terms acceptance if first-time user
-    if (isFirstTimeUser) {
-      setTimeout(() => {
-        startOnboarding('first-time-user');
-      }, 500);
+      console.error('Database error during terms acceptance:', error);
     }
   };
 
