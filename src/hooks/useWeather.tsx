@@ -492,15 +492,23 @@ export const useWeather = (location?: string) => {
 
   const getWeatherStatus = () => {
     if (loading) return "Loading weather data...";
-    if (error) return "Weather information not available";
+    if (error) {
+      if (error.includes("offline") || error.includes("No internet")) {
+        return "Offline - simulated weather";
+      } else if (error.includes("temporarily unavailable")) {
+        return "Service offline - simulated weather";
+      } else {
+        return "Using simulated weather";
+      }
+    }
     if (weather) {
       switch (weather.source) {
         case "gps":
-          return `Weather data from your location`;
+          return `Live weather from your location`;
         case "profile":
-          return `Weather data from your profile location`;
+          return `Live weather from your profile location`;
         case "default":
-          return `Weather data from default location`;
+          return error ? "Simulated weather conditions" : `Weather data from default location`;
         default:
           return "Weather data available";
       }
