@@ -105,7 +105,7 @@ const Auth: React.FC = () => {
       const hasLowerCase = /[a-z]/.test(password);
       const hasNumber = /\d/.test(password);
 
-      if (authMode === 'signup' || authMode === 'password-reset') {
+      if (authMode === 'signup') {
         if (hasMinLength && hasUpperCase && hasLowerCase && hasNumber) {
           setIsPasswordValid(true);
           setPasswordError("");
