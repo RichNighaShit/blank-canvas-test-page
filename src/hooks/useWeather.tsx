@@ -18,6 +18,47 @@ export const useWeather = (location?: string) => {
     "granted" | "denied" | "prompt" | "unavailable"
   >("prompt");
 
+  // Generate realistic weather based on location and time
+  const generateMockWeather = (locationName?: string): WeatherData => {
+    const hour = new Date().getHours();
+    const isDay = hour >= 6 && hour <= 18;
+    const season = Math.floor((new Date().getMonth() + 1) / 3); // 0=winter, 1=spring, 2=summer, 3=fall
+
+    // Base temperature on season and time
+    let baseTemp = 20; // Spring/Fall default
+    if (season === 0) baseTemp = 8;  // Winter
+    if (season === 2) baseTemp = 28; // Summer
+
+    // Add some randomness and time variation
+    const tempVariation = (Math.random() - 0.5) * 8;
+    const timeVariation = isDay ? 3 : -3;
+    const temperature = Math.round(baseTemp + tempVariation + timeVariation);
+
+    // Choose condition based on season and randomness
+    const conditions = ['clear', 'clouds', 'rain'];
+    const weights = season === 0 ? [0.3, 0.5, 0.2] : season === 2 ? [0.6, 0.3, 0.1] : [0.4, 0.4, 0.2];
+    const random = Math.random();
+    let condition = 'clear';
+    let cumulative = 0;
+    for (let i = 0; i < conditions.length; i++) {
+      cumulative += weights[i];
+      if (random <= cumulative) {
+        condition = conditions[i];
+        break;
+      }
+    }
+
+    return {
+      temperature,
+      condition,
+      humidity: Math.round(40 + Math.random() * 40), // 40-80%
+      windSpeed: Math.round(2 + Math.random() * 15), // 2-17 km/h
+      description: `${condition.charAt(0).toUpperCase() + condition.slice(1)} conditions${locationName ? ` in ${locationName}` : ''}`,
+      location: locationName || location || "Your area",
+      source: "default",
+    };
+  };
+
   const getCurrentPosition = (): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
