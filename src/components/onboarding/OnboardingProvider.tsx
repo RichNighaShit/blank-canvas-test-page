@@ -234,57 +234,25 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     if (!currentFlow || !user) return;
 
     try {
-      // Try to save to database - attempt enhanced schema first
-      let { error } = await supabase
+      // Mark onboarding as completed in database
+      const { error } = await supabase
         .from('user_onboarding')
         .upsert({
           user_id: user.id,
-          completed_flows: [currentFlow.id],
           onboarding_completed: true,
-          completed_at: new Date().toISOString()
+          completed_flows: [currentFlow.id],
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
         });
 
-      // If enhanced columns don't exist, use basic schema
-      if (error && error.message?.includes('column') && error.message?.includes('does not exist')) {
-        console.log('Using basic schema for onboarding completion');
-        const basicResult = await supabase
-          .from('user_onboarding')
-          .upsert({
-            user_id: user.id,
-            completed_flows: [currentFlow.id],
-            completed_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id'
-          });
-        error = basicResult.error;
-      }
-
       if (error) {
-        if (error.message?.includes('relation "user_onboarding" does not exist')) {
-          if (import.meta.env.DEV) {
-            console.warn('Onboarding table not set up yet. Using localStorage only.');
-          }
-        } else {
-          const errorMessage = error?.message || error?.details || 'Unknown database error';
-          const errorCode = error?.code || 'NO_CODE';
-          console.error('Error saving onboarding completion:', {
-            message: errorMessage,
-            code: errorCode,
-            fullError: error
-          });
-        }
+        console.error('Error saving onboarding completion:', error);
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.warn('Database unavailable for onboarding. Using localStorage only.',
-          error instanceof Error ? error.message : String(error));
-      }
+      console.error('Database error during onboarding completion:', error);
     }
-
-    // Always save to localStorage as backup
-    localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
 
     // Clear session flag
     sessionStorage.removeItem(`onboarding_session_${user.id}`);
