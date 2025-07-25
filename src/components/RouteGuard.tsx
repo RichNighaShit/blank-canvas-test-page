@@ -37,14 +37,14 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
 
   // Check if route is allowed based on current stage
   if (allowedStages && !allowedStages.includes(flowState.currentStage)) {
-    // Redirect to appropriate page based on flow state
-    if (flowState.needsAuth) {
+    // Only redirect if it's a significant mismatch, not for edge cases
+    if (flowState.needsAuth && !allowedStages.includes('auth')) {
       return <Navigate to="/auth" state={{ from: location }} replace />;
     }
-    if (flowState.needsProfileCreation) {
+    if (flowState.needsProfileCreation && !allowedStages.includes('onboarding')) {
       return <Navigate to="/onboarding" state={{ from: location }} replace />;
     }
-    if (flowState.currentStage === 'ready') {
+    if (flowState.currentStage === 'ready' && !allowedStages.includes('ready')) {
       return <Navigate to="/dashboard" state={{ from: location }} replace />;
     }
   }
