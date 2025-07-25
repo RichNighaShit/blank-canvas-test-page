@@ -93,6 +93,7 @@ export const useUserFlow = () => {
           });
         }
       } catch (error) {
+        clearTimeout(timeoutId);
         console.error('Error fetching onboarding status:', error);
         // Fallback to new user state
         setOnboardingStatus({
