@@ -56,45 +56,42 @@ const onboardingFlows: OnboardingFlow[] = [
     steps: [
       {
         id: 'welcome',
-        title: 'Welcome to DripMuse! 👋',
-        description: 'Let\'s take a quick tour to get you started with your AI fashion stylist.',
+        title: 'Welcome to DripMuse! ✨',
+        description: 'Ready to transform your style? Let\'s take a quick interactive tour to show you how your AI fashion stylist works. You can interact with everything you see!',
         position: 'center'
       },
       {
         id: 'dashboard-overview',
-        title: 'Your Dashboard',
-        description: 'This is your style command center. Here you\'ll see outfit recommendations, wardrobe analytics, and quick actions.',
+        title: 'Your Style Command Center',
+        description: 'This is your personal dashboard where the magic happens. Here you\'ll find outfit recommendations, wardrobe insights, and style analytics—all powered by AI.',
         page: '/dashboard',
         position: 'center'
       },
       {
         id: 'wardrobe-setup',
-        title: 'Build Your Wardrobe',
-        description: 'Add your clothing items here. Upload photos and our AI will automatically categorize and analyze them.',
+        title: 'Click Here: Build Your Digital Wardrobe',
+        description: 'Start by adding your clothes! Simply upload photos and our AI will analyze colors, styles, and create categories automatically. Click this button to try it!',
         targetSelector: '[data-tour="wardrobe-nav"]',
-        position: 'bottom',
-        page: '/wardrobe'
+        position: 'bottom'
       },
       {
         id: 'color-palette',
-        title: 'Discover Your Colors',
-        description: 'Complete your color analysis to get personalized recommendations that complement your skin tone.',
+        title: 'Discover Your Perfect Colors',
+        description: 'Complete a quick color analysis to discover which colors make you look amazing. Our AI will analyze your skin tone and recommend your ideal palette.',
         targetSelector: '[data-tour="color-palette-nav"]',
-        position: 'bottom',
-        page: '/profile/palette'
+        position: 'bottom'
       },
       {
         id: 'style-me',
-        title: 'Get Styled',
-        description: 'Once you\'ve added items, come here for AI-powered outfit recommendations based on weather, occasion, and your style.',
+        title: 'Get AI-Powered Outfit Ideas',
+        description: 'Once you have some clothes uploaded, this is where you\'ll get personalized outfit recommendations based on the weather, your schedule, and your style preferences.',
         targetSelector: '[data-tour="style-me-nav"]',
-        position: 'bottom',
-        page: '/recommendations'
+        position: 'bottom'
       },
       {
         id: 'completion',
-        title: 'You\'re All Set! 🎉',
-        description: 'You\'re ready to start your style journey. Remember, the more you use DripMuse, the better it gets at understanding your preferences.',
+        title: 'Your Style Journey Begins Now! 🚀',
+        description: 'You\'re all set to start using DripMuse! The more you interact with the app, the smarter your AI stylist becomes. Ready to build your perfect wardrobe?',
         position: 'center'
       }
     ]
