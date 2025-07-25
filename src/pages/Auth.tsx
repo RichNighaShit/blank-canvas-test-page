@@ -424,17 +424,7 @@ const Auth: React.FC = () => {
                   </div>
                 )}
 
-                {/* Back button for reset and password-reset modes */}
-                {(authMode === 'reset' || authMode === 'password-reset') && (
-                  <Button
-                    variant="ghost"
-                    onClick={() => setAuthMode('signin')}
-                    className="self-start"
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Sign In
-                  </Button>
-                )}
+
               </CardHeader>
 
               <CardContent className="space-y-6">
