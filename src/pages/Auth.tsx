@@ -471,7 +471,7 @@ const Auth: React.FC = () => {
                 </div>
 
                 {/* Mode Toggle - only show for signin/signup */}
-                {authMode !== 'reset' && (
+                {(authMode === 'signin' || authMode === 'signup') && (
                   <div className="flex bg-gray-100 rounded-lg p-1">
                     <button
                       onClick={() => setAuthMode('signin')}
