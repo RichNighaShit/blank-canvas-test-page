@@ -144,10 +144,8 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       loadDashboardData();
-      // Always request GPS location first, don't default to profile location
-      fetchWeather();
     }
-  }, [user, profile]);
+  }, [user]);
 
   const loadDashboardData = async () => {
     if (!user) return;
