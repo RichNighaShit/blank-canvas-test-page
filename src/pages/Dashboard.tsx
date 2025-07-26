@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useWeather } from "@/hooks/useWeather";
 import { supabase } from "@/integrations/supabase/client";
+import WeatherWidget from "@/components/WeatherWidget";
 import Header from "@/components/Header";
 import {
   Sparkles,
