@@ -116,13 +116,19 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 
   // Auto-start tutorial when appropriate (based on database state - once per user)
   useEffect(() => {
-    if (flowState.canShowTutorial && !isActive && flowState.currentStage === 'ready') {
+    if (
+      flowState.canShowTutorial &&
+      !isActive &&
+      flowState.currentStage === 'ready' &&
+      !experienceLoading &&
+      !hasSeenExperience(EXPERIENCE_IDS.WELCOME_TUTORIAL)
+    ) {
       // Delay starting tutorial to ensure UI is ready
       setTimeout(() => {
         startOnboarding('first-time-user');
       }, 1000);
     }
-  }, [flowState.canShowTutorial, flowState.currentStage, isActive]);
+  }, [flowState.canShowTutorial, flowState.currentStage, isActive, experienceLoading, hasSeenExperience]);
 
   const startOnboarding = (flowId: string) => {
     const flow = onboardingFlows.find(f => f.id === flowId);
