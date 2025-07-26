@@ -202,6 +202,18 @@ const Onboarding = () => {
         }
       }
 
+      // Mark onboarding as completed in user_onboarding table
+      await supabase
+        .from('user_onboarding')
+        .upsert({
+          user_id: user.id,
+          onboarding_completed: true,
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
       // Invalidate profile cache to ensure fresh data
       if (window.profileCache) {
         delete window.profileCache[user.id];
