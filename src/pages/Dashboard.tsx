@@ -173,7 +173,7 @@ const Dashboard = () => {
         .eq("user_id", user.id);
 
       if (itemsError) {
-        console.error("Error fetching wardrobe items:", itemsError);
+        logError(itemsError, "Error fetching wardrobe items in Dashboard");
         return;
       }
 
@@ -499,7 +499,7 @@ const Dashboard = () => {
                       <span className="text-sm">Temperature</span>
                     </div>
                     <span className="font-semibold">
-                      {Math.round(weather.temperature)}��C
+                      {Math.round(weather.temperature)}°C
                     </span>
                   </div>
 
