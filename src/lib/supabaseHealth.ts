@@ -30,30 +30,24 @@ export const checkSupabaseHealth = async (): Promise<HealthCheckResult> => {
       };
     }
 
-    // Check 2: Database connectivity with reasonable timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // Increased to 8 seconds
-    
-    const { error: dbError } = await supabase
-      .from('profiles')
-      .select('count')
-      .limit(1)
-      .abortSignal(controller.signal);
-    
-    clearTimeout(timeoutId);
-    
-    if (dbError) {
-      // Handle AbortError specifically when it comes as a dbError
-      if (dbError instanceof DOMException && dbError.name === 'AbortError') {
-        return {
-          healthy: false,
-          details: 'Database connection timeout (8 seconds) - please check your internet connection',
-          timestamp: new Date(),
-          latency: Date.now() - startTime
-        };
-      }
-
-      const errorMessage = getErrorMessage(dbError);
+    // Check 2: Database connectivity with network retry
+    try {
+      await withNetworkRetry(
+        () => supabase
+          .from('profiles')
+          .select('count')
+          .limit(1)
+          .then(({ error }) => {
+            if (error) throw error;
+            return true;
+          }),
+        {
+          retries: 1, // Only one retry for health check
+          timeout: 8000
+        }
+      );
+    } catch (dbError) {
+      const errorMessage = getNetworkErrorMessage(dbError);
       return {
         healthy: false,
         details: `Database error: ${errorMessage}`,
