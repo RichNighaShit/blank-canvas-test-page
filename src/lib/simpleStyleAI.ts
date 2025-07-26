@@ -782,55 +782,120 @@ export class SimpleStyleAI {
   }
 
   /**
-   * Calculate color compatibility priority score (0-3)
+   * Calculate enhanced color compatibility priority score (0-5)
    */
   private calculateColorPriority(item: WardrobeItem, profile: StyleProfile): number {
     let score = 0;
+    const currentSeason = this.getCurrentSeason();
+    const seasonalColors = this.getSeasonalColors(currentSeason);
 
-    // Check favorite colors
+    // Enhanced favorite colors scoring
     if (profile.favorite_colors && profile.favorite_colors.length > 0) {
-      const hasExactMatch = item.color.some(itemColor =>
-        profile.favorite_colors!.some(favColor =>
-          itemColor.toLowerCase().includes(favColor.toLowerCase()) ||
-          favColor.toLowerCase().includes(itemColor.toLowerCase())
-        )
-      );
+      let favoriteColorScore = 0;
 
-      if (hasExactMatch) {
-        score += 3; // Exact color match
-      } else {
-        // Check for color harmony
-        const hasHarmony = item.color.some(itemColor =>
-          profile.favorite_colors!.some(favColor =>
-            this.areColorsHarmonious(itemColor, favColor)
-          )
-        );
-        if (hasHarmony) {
-          score += 2; // Harmonious colors
+      for (const itemColor of item.color) {
+        for (const favColor of profile.favorite_colors) {
+          // Exact match
+          if (itemColor.toLowerCase().includes(favColor.toLowerCase()) ||
+              favColor.toLowerCase().includes(itemColor.toLowerCase())) {
+            favoriteColorScore = Math.max(favoriteColorScore, 3);
+          }
+          // Harmonious colors
+          else if (this.areColorsHarmonious(itemColor, favColor)) {
+            favoriteColorScore = Math.max(favoriteColorScore, 2);
+          }
+          // Same color family
+          else if (this.areInSameColorFamily(itemColor, favColor)) {
+            favoriteColorScore = Math.max(favoriteColorScore, 1.5);
+          }
         }
       }
+      score += favoriteColorScore;
     }
 
-    // Check color palette colors
+    // Enhanced color palette scoring
     if (profile.color_palette_colors && profile.color_palette_colors.length > 0) {
-      const hasPaletteMatch = item.color.some(itemColor =>
-        profile.color_palette_colors!.some(paletteColor =>
-          itemColor.toLowerCase().includes(paletteColor.toLowerCase()) ||
-          paletteColor.toLowerCase().includes(itemColor.toLowerCase())
-        )
-      );
+      let paletteScore = 0;
 
-      if (hasPaletteMatch) {
-        score += 1; // Color palette match
+      for (const itemColor of item.color) {
+        for (const paletteColor of profile.color_palette_colors) {
+          if (itemColor.toLowerCase().includes(paletteColor.toLowerCase()) ||
+              paletteColor.toLowerCase().includes(itemColor.toLowerCase())) {
+            paletteScore = Math.max(paletteScore, 1.5);
+          } else if (this.areColorsHarmonious(itemColor, paletteColor)) {
+            paletteScore = Math.max(paletteScore, 1);
+          }
+        }
       }
+      score += paletteScore;
     }
 
-    // Neutral colors are always compatible
+    // Seasonal color bonus
+    const seasonalBonus = item.color.some(itemColor =>
+      seasonalColors.some(seasonalColor =>
+        itemColor.toLowerCase().includes(seasonalColor.toLowerCase()) ||
+        this.areColorsHarmonious(itemColor, seasonalColor)
+      )
+    ) ? 1 : 0;
+    score += seasonalBonus;
+
+    // Neutral colors versatility bonus
     if (this.isNeutralColor(item.color)) {
-      score += 1;
+      score += 0.5;
     }
 
-    return Math.min(3, score); // Cap at 3
+    // Trend-conscious colors bonus
+    const trendColors = this.getTrendColors();
+    const trendBonus = item.color.some(itemColor =>
+      trendColors.some(trendColor =>
+        itemColor.toLowerCase().includes(trendColor.toLowerCase())
+      )
+    ) ? 0.5 : 0;
+    score += trendBonus;
+
+    return Math.min(5, score); // Cap at 5
+  }
+
+  /**
+   * Check if colors are in the same color family
+   */
+  private areInSameColorFamily(color1: string, color2: string): boolean {
+    const colorFamilies = [
+      ["red", "pink", "coral", "rose", "crimson", "burgundy", "salmon"],
+      ["blue", "navy", "royal", "sky", "powder", "cerulean", "turquoise"],
+      ["green", "emerald", "forest", "sage", "mint", "lime", "olive"],
+      ["yellow", "gold", "mustard", "lemon", "cream", "butter", "amber"],
+      ["purple", "violet", "lavender", "plum", "magenta", "lilac", "mauve"],
+      ["brown", "tan", "beige", "camel", "coffee", "chocolate", "rust"]
+    ];
+
+    const c1 = color1.toLowerCase();
+    const c2 = color2.toLowerCase();
+
+    return colorFamilies.some(family =>
+      family.some(f => c1.includes(f)) && family.some(f => c2.includes(f))
+    );
+  }
+
+  /**
+   * Get seasonal colors for current season
+   */
+  private getSeasonalColors(season: string): string[] {
+    const seasonalPalettes = {
+      spring: ["coral", "peach", "yellow", "lime", "turquoise", "pink", "lavender", "mint"],
+      summer: ["sage", "powder blue", "rose", "pearl", "champagne", "blush", "mauve", "seafoam"],
+      autumn: ["rust", "burgundy", "forest", "gold", "brown", "orange", "olive", "bronze"],
+      winter: ["navy", "black", "white", "crimson", "emerald", "royal purple", "silver", "charcoal"]
+    };
+    return seasonalPalettes[season as keyof typeof seasonalPalettes] || [];
+  }
+
+  /**
+   * Get current trend colors
+   */
+  private getTrendColors(): string[] {
+    // These could be updated periodically based on fashion trends
+    return ["sage", "terracotta", "butter", "lavender", "coral", "navy", "camel", "emerald"];
   }
 
   /**
