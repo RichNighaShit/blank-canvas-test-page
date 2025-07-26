@@ -22,7 +22,7 @@ const testConnection = async (): Promise<{ connected: boolean; details: string }
 
     // Test 2: Simple query with timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // Match health check timeout
 
     const { data, error } = await supabase
       .from('profiles')
