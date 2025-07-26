@@ -95,7 +95,30 @@ const Onboarding = () => {
     }
   }, [user, loading, navigate]);
 
-  // Removed redundant profile check - route guards handle this now
+  // Safety check - if user has completed onboarding, redirect them out
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      if (!user) return;
+
+      try {
+        const { data } = await supabase
+          .from('user_onboarding')
+          .select('onboarding_completed, tutorial_skipped')
+          .eq('user_id', user.id)
+          .single();
+
+        if (data && (data.onboarding_completed || data.tutorial_skipped)) {
+          console.log('User has already completed onboarding, redirecting to dashboard');
+          navigate('/dashboard');
+        }
+      } catch (error) {
+        // If there's an error fetching onboarding status, continue with onboarding
+        console.log('No onboarding record found, continuing with onboarding flow');
+      }
+    };
+
+    checkOnboardingStatus();
+  }, [user, navigate]);
 
 
 
