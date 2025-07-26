@@ -175,6 +175,11 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
     }
     
     if (currentStepIndex === totalSteps - 1) {
+      // Mark tutorial as completed for this user's lifetime
+      markExperienceComplete(EXPERIENCE_IDS.WELCOME_TUTORIAL, {
+        completed_steps: totalSteps,
+        completion_method: 'completed'
+      });
       completeOnboarding();
     } else {
       nextStep();
