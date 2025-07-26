@@ -367,7 +367,14 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={skipOnboarding}
+                  onClick={() => {
+                    // Mark tutorial as seen even if skipped, so user won't see it again
+                    markExperienceComplete(EXPERIENCE_IDS.WELCOME_TUTORIAL, {
+                      completed_steps: currentStepIndex + 1,
+                      completion_method: 'skipped'
+                    });
+                    skipOnboarding();
+                  }}
                   className="text-gray-500 hover:text-gray-700"
                 >
                   <SkipForward className="h-4 w-4 mr-1" />
