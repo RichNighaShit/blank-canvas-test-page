@@ -157,18 +157,12 @@ export const useUserFlow = () => {
       return;
     }
 
-    // Check profile existence and completeness
-    const isProfileComplete = profile && 
-                              profile.display_name && 
-                              profile.location && 
-                              profile.culture && 
-                              profile.preferred_style &&
-                              profile.display_name.trim() !== '' &&
-                              profile.location.trim() !== '' &&
-                              profile.culture.trim() !== '' &&
-                              profile.preferred_style.trim() !== '';
+    // Check profile existence and basic completeness
+    // If onboarding is marked complete, trust that over field validation to prevent loops
+    const hasBasicProfile = profile && profile.display_name && profile.display_name.trim() !== '';
+    const onboardingMarkedComplete = onboardingStatus.onboarding_completed || onboardingStatus.tutorial_skipped;
 
-    if (!isProfileComplete) {
+    if (!hasBasicProfile && !onboardingMarkedComplete) {
       setFlowState({
         isLoading: false,
         needsAuth: false,
