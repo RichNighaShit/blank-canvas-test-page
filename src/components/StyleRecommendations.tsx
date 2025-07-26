@@ -303,22 +303,26 @@ const StyleRecommendations: React.FC = () => {
         selectedOccasion,
       );
 
-      // Use cached execution for recommendations
-      const recs = await executeWithCache(
-        `recommendations_${selectedOccasion}_${includeAccessories}_${user.id}`,
-        async () =>
-          simpleStyleAI.generateRecommendations(
-            filteredItems,
-            styleProfile,
-            {
-              occasion: selectedOccasion,
-              timeOfDay: "day",
-              weather: weather || undefined,
-            },
-            includeAccessories,
-          ),
-        5 * 60 * 1000, // 5 minutes cache
-      );
+      // Use cached execution for recommendations with fallback
+      const generateRecommendations = async () =>
+        simpleStyleAI.generateRecommendations(
+          filteredItems,
+          styleProfile,
+          {
+            occasion: selectedOccasion,
+            timeOfDay: "day",
+            weather: weather || undefined,
+          },
+          includeAccessories,
+        );
+
+      const recs = executeWithCache
+        ? await executeWithCache(
+            `recommendations_${selectedOccasion}_${includeAccessories}_${user.id}`,
+            generateRecommendations,
+            5 * 60 * 1000, // 5 minutes cache
+          )
+        : await generateRecommendations();
 
       console.log("Generated recommendations:", recs);
 
