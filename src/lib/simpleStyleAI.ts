@@ -545,7 +545,7 @@ export class SimpleStyleAI {
       }
 
       // Add accessories with color consideration
-      if (includeAccessories && Math.random() > 0.5 && accessories.length > 0) {
+      if (includeAccessories && accessories.length > 0) {
         const outfitColors = outfit.flatMap((item) => item.color);
         const harmoniousAccessories = accessories.filter((acc) => {
           const harmonyResult = advancedColorTheory.analyzeColorHarmony(
@@ -553,13 +553,21 @@ export class SimpleStyleAI {
             acc.color,
           );
           return (
-            harmonyResult.confidence > 0.4 &&
+            harmonyResult.confidence > 0.3 &&
             (harmonyResult.isHarmonious || this.isNeutralColor(acc.color))
           );
         });
 
-        if (harmoniousAccessories.length > 0) {
-          outfit.push(harmoniousAccessories[0]);
+        // Prefer accessories that haven't been used much
+        const availableAccessories = harmoniousAccessories.filter(
+          (acc) => (this.usedItemsHistory[acc.id] || 0) < this.MAX_ITEM_USAGE_PER_SESSION
+        );
+
+        const accessoriesToUse = availableAccessories.length > 0 ? availableAccessories : harmoniousAccessories;
+
+        // Include accessories more reliably - 80% chance instead of 50%
+        if (accessoriesToUse.length > 0 && Math.random() > 0.2) {
+          outfit.push(accessoriesToUse[0]);
         }
       }
 
@@ -643,11 +651,7 @@ export class SimpleStyleAI {
         }
 
         // Add accessories
-        if (
-          includeAccessories &&
-          Math.random() > 0.6 &&
-          accessories.length > 0
-        ) {
+        if (includeAccessories && accessories.length > 0) {
           const currentOutfitColors = outfit.flatMap((item) => item.color);
           const harmoniousAccessories = accessories.filter((acc) => {
             const accHarmony = advancedColorTheory.analyzeColorHarmony(
@@ -660,8 +664,16 @@ export class SimpleStyleAI {
             );
           });
 
-          if (harmoniousAccessories.length > 0) {
-            outfit.push(harmoniousAccessories[0]);
+          // Prefer accessories that haven't been used much
+          const availableAccessories = harmoniousAccessories.filter(
+            (acc) => (this.usedItemsHistory[acc.id] || 0) < this.MAX_ITEM_USAGE_PER_SESSION
+          );
+
+          const accessoriesToUse = availableAccessories.length > 0 ? availableAccessories : harmoniousAccessories;
+
+          // Include accessories more reliably - 75% chance instead of 40%
+          if (accessoriesToUse.length > 0 && Math.random() > 0.25) {
+            outfit.push(accessoriesToUse[0]);
           }
         }
 
@@ -794,17 +806,28 @@ export class SimpleStyleAI {
           }
 
           // Add accessories only if user wants them
-          if (
-            includeAccessories &&
-            Math.random() > 0.5 &&
-            accessories.length > 0
-          ) {
-            const suitableAccessory = accessories.find(
+          if (includeAccessories && accessories.length > 0) {
+            const suitableAccessories = accessories.filter(
               (acc) =>
                 (this.usedItemsHistory[acc.id] || 0) <
                 this.MAX_ITEM_USAGE_PER_SESSION,
             );
-            if (suitableAccessory) outfit.push(suitableAccessory);
+
+            // Try to find accessories that complement the outfit colors
+            const outfitColors = [...dress.color];
+            const compatibleAccessories = suitableAccessories.filter(
+              (acc) =>
+                this.colorsWork(outfitColors, acc.color) ||
+                this.isNeutralColor(acc.color) ||
+                this.isFlexibleColorMatch(outfitColors, acc.color)
+            );
+
+            const accessoriesToUse = compatibleAccessories.length > 0 ? compatibleAccessories : suitableAccessories;
+
+            // Include accessories more reliably - 70% chance
+            if (accessoriesToUse.length > 0 && Math.random() > 0.3) {
+              outfit.push(accessoriesToUse[0]);
+            }
           }
 
           combinations.push(outfit);
@@ -891,17 +914,28 @@ export class SimpleStyleAI {
             if (availableOuterwear) outfit.push(availableOuterwear);
           }
 
-          if (
-            includeAccessories &&
-            Math.random() > 0.6 &&
-            accessories.length > 0
-          ) {
-            const availableAccessory = accessories.find(
+          if (includeAccessories && accessories.length > 0) {
+            const availableAccessories = accessories.filter(
               (acc) =>
                 (this.usedItemsHistory[acc.id] || 0) <
                 this.MAX_ITEM_USAGE_PER_SESSION,
             );
-            if (availableAccessory) outfit.push(availableAccessory);
+
+            // Try to find accessories that complement the outfit colors
+            const outfitColors = [...top.color, ...bottom.color];
+            const compatibleAccessories = availableAccessories.filter(
+              (acc) =>
+                this.colorsWork(outfitColors, acc.color) ||
+                this.isNeutralColor(acc.color) ||
+                this.isFlexibleColorMatch(outfitColors, acc.color)
+            );
+
+            const accessoriesToUse = compatibleAccessories.length > 0 ? compatibleAccessories : availableAccessories;
+
+            // Include accessories more reliably - 65% chance
+            if (accessoriesToUse.length > 0 && Math.random() > 0.35) {
+              outfit.push(accessoriesToUse[0]);
+            }
           }
 
           combinations.push(outfit);
