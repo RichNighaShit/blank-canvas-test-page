@@ -41,7 +41,7 @@ const testConnection = async (): Promise<{ connected: boolean; details: string }
 
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      return { connected: false, details: 'Connection timeout (5s)' };
+      return { connected: false, details: 'Connection timeout (8s)' };
     }
     return { connected: false, details: `Connection test failed: ${error}` };
   }
