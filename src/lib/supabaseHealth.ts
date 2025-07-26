@@ -12,12 +12,18 @@ export const checkSupabaseHealth = async (): Promise<HealthCheckResult> => {
   const startTime = Date.now();
   
   try {
-    // Check 1: Authentication
+    // Check 1: Authentication with timeout
+    const authController = new AbortController();
+    const authTimeoutId = setTimeout(() => authController.abort(), 5000);
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    clearTimeout(authTimeoutId);
+
     if (authError) {
+      const errorMessage = getErrorMessage(authError);
       return {
         healthy: false,
-        details: `Authentication failed: ${authError.message}`,
+        details: `Authentication failed: ${errorMessage}`,
         timestamp: new Date(),
         latency: Date.now() - startTime
       };
