@@ -499,7 +499,14 @@ const StyleRecommendations: React.FC = () => {
                   checked={includeAccessories}
                   onCheckedChange={setIncludeAccessories}
                 />
-                <Label htmlFor="accessories">Include Accessories</Label>
+                <Label htmlFor="accessories" className="flex items-center gap-2">
+                  Include Accessories
+                  {wardrobeItems.some(item => ["accessories", "jewelry", "bags", "hats", "belts", "scarves"].includes(item.category.toLowerCase())) && (
+                    <Badge variant="secondary" className="text-xs">
+                      {wardrobeItems.filter(item => ["accessories", "jewelry", "bags", "hats", "belts", "scarves"].includes(item.category.toLowerCase())).length} available
+                    </Badge>
+                  )}
+                </Label>
               </div>
             </div>
           </CardContent>
