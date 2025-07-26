@@ -532,7 +532,7 @@ const StyleRecommendations: React.FC = () => {
                   </p>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    {getWeatherStatus()}
+                    {getWeatherStatus?.() || "Weather unavailable"}
                   </p>
                 )}
               </div>
