@@ -111,7 +111,7 @@ const Header = React.memo(() => {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                data-tour={item.tourId}
+                {...(import.meta.env.DEV && { 'data-tour': item.tourId })}
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                   isActive(item.path)
