@@ -629,7 +629,6 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      <UserFlowTest />
     </div>
   );
 };
