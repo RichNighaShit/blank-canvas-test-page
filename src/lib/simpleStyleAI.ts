@@ -766,19 +766,109 @@ export class SimpleStyleAI {
   }
 
   /**
-   * Calculate occasion match priority score (0-3)
+   * Calculate enhanced occasion match priority score (0-5)
    */
   private calculateOccasionPriority(item: WardrobeItem, occasion: string): number {
+    let score = 0;
+
+    // Exact occasion match gets highest score
     if (item.occasion.includes(occasion)) {
-      return 3; // Exact match
+      score = 5;
     }
-    if (item.occasion.includes("versatile")) {
-      return 2; // Versatile items
+    // Versatile items work well for most occasions
+    else if (item.occasion.includes("versatile")) {
+      score = 4;
     }
-    if (item.occasion.includes("casual") && !["formal", "business"].includes(occasion)) {
-      return 1; // Casual for non-formal occasions
+    // Smart cross-occasion compatibility
+    else if (this.isOccasionCompatible(item, occasion)) {
+      score = 3;
     }
-    return 0; // No match
+    // Casual items can work for some occasions with lower priority
+    else if (item.occasion.includes("casual") && this.canCasualWorkFor(occasion)) {
+      score = 2;
+    }
+    // Style-based compatibility as fallback
+    else if (this.isStyleCompatibleWithOccasion(item.style, occasion)) {
+      score = 1;
+    }
+
+    // Bonus for items that work across multiple occasions
+    const occasionVersatility = item.occasion.length;
+    if (occasionVersatility > 2) {
+      score += 0.5;
+    }
+
+    // Penalty for items that are too specific for different occasions
+    if (this.isOccasionMismatch(item, occasion)) {
+      score = Math.max(0, score - 2);
+    }
+
+    return Math.min(5, score);
+  }
+
+  /**
+   * Check if item is compatible with occasion through smart mapping
+   */
+  private isOccasionCompatible(item: WardrobeItem, occasion: string): boolean {
+    const occasionCompatibility = {
+      work: ["business", "professional", "smart-casual"],
+      business: ["work", "professional", "formal"],
+      formal: ["business", "elegant", "evening"],
+      casual: ["weekend", "relaxed", "everyday"],
+      social: ["casual", "smart-casual", "evening"],
+      date: ["evening", "smart-casual", "elegant"],
+      evening: ["formal", "date", "social"],
+      weekend: ["casual", "relaxed", "leisure"],
+      travel: ["casual", "comfortable", "versatile"]
+    };
+
+    const compatibleOccasions = occasionCompatibility[occasion as keyof typeof occasionCompatibility] || [];
+    return item.occasion.some(itemOccasion => compatibleOccasions.includes(itemOccasion));
+  }
+
+  /**
+   * Check if casual items can work for the given occasion
+   */
+  private canCasualWorkFor(occasion: string): boolean {
+    const casualFriendlyOccasions = ["social", "weekend", "travel", "creative", "date"];
+    return casualFriendlyOccasions.includes(occasion);
+  }
+
+  /**
+   * Check if item style is compatible with occasion
+   */
+  private isStyleCompatibleWithOccasion(style: string, occasion: string): boolean {
+    const styleOccasionMap = {
+      business: ["work", "business", "professional"],
+      formal: ["formal", "business", "evening"],
+      elegant: ["formal", "date", "evening"],
+      casual: ["casual", "weekend", "social"],
+      sporty: ["casual", "weekend", "travel"],
+      bohemian: ["casual", "creative", "social"],
+      minimalist: ["work", "business", "casual"],
+      vintage: ["casual", "creative", "social"],
+      contemporary: ["work", "casual", "social"]
+    };
+
+    const compatibleOccasions = styleOccasionMap[style as keyof typeof styleOccasionMap] || [];
+    return compatibleOccasions.includes(occasion);
+  }
+
+  /**
+   * Check if there's a strong mismatch between item and occasion
+   */
+  private isOccasionMismatch(item: WardrobeItem, occasion: string): boolean {
+    const strongMismatches = {
+      formal: ["sporty", "athletic", "loungewear"],
+      business: ["party", "beach", "athletic"],
+      casual: [], // Casual rarely has strong mismatches
+      evening: ["athletic", "loungewear"],
+      work: ["party", "beach", "athletic", "loungewear"]
+    };
+
+    const mismatches = strongMismatches[occasion as keyof typeof strongMismatches] || [];
+    return item.occasion.some(itemOccasion => mismatches.includes(itemOccasion)) ||
+           mismatches.includes(item.style);
   }
 
   /**
