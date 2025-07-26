@@ -210,7 +210,7 @@ const StyleRecommendations = () => {
                       </Badge>
                     </div>
                     <StyleRecommendationsErrorBoundary>
-                      <StyleRecs />
+                      <StyleRecommendationsDiagnostic />
                     </StyleRecommendationsErrorBoundary>
                   </div>
                 </div>
