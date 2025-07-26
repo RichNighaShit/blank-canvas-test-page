@@ -54,7 +54,7 @@ const OutfitPlanner: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { profile } = useProfile();
-  const { weather } = useWeather();
+  const { weather } = useWeather(profile?.location);
 
   // Performance optimization
   const { executeWithCache } = usePerformance({
