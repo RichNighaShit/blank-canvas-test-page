@@ -83,12 +83,6 @@ const StyleRecommendations: React.FC = () => {
   useEffect(() => {
     if (user && profile) {
       loadWardrobeItems();
-      // Fetch weather for user's location if available
-      if (profile.location) {
-        fetchWeather(profile.location);
-      } else {
-        fetchWeather(); // Use default location
-      }
     } else if (user && !profile) {
       setError("Profile not found. Please complete your profile setup.");
       setLoading(false);
