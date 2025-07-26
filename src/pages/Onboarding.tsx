@@ -375,21 +375,18 @@ const Onboarding = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    placeholder="City, Country"
-                    value={profileData.location}
-                    onChange={(e) =>
-                      setProfileData((prev) => ({
-                        ...prev,
-                        location: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
+                <LocationSelector
+                  value={profileData.location}
+                  onChange={(value) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      location: value,
+                    }))
+                  }
+                  placeholder="Select your city..."
+                  required
+                  label="Location"
+                />
                 <div className="space-y-2">
                   <Label htmlFor="gender_identity">Gender Identity</Label>
                   <Select
