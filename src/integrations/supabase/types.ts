@@ -613,6 +613,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      user_one_time_experiences: {
+        Row: {
+          completed_at: string;
+          created_at: string;
+          experience_id: string;
+          id: string;
+          metadata: Json | null;
+          user_id: string;
+        };
+        Insert: {
+          completed_at?: string;
+          created_at?: string;
+          experience_id: string;
+          id?: string;
+          metadata?: Json | null;
+          user_id: string;
+        };
+        Update: {
+          completed_at?: string;
+          created_at?: string;
+          experience_id?: string;
+          id?: string;
+          metadata?: Json | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       user_style_quiz: {
         Row: {
           body_type: string | null;

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw } from "lucide-react";
+import { getErrorMessage } from "@/lib/errorUtils";
 
 interface Props {
   children: React.ReactNode;
@@ -30,7 +31,12 @@ class RouteErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Route Error Boundary caught an error:", error, errorInfo);
+    const errorMessage = getErrorMessage(error);
+    console.error("Route Error Boundary caught an error:", errorMessage, {
+      componentStack: errorInfo.componentStack,
+      errorMessage: error.message,
+      errorStack: error.stack
+    });
   }
 
   handleRetry = () => {

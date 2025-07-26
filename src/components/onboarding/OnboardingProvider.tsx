@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useUserFlow } from '@/hooks/useUserFlow';
+import { useOneTimeExperience, EXPERIENCE_IDS } from '@/hooks/useOneTimeExperience';
 
 export interface OnboardingStep {
   id: string;
@@ -108,19 +109,26 @@ interface OnboardingProviderProps {
 
 export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children }) => {
   const { flowState, markTermsAccepted, markOnboardingCompleted, markTutorialSkipped } = useUserFlow();
+  const { hasSeenExperience, isLoading: experienceLoading } = useOneTimeExperience();
   const [isActive, setIsActive] = useState(false);
   const [currentFlow, setCurrentFlow] = useState<OnboardingFlow | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   // Auto-start tutorial when appropriate (based on database state - once per user)
   useEffect(() => {
-    if (flowState.canShowTutorial && !isActive && flowState.currentStage === 'ready') {
+    if (
+      flowState.canShowTutorial &&
+      !isActive &&
+      flowState.currentStage === 'ready' &&
+      !experienceLoading &&
+      !hasSeenExperience(EXPERIENCE_IDS.WELCOME_TUTORIAL)
+    ) {
       // Delay starting tutorial to ensure UI is ready
       setTimeout(() => {
         startOnboarding('first-time-user');
       }, 1000);
     }
-  }, [flowState.canShowTutorial, flowState.currentStage, isActive]);
+  }, [flowState.canShowTutorial, flowState.currentStage, isActive, experienceLoading, hasSeenExperience]);
 
   const startOnboarding = (flowId: string) => {
     const flow = onboardingFlows.find(f => f.id === flowId);

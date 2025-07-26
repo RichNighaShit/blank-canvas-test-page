@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { PerformanceDashboard } from "./components/PerformanceDashboard";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
+import LazyLoadErrorBoundary from "./components/LazyLoadErrorBoundary";
 import { OnboardingProvider } from "./components/onboarding";
 import { AppContent } from "./components/AppContent";
 import NetworkStatus from "./components/NetworkStatus";
@@ -69,33 +70,41 @@ function App() {
           {/* Onboarding route */}
           <Route path="/onboarding" element={
             <OnboardingRoute>
-              <Suspense fallback={<PageLoader />}>
-                <Onboarding />
-              </Suspense>
+              <LazyLoadErrorBoundary componentName="Onboarding">
+                <Suspense fallback={<PageLoader />}>
+                  <Onboarding />
+                </Suspense>
+              </LazyLoadErrorBoundary>
             </OnboardingRoute>
           } />
 
           {/* Protected routes requiring complete profile */}
           <Route path="/dashboard" element={
             <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
-                <Dashboard />
-              </Suspense>
+              <LazyLoadErrorBoundary componentName="Dashboard">
+                <Suspense fallback={<PageLoader />}>
+                  <Dashboard />
+                </Suspense>
+              </LazyLoadErrorBoundary>
             </ProtectedRoute>
           } />
           <Route path="/wardrobe" element={
             <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
-                <Wardrobe />
-              </Suspense>
+              <LazyLoadErrorBoundary componentName="Wardrobe">
+                <Suspense fallback={<PageLoader />}>
+                  <Wardrobe />
+                </Suspense>
+              </LazyLoadErrorBoundary>
             </ProtectedRoute>
           } />
 
           <Route path="/wardrobe-setup" element={
             <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
-                <WardrobeSetup />
-              </Suspense>
+              <LazyLoadErrorBoundary componentName="WardrobeSetup">
+                <Suspense fallback={<PageLoader />}>
+                  <WardrobeSetup />
+                </Suspense>
+              </LazyLoadErrorBoundary>
             </ProtectedRoute>
           } />
 

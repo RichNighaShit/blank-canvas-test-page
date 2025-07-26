@@ -53,7 +53,7 @@ export class SimpleStyleAI {
   generateRecommendations(
     wardrobeItems: WardrobeItem[],
     profile: StyleProfile,
-    context: { occasion: string; timeOfDay?: string; weather?: WeatherData },
+    context: { occasion: string; timeOfDay?: string; weather?: WeatherData; prioritizeColors?: boolean },
     includeAccessories: boolean = true,
   ): OutfitRecommendation[] {
     return this.measurePerformance("generateRecommendations", () => {
@@ -153,13 +153,15 @@ export class SimpleStyleAI {
         // Group items by category
         const itemsByCategory = this.groupByCategory(weatherFilteredItems);
 
-        // Generate diverse outfit combinations with advanced color theory and weather context
+        // Generate combinations prioritizing occasion and color compatibility
         const combinations = this.generateAdvancedCombinations(
           itemsByCategory,
           context.occasion,
           profile.preferred_style,
           includeAccessories,
           context.weather,
+          profile, // Pass profile for color preferences
+          context.prioritizeColors || false,
         );
 
         if (combinations.length === 0) {
@@ -387,8 +389,15 @@ export class SimpleStyleAI {
     preferredStyle?: string,
     includeAccessories: boolean = true,
     weather?: WeatherData,
+    profile?: StyleProfile,
+    prioritizeColors: boolean = false,
   ): WardrobeItem[][] {
     try {
+      // Sort items within each category by occasion and color priority
+      if (prioritizeColors && profile) {
+        itemsByCategory = this.prioritizeItemsByOccasionAndColor(itemsByCategory, occasion, profile);
+      }
+
       // First try advanced color theory approach
       const advancedCombinations = this.generateWithAdvancedColorTheory(
         itemsByCategory,
@@ -545,7 +554,7 @@ export class SimpleStyleAI {
       }
 
       // Add accessories with color consideration
-      if (includeAccessories && Math.random() > 0.5 && accessories.length > 0) {
+      if (includeAccessories && accessories.length > 0) {
         const outfitColors = outfit.flatMap((item) => item.color);
         const harmoniousAccessories = accessories.filter((acc) => {
           const harmonyResult = advancedColorTheory.analyzeColorHarmony(
@@ -553,13 +562,21 @@ export class SimpleStyleAI {
             acc.color,
           );
           return (
-            harmonyResult.confidence > 0.4 &&
+            harmonyResult.confidence > 0.3 &&
             (harmonyResult.isHarmonious || this.isNeutralColor(acc.color))
           );
         });
 
-        if (harmoniousAccessories.length > 0) {
-          outfit.push(harmoniousAccessories[0]);
+        // Prefer accessories that haven't been used much
+        const availableAccessories = harmoniousAccessories.filter(
+          (acc) => (this.usedItemsHistory[acc.id] || 0) < this.MAX_ITEM_USAGE_PER_SESSION
+        );
+
+        const accessoriesToUse = availableAccessories.length > 0 ? availableAccessories : harmoniousAccessories;
+
+        // Include accessories more reliably - 80% chance instead of 50%
+        if (accessoriesToUse.length > 0 && Math.random() > 0.2) {
+          outfit.push(accessoriesToUse[0]);
         }
       }
 
@@ -643,11 +660,7 @@ export class SimpleStyleAI {
         }
 
         // Add accessories
-        if (
-          includeAccessories &&
-          Math.random() > 0.6 &&
-          accessories.length > 0
-        ) {
+        if (includeAccessories && accessories.length > 0) {
           const currentOutfitColors = outfit.flatMap((item) => item.color);
           const harmoniousAccessories = accessories.filter((acc) => {
             const accHarmony = advancedColorTheory.analyzeColorHarmony(
@@ -660,8 +673,16 @@ export class SimpleStyleAI {
             );
           });
 
-          if (harmoniousAccessories.length > 0) {
-            outfit.push(harmoniousAccessories[0]);
+          // Prefer accessories that haven't been used much
+          const availableAccessories = harmoniousAccessories.filter(
+            (acc) => (this.usedItemsHistory[acc.id] || 0) < this.MAX_ITEM_USAGE_PER_SESSION
+          );
+
+          const accessoriesToUse = availableAccessories.length > 0 ? availableAccessories : harmoniousAccessories;
+
+          // Include accessories more reliably - 75% chance instead of 40%
+          if (accessoriesToUse.length > 0 && Math.random() > 0.25) {
+            outfit.push(accessoriesToUse[0]);
           }
         }
 
@@ -699,6 +720,306 @@ export class SimpleStyleAI {
         const usageB = this.usedItemsHistory[b.id] || 0;
         return usageA - usageB; // Prefer less used items
       });
+  }
+
+  /**
+   * Prioritize items within each category by occasion match and color compatibility
+   */
+  private prioritizeItemsByOccasionAndColor(
+    itemsByCategory: { [key: string]: WardrobeItem[] },
+    occasion: string,
+    profile: StyleProfile
+  ): { [key: string]: WardrobeItem[] } {
+    const prioritizedCategories: { [key: string]: WardrobeItem[] } = {};
+
+    Object.keys(itemsByCategory).forEach(category => {
+      const items = itemsByCategory[category];
+
+      // Sort items by priority: occasion match first, then color compatibility
+      const sortedItems = items.sort((a, b) => {
+        // Priority 1: Occasion match score (higher is better)
+        const occasionScoreA = this.calculateOccasionPriority(a, occasion);
+        const occasionScoreB = this.calculateOccasionPriority(b, occasion);
+
+        if (occasionScoreA !== occasionScoreB) {
+          return occasionScoreB - occasionScoreA;
+        }
+
+        // Priority 2: Color compatibility with user preferences (higher is better)
+        const colorScoreA = this.calculateColorPriority(a, profile);
+        const colorScoreB = this.calculateColorPriority(b, profile);
+
+        if (colorScoreA !== colorScoreB) {
+          return colorScoreB - colorScoreA;
+        }
+
+        // Priority 3: Usage history (less used is better for variety)
+        const usageA = this.usedItemsHistory[a.id] || 0;
+        const usageB = this.usedItemsHistory[b.id] || 0;
+        return usageA - usageB;
+      });
+
+      prioritizedCategories[category] = sortedItems;
+    });
+
+    return prioritizedCategories;
+  }
+
+  /**
+   * Calculate enhanced occasion match priority score (0-5)
+   */
+  private calculateOccasionPriority(item: WardrobeItem, occasion: string): number {
+    let score = 0;
+
+    // Exact occasion match gets highest score
+    if (item.occasion.includes(occasion)) {
+      score = 5;
+    }
+    // Versatile items work well for most occasions
+    else if (item.occasion.includes("versatile")) {
+      score = 4;
+    }
+    // Smart cross-occasion compatibility
+    else if (this.isOccasionCompatible(item, occasion)) {
+      score = 3;
+    }
+    // Casual items can work for some occasions with lower priority
+    else if (item.occasion.includes("casual") && this.canCasualWorkFor(occasion)) {
+      score = 2;
+    }
+    // Style-based compatibility as fallback
+    else if (this.isStyleCompatibleWithOccasion(item.style, occasion)) {
+      score = 1;
+    }
+
+    // Bonus for items that work across multiple occasions
+    const occasionVersatility = item.occasion.length;
+    if (occasionVersatility > 2) {
+      score += 0.5;
+    }
+
+    // Penalty for items that are too specific for different occasions
+    if (this.isOccasionMismatch(item, occasion)) {
+      score = Math.max(0, score - 2);
+    }
+
+    return Math.min(5, score);
+  }
+
+  /**
+   * Check if item is compatible with occasion through smart mapping
+   */
+  private isOccasionCompatible(item: WardrobeItem, occasion: string): boolean {
+    const occasionCompatibility = {
+      work: ["business", "professional", "smart-casual"],
+      business: ["work", "professional", "formal"],
+      formal: ["business", "elegant", "evening"],
+      casual: ["weekend", "relaxed", "everyday"],
+      social: ["casual", "smart-casual", "evening"],
+      date: ["evening", "smart-casual", "elegant"],
+      evening: ["formal", "date", "social"],
+      weekend: ["casual", "relaxed", "leisure"],
+      travel: ["casual", "comfortable", "versatile"]
+    };
+
+    const compatibleOccasions = occasionCompatibility[occasion as keyof typeof occasionCompatibility] || [];
+    return item.occasion.some(itemOccasion => compatibleOccasions.includes(itemOccasion));
+  }
+
+  /**
+   * Check if casual items can work for the given occasion
+   */
+  private canCasualWorkFor(occasion: string): boolean {
+    const casualFriendlyOccasions = ["social", "weekend", "travel", "creative", "date"];
+    return casualFriendlyOccasions.includes(occasion);
+  }
+
+  /**
+   * Check if item style is compatible with occasion
+   */
+  private isStyleCompatibleWithOccasion(style: string, occasion: string): boolean {
+    const styleOccasionMap = {
+      business: ["work", "business", "professional"],
+      formal: ["formal", "business", "evening"],
+      elegant: ["formal", "date", "evening"],
+      casual: ["casual", "weekend", "social"],
+      sporty: ["casual", "weekend", "travel"],
+      bohemian: ["casual", "creative", "social"],
+      minimalist: ["work", "business", "casual"],
+      vintage: ["casual", "creative", "social"],
+      contemporary: ["work", "casual", "social"]
+    };
+
+    const compatibleOccasions = styleOccasionMap[style as keyof typeof styleOccasionMap] || [];
+    return compatibleOccasions.includes(occasion);
+  }
+
+  /**
+   * Check if there's a strong mismatch between item and occasion
+   */
+  private isOccasionMismatch(item: WardrobeItem, occasion: string): boolean {
+    const strongMismatches = {
+      formal: ["sporty", "athletic", "loungewear"],
+      business: ["party", "beach", "athletic"],
+      casual: [], // Casual rarely has strong mismatches
+      evening: ["athletic", "loungewear"],
+      work: ["party", "beach", "athletic", "loungewear"]
+    };
+
+    const mismatches = strongMismatches[occasion as keyof typeof strongMismatches] || [];
+    return item.occasion.some(itemOccasion => mismatches.includes(itemOccasion)) ||
+           mismatches.includes(item.style);
+  }
+
+  /**
+   * Calculate enhanced color compatibility priority score (0-5)
+   */
+  private calculateColorPriority(item: WardrobeItem, profile: StyleProfile): number {
+    let score = 0;
+    const currentSeason = this.getCurrentSeason();
+    const seasonalColors = this.getSeasonalColors(currentSeason);
+
+    // Enhanced favorite colors scoring
+    if (profile.favorite_colors && profile.favorite_colors.length > 0) {
+      let favoriteColorScore = 0;
+
+      for (const itemColor of item.color) {
+        for (const favColor of profile.favorite_colors) {
+          // Exact match
+          if (itemColor.toLowerCase().includes(favColor.toLowerCase()) ||
+              favColor.toLowerCase().includes(itemColor.toLowerCase())) {
+            favoriteColorScore = Math.max(favoriteColorScore, 3);
+          }
+          // Harmonious colors
+          else if (this.areColorsHarmonious(itemColor, favColor)) {
+            favoriteColorScore = Math.max(favoriteColorScore, 2);
+          }
+          // Same color family
+          else if (this.areInSameColorFamily(itemColor, favColor)) {
+            favoriteColorScore = Math.max(favoriteColorScore, 1.5);
+          }
+        }
+      }
+      score += favoriteColorScore;
+    }
+
+    // Enhanced color palette scoring
+    if (profile.color_palette_colors && profile.color_palette_colors.length > 0) {
+      let paletteScore = 0;
+
+      for (const itemColor of item.color) {
+        for (const paletteColor of profile.color_palette_colors) {
+          if (itemColor.toLowerCase().includes(paletteColor.toLowerCase()) ||
+              paletteColor.toLowerCase().includes(itemColor.toLowerCase())) {
+            paletteScore = Math.max(paletteScore, 1.5);
+          } else if (this.areColorsHarmonious(itemColor, paletteColor)) {
+            paletteScore = Math.max(paletteScore, 1);
+          }
+        }
+      }
+      score += paletteScore;
+    }
+
+    // Seasonal color bonus
+    const seasonalBonus = item.color.some(itemColor =>
+      seasonalColors.some(seasonalColor =>
+        itemColor.toLowerCase().includes(seasonalColor.toLowerCase()) ||
+        this.areColorsHarmonious(itemColor, seasonalColor)
+      )
+    ) ? 1 : 0;
+    score += seasonalBonus;
+
+    // Neutral colors versatility bonus
+    if (this.isNeutralColor(item.color)) {
+      score += 0.5;
+    }
+
+    // Trend-conscious colors bonus
+    const trendColors = this.getTrendColors();
+    const trendBonus = item.color.some(itemColor =>
+      trendColors.some(trendColor =>
+        itemColor.toLowerCase().includes(trendColor.toLowerCase())
+      )
+    ) ? 0.5 : 0;
+    score += trendBonus;
+
+    return Math.min(5, score); // Cap at 5
+  }
+
+  /**
+   * Check if colors are in the same color family
+   */
+  private areInSameColorFamily(color1: string, color2: string): boolean {
+    const colorFamilies = [
+      ["red", "pink", "coral", "rose", "crimson", "burgundy", "salmon"],
+      ["blue", "navy", "royal", "sky", "powder", "cerulean", "turquoise"],
+      ["green", "emerald", "forest", "sage", "mint", "lime", "olive"],
+      ["yellow", "gold", "mustard", "lemon", "cream", "butter", "amber"],
+      ["purple", "violet", "lavender", "plum", "magenta", "lilac", "mauve"],
+      ["brown", "tan", "beige", "camel", "coffee", "chocolate", "rust"]
+    ];
+
+    const c1 = color1.toLowerCase();
+    const c2 = color2.toLowerCase();
+
+    return colorFamilies.some(family =>
+      family.some(f => c1.includes(f)) && family.some(f => c2.includes(f))
+    );
+  }
+
+  /**
+   * Get seasonal colors for current season
+   */
+  private getSeasonalColors(season: string): string[] {
+    const seasonalPalettes = {
+      spring: ["coral", "peach", "yellow", "lime", "turquoise", "pink", "lavender", "mint"],
+      summer: ["sage", "powder blue", "rose", "pearl", "champagne", "blush", "mauve", "seafoam"],
+      autumn: ["rust", "burgundy", "forest", "gold", "brown", "orange", "olive", "bronze"],
+      winter: ["navy", "black", "white", "crimson", "emerald", "royal purple", "silver", "charcoal"]
+    };
+    return seasonalPalettes[season as keyof typeof seasonalPalettes] || [];
+  }
+
+  /**
+   * Get current trend colors
+   */
+  private getTrendColors(): string[] {
+    // These could be updated periodically based on fashion trends
+    return ["sage", "terracotta", "butter", "lavender", "coral", "navy", "camel", "emerald"];
+  }
+
+  /**
+   * Simple color harmony check
+   */
+  private areColorsHarmonious(color1: string, color2: string): boolean {
+    const complementaryPairs = [
+      ["red", "green"], ["blue", "orange"], ["yellow", "purple"],
+      ["pink", "green"], ["teal", "coral"], ["navy", "gold"]
+    ];
+
+    const analogousFamilies = [
+      ["red", "orange", "pink"], ["blue", "green", "teal"],
+      ["yellow", "orange", "gold"], ["purple", "pink", "magenta"]
+    ];
+
+    const c1 = color1.toLowerCase();
+    const c2 = color2.toLowerCase();
+
+    // Check complementary pairs
+    for (const [comp1, comp2] of complementaryPairs) {
+      if ((c1.includes(comp1) && c2.includes(comp2)) || (c1.includes(comp2) && c2.includes(comp1))) {
+        return true;
+      }
+    }
+
+    // Check analogous families
+    for (const family of analogousFamilies) {
+      if (family.some(f => c1.includes(f)) && family.some(f => c2.includes(f))) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private generateDiverseCombinations(
@@ -794,17 +1115,28 @@ export class SimpleStyleAI {
           }
 
           // Add accessories only if user wants them
-          if (
-            includeAccessories &&
-            Math.random() > 0.5 &&
-            accessories.length > 0
-          ) {
-            const suitableAccessory = accessories.find(
+          if (includeAccessories && accessories.length > 0) {
+            const suitableAccessories = accessories.filter(
               (acc) =>
                 (this.usedItemsHistory[acc.id] || 0) <
                 this.MAX_ITEM_USAGE_PER_SESSION,
             );
-            if (suitableAccessory) outfit.push(suitableAccessory);
+
+            // Try to find accessories that complement the outfit colors
+            const outfitColors = [...dress.color];
+            const compatibleAccessories = suitableAccessories.filter(
+              (acc) =>
+                this.colorsWork(outfitColors, acc.color) ||
+                this.isNeutralColor(acc.color) ||
+                this.isFlexibleColorMatch(outfitColors, acc.color)
+            );
+
+            const accessoriesToUse = compatibleAccessories.length > 0 ? compatibleAccessories : suitableAccessories;
+
+            // Include accessories more reliably - 70% chance
+            if (accessoriesToUse.length > 0 && Math.random() > 0.3) {
+              outfit.push(accessoriesToUse[0]);
+            }
           }
 
           combinations.push(outfit);
@@ -891,17 +1223,28 @@ export class SimpleStyleAI {
             if (availableOuterwear) outfit.push(availableOuterwear);
           }
 
-          if (
-            includeAccessories &&
-            Math.random() > 0.6 &&
-            accessories.length > 0
-          ) {
-            const availableAccessory = accessories.find(
+          if (includeAccessories && accessories.length > 0) {
+            const availableAccessories = accessories.filter(
               (acc) =>
                 (this.usedItemsHistory[acc.id] || 0) <
                 this.MAX_ITEM_USAGE_PER_SESSION,
             );
-            if (availableAccessory) outfit.push(availableAccessory);
+
+            // Try to find accessories that complement the outfit colors
+            const outfitColors = [...top.color, ...bottom.color];
+            const compatibleAccessories = availableAccessories.filter(
+              (acc) =>
+                this.colorsWork(outfitColors, acc.color) ||
+                this.isNeutralColor(acc.color) ||
+                this.isFlexibleColorMatch(outfitColors, acc.color)
+            );
+
+            const accessoriesToUse = compatibleAccessories.length > 0 ? compatibleAccessories : availableAccessories;
+
+            // Include accessories more reliably - 65% chance
+            if (accessoriesToUse.length > 0 && Math.random() > 0.35) {
+              outfit.push(accessoriesToUse[0]);
+            }
           }
 
           combinations.push(outfit);
@@ -1180,17 +1523,20 @@ export class SimpleStyleAI {
       let confidence = 0;
       const reasoning: string[] = [];
 
-      // Enhanced scoring system with weighted factors
+      // Enhanced scoring system with optimized weights
       const scoringWeights = {
-        base: 0.1,
-        diversity: 0.12,
-        style: 0.22,
-        colorHarmony: 0.18,
-        occasion: 0.2,
-        weather: 0.15,
-        completeness: 0.1,
-        fashion: 0.08,
-        goals: 0.05,
+        base: 0.05,
+        diversity: 0.10,
+        style: 0.18,
+        colorHarmony: 0.20, // Increased weight for color importance
+        occasion: 0.25, // Increased weight for occasion importance
+        weather: 0.12,
+        completeness: 0.08,
+        fashion: 0.06,
+        goals: 0.04,
+        seasonality: 0.05, // New factor
+        versatility: 0.04, // New factor
+        trendiness: 0.03, // New factor
       };
 
       // Base confidence for having valid items
@@ -1355,14 +1701,34 @@ export class SimpleStyleAI {
         reasoning.push("Follows current fashion trends");
       }
 
-      // Seasonal color intelligence
-      const seasonalScore = this.calculateSeasonalColorScore(validItems);
-      confidence += seasonalScore * 0.05; // Small additional bonus for seasonal appropriateness
+      // Enhanced seasonal intelligence
+      const seasonalScore = this.calculateEnhancedSeasonalScore(validItems);
+      confidence += seasonalScore * scoringWeights.seasonality;
 
       if (seasonalScore > 0.8) {
-        reasoning.push("Perfect seasonal color palette");
+        reasoning.push("Perfect seasonal harmony for " + this.getCurrentSeason());
       } else if (seasonalScore > 0.6) {
-        reasoning.push("Season-appropriate color choices");
+        reasoning.push("Season-appropriate styling choices");
+      }
+
+      // Versatility scoring
+      const versatilityScore = this.calculateVersatilityScore(validItems);
+      confidence += versatilityScore * scoringWeights.versatility;
+
+      if (versatilityScore > 0.8) {
+        reasoning.push("Highly versatile outfit for multiple occasions");
+      } else if (versatilityScore > 0.6) {
+        reasoning.push("Good versatility for day-to-evening transition");
+      }
+
+      // Trend relevance scoring
+      const trendinessScore = this.calculateTrendinessScore(validItems);
+      confidence += trendinessScore * scoringWeights.trendiness;
+
+      if (trendinessScore > 0.7) {
+        reasoning.push("On-trend styling with contemporary appeal");
+      } else if (trendinessScore > 0.5) {
+        reasoning.push("Incorporates current fashion elements");
       }
 
       // Goal alignment (if user has specific goals)
@@ -3566,6 +3932,129 @@ export class SimpleStyleAI {
       console.error("Error sanitizing wardrobe items:", error);
       return [];
     }
+  }
+
+  /**
+   * Calculate enhanced seasonal appropriateness score
+   */
+  private calculateEnhancedSeasonalScore(outfit: WardrobeItem[]): number {
+    try {
+      const currentSeason = this.getCurrentSeason();
+      const seasonalColors = this.getSeasonalColors(currentSeason);
+      const allColors = outfit.flatMap((item) => item.color);
+
+      if (allColors.length === 0) return 0.5;
+
+      let score = 0;
+
+      // Color seasonal match
+      const colorMatches = allColors.filter(color =>
+        seasonalColors.some(seasonalColor =>
+          color.toLowerCase().includes(seasonalColor.toLowerCase()) ||
+          this.areColorsHarmonious(color, seasonalColor)
+        )
+      ).length;
+
+      const colorScore = colorMatches / allColors.length;
+      score += colorScore * 0.6; // 60% weight for colors
+
+      // Fabric seasonal appropriateness
+      const seasonalFabrics = this.getSeasonalFabrics(currentSeason);
+      const fabricScore = outfit.filter(item =>
+        item.tags && seasonalFabrics.some(fabric =>
+          item.tags!.some(tag => tag.toLowerCase().includes(fabric))
+        )
+      ).length / outfit.length;
+      score += fabricScore * 0.4; // 40% weight for fabrics
+
+      return Math.min(1, score);
+    } catch (error) {
+      console.warn("Error calculating enhanced seasonal score:", error);
+      return 0.5;
+    }
+  }
+
+  /**
+   * Calculate outfit versatility score
+   */
+  private calculateVersatilityScore(outfit: WardrobeItem[]): number {
+    let score = 0;
+    const totalItems = outfit.length;
+
+    // Multi-occasion items
+    const versatileItems = outfit.filter(item =>
+      item.occasion.includes("versatile") || item.occasion.length > 2
+    ).length;
+    score += (versatileItems / totalItems) * 0.4;
+
+    // Neutral/basic items that mix well
+    const basicItems = outfit.filter(item =>
+      this.isNeutralColor(item.color) ||
+      item.tags?.includes("basic") ||
+      item.style === "minimalist"
+    ).length;
+    score += (basicItems / totalItems) * 0.3;
+
+    // Mix-and-match potential
+    const mixableStyles = ["casual", "smart-casual", "minimalist", "contemporary"];
+    const mixableItems = outfit.filter(item =>
+      mixableStyles.includes(item.style)
+    ).length;
+    score += (mixableItems / totalItems) * 0.3;
+
+    return Math.min(1, score);
+  }
+
+  /**
+   * Calculate trend relevance score
+   */
+  private calculateTrendinessScore(outfit: WardrobeItem[]): number {
+    let score = 0;
+    const totalItems = outfit.length;
+
+    // Trend colors
+    const trendColors = this.getTrendColors();
+    const trendColorItems = outfit.filter(item =>
+      item.color.some(color =>
+        trendColors.some(trendColor =>
+          color.toLowerCase().includes(trendColor.toLowerCase())
+        )
+      )
+    ).length;
+    score += (trendColorItems / totalItems) * 0.4;
+
+    // Contemporary styles
+    const contemporaryStyles = ["contemporary", "modern", "minimalist", "smart-casual"];
+    const contemporaryItems = outfit.filter(item =>
+      contemporaryStyles.includes(item.style) ||
+      item.tags?.includes("contemporary") ||
+      item.tags?.includes("modern")
+    ).length;
+    score += (contemporaryItems / totalItems) * 0.4;
+
+    // Current silhouettes and cuts
+    const trendTags = ["oversized", "cropped", "high-waisted", "wide-leg", "structured"];
+    const trendItems = outfit.filter(item =>
+      item.tags && trendTags.some(tag =>
+        item.tags!.some(itemTag => itemTag.toLowerCase().includes(tag))
+      )
+    ).length;
+    score += (trendItems / totalItems) * 0.2;
+
+    return Math.min(1, score);
+  }
+
+  /**
+   * Get seasonal fabric preferences
+   */
+  private getSeasonalFabrics(season: string): string[] {
+    const seasonalFabrics = {
+      spring: ["cotton", "linen", "silk", "light wool", "denim"],
+      summer: ["linen", "cotton", "silk", "chiffon", "jersey"],
+      autumn: ["wool", "cashmere", "denim", "leather", "corduroy"],
+      winter: ["wool", "cashmere", "velvet", "tweed", "fleece"]
+    };
+    return seasonalFabrics[season as keyof typeof seasonalFabrics] || [];
   }
 
   private calculateSeasonalColorScore(outfit: WardrobeItem[]): number {

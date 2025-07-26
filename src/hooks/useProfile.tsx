@@ -3,22 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { checkSupabaseHealth } from "@/lib/supabaseHealth";
 import { logError } from "@/lib/errorLogger";
-
-// Utility function to extract error messages safely
-const getErrorMessage = (error: any): string => {
-  if (typeof error === 'string') return error;
-  if (error?.message) return error.message;
-  if (error?.error_description) return error.error_description;
-  if (error?.details) return error.details;
-  if (error && typeof error === 'object') {
-    try {
-      return JSON.stringify(error);
-    } catch {
-      return String(error);
-    }
-  }
-  return 'Unknown error occurred';
-};
+import { getErrorMessage, logError as logErrorWithMessage } from "@/lib/errorUtils";
 
 // Test basic Supabase connectivity with detailed diagnostics
 const testConnection = async (): Promise<{ connected: boolean; details: string }> => {
@@ -37,7 +22,7 @@ const testConnection = async (): Promise<{ connected: boolean; details: string }
 
     // Test 2: Simple query with timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // Match health check timeout
 
     const { data, error } = await supabase
       .from('profiles')
@@ -56,7 +41,7 @@ const testConnection = async (): Promise<{ connected: boolean; details: string }
 
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      return { connected: false, details: 'Connection timeout (5s)' };
+      return { connected: false, details: 'Connection timeout (8s)' };
     }
     return { connected: false, details: `Connection test failed: ${error}` };
   }
@@ -169,9 +154,9 @@ export const useProfile = () => {
 
       setIsOffline(false);
 
-      // Add timeout and better error handling
+      // Add timeout and better error handling - generous timeout to prevent abort errors
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
       // Start with a minimal query to test basic connectivity
       console.log('Attempting minimal profile query first...');
@@ -286,7 +271,7 @@ export const useProfile = () => {
           setRetryCount(0);
         }
       } else if (error instanceof DOMException && error.name === 'AbortError') {
-        console.error("Request timed out after 10 seconds");
+        console.error("Request timed out after 15 seconds");
         if (retryCount < 1) {
           console.log("Retrying after timeout...");
           setRetryCount(prev => prev + 1);

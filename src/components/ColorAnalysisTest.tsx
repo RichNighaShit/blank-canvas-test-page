@@ -335,8 +335,8 @@ export default function ColorAnalysisTest({ onAnalysisComplete }: ColorAnalysisT
             </CardContent>
           </Card>
 
-          {/* Debug Information */}
-          {analysis.facialFeatures.debugInfo && (
+          {/* Debug Information - Development Only */}
+          {import.meta.env.DEV && analysis.facialFeatures.debugInfo && (
             <Card>
               <CardHeader>
                 <CardTitle>Debug Information</CardTitle>

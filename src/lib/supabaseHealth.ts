@@ -1,4 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getErrorMessage } from './errorUtils';
+import { withNetworkRetry, getNetworkErrorMessage } from './networkUtils';
 
 export interface HealthCheckResult {
   healthy: boolean;
@@ -11,33 +13,44 @@ export const checkSupabaseHealth = async (): Promise<HealthCheckResult> => {
   const startTime = Date.now();
   
   try {
-    // Check 1: Authentication
+    // Check 1: Authentication with timeout
+    const authController = new AbortController();
+    const authTimeoutId = setTimeout(() => authController.abort(), 5000);
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    clearTimeout(authTimeoutId);
+
     if (authError) {
+      const errorMessage = getErrorMessage(authError);
       return {
         healthy: false,
-        details: `Authentication failed: ${authError.message}`,
+        details: `Authentication failed: ${errorMessage}`,
         timestamp: new Date(),
         latency: Date.now() - startTime
       };
     }
 
-    // Check 2: Database connectivity
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    const { error: dbError } = await supabase
-      .from('profiles')
-      .select('count')
-      .limit(1)
-      .abortSignal(controller.signal);
-    
-    clearTimeout(timeoutId);
-    
-    if (dbError) {
+    // Check 2: Database connectivity with network retry
+    try {
+      await withNetworkRetry(
+        () => supabase
+          .from('profiles')
+          .select('count')
+          .limit(1)
+          .then(({ error }) => {
+            if (error) throw error;
+            return true;
+          }),
+        {
+          retries: 1, // Only one retry for health check
+          timeout: 8000
+        }
+      );
+    } catch (dbError) {
+      const errorMessage = getNetworkErrorMessage(dbError);
       return {
         healthy: false,
-        details: `Database error: ${dbError.message}`,
+        details: `Database error: ${errorMessage}`,
         timestamp: new Date(),
         latency: Date.now() - startTime
       };
@@ -51,18 +64,10 @@ export const checkSupabaseHealth = async (): Promise<HealthCheckResult> => {
     };
     
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      return {
-        healthy: false,
-        details: 'Connection timeout (5 seconds)',
-        timestamp: new Date(),
-        latency: Date.now() - startTime
-      };
-    }
-    
+    const errorMessage = getNetworkErrorMessage(error);
     return {
       healthy: false,
-      details: `Unexpected error: ${error}`,
+      details: `Health check failed: ${errorMessage}`,
       timestamp: new Date(),
       latency: Date.now() - startTime
     };

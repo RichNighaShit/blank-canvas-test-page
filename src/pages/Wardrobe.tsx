@@ -21,6 +21,7 @@ import Header from "@/components/Header";
 import { Search, Filter, Sparkles, Shirt, Grid3X3, List } from "lucide-react";
 import { usePerformance } from "@/hooks/usePerformance";
 import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
+import { getErrorMessage, logError } from "@/lib/errorUtils";
 
 interface ClothingItem {
   id: string;
@@ -105,9 +106,11 @@ const Wardrobe = () => {
         .order("created_at", { ascending: false });
 
       if (error) {
+        const errorMessage = getErrorMessage(error);
+        logError(error, "Error fetching wardrobe items");
         toast({
           title: "Error",
-          description: "Failed to load wardrobe items",
+          description: `Failed to load wardrobe items: ${errorMessage}`,
           variant: "destructive",
         });
       } else {
@@ -120,7 +123,7 @@ const Wardrobe = () => {
         });
       }
     } catch (error) {
-      console.error("Error fetching wardrobe items:", error);
+      logError(error, "Error fetching wardrobe items");
     } finally {
       setLoading(false);
     }

@@ -29,6 +29,7 @@ import {
 } from "@/lib/simpleStyleAI";
 import { usePerformance } from "@/hooks/usePerformance";
 import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
+import { getErrorMessage, logError } from "@/lib/errorUtils";
 
 interface PlannedOutfit {
   id: string;
@@ -53,7 +54,7 @@ const OutfitPlanner: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { profile } = useProfile();
-  const { weather } = useWeather();
+  const { weather } = useWeather(profile?.location);
 
   // Performance optimization
   const { executeWithCache } = usePerformance({
@@ -92,7 +93,7 @@ const OutfitPlanner: React.FC = () => {
       if (error) throw error;
       setWardrobeItems(data || []);
     } catch (error) {
-      console.error("Error fetching wardrobe items:", error);
+      logError(error, "Error fetching wardrobe items in OutfitPlanner");
     }
   };
 

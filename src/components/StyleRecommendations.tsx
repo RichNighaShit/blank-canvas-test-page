@@ -42,17 +42,179 @@ import { useWeather } from "@/hooks/useWeather";
 import { usePerformance } from "@/hooks/usePerformance";
 import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
 import { OptimizedImage } from "./OptimizedImage";
+import { getErrorMessage, logError } from "@/lib/errorUtils";
+
+// Add safety check for the AI module
+const safeStyleAI = simpleStyleAI || {
+  generateRecommendations: () => {
+    console.warn("StyleAI not available, returning empty recommendations");
+    return [];
+  }
+};
+
+// Enhanced color harmony detection with advanced color theory
+const isColorHarmonious = (color1: string, color2: string): boolean => {
+  const c1 = color1.toLowerCase();
+  const c2 = color2.toLowerCase();
+
+  // Neutral colors work with everything
+  const neutrals = ["black", "white", "grey", "gray", "beige", "cream", "ivory", "charcoal", "stone"];
+  if (neutrals.some(n => c1.includes(n)) || neutrals.some(n => c2.includes(n))) {
+    return true;
+  }
+
+  // Advanced complementary pairs with variations
+  const complementaryPairs = [
+    ["red", "green"], ["crimson", "emerald"], ["burgundy", "forest"],
+    ["blue", "orange"], ["navy", "coral"], ["royal", "peach"],
+    ["yellow", "purple"], ["gold", "violet"], ["mustard", "lavender"],
+    ["pink", "sage"], ["rose", "mint"], ["blush", "seafoam"],
+    ["teal", "coral"], ["turquoise", "salmon"], ["aqua", "apricot"]
+  ];
+
+  // Analogous color families with more variations
+  const analogousFamilies = [
+    ["red", "orange", "pink", "coral", "salmon", "crimson", "burgundy"],
+    ["blue", "teal", "turquoise", "navy", "royal", "cerulean", "sky"],
+    ["green", "emerald", "forest", "sage", "mint", "olive", "lime"],
+    ["yellow", "gold", "mustard", "amber", "cream", "butter", "lemon"],
+    ["purple", "violet", "lavender", "plum", "magenta", "lilac", "mauve"],
+    ["brown", "tan", "beige", "camel", "coffee", "chocolate", "rust"]
+  ];
+
+  // Monochromatic variations (same hue, different saturation/brightness)
+  const monochromaticFamilies = [
+    ["light", "pale", "soft", "pastel"], // Light variations
+    ["dark", "deep", "rich", "intense"], // Dark variations
+    ["bright", "vivid", "bold", "electric"], // Bright variations
+    ["muted", "dusty", "faded", "vintage"] // Muted variations
+  ];
+
+  // Check complementary harmony
+  for (const [comp1, comp2] of complementaryPairs) {
+    if ((c1.includes(comp1) && c2.includes(comp2)) || (c1.includes(comp2) && c2.includes(comp1))) {
+      return true;
+    }
+  }
+
+  // Check analogous harmony
+  for (const family of analogousFamilies) {
+    if (family.some(f => c1.includes(f)) && family.some(f => c2.includes(f))) {
+      return true;
+    }
+  }
+
+  // Check monochromatic harmony (same base color with different tones)
+  for (const family of analogousFamilies) {
+    const baseColor1 = family.find(f => c1.includes(f));
+    const baseColor2 = family.find(f => c2.includes(f));
+    if (baseColor1 && baseColor2 && baseColor1 === baseColor2) {
+      return true;
+    }
+  }
+
+  // Check triadic harmony (evenly spaced colors)
+  const triadicSets = [
+    ["red", "blue", "yellow"],
+    ["orange", "green", "purple"],
+    ["pink", "teal", "gold"],
+    ["coral", "navy", "cream"]
+  ];
+
+  for (const set of triadicSets) {
+    if (set.some(s => c1.includes(s)) && set.some(s => c2.includes(s))) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+// Get current season for season-aware recommendations
+const getCurrentSeason = (): string => {
+  const month = new Date().getMonth() + 1;
+  if (month >= 3 && month <= 5) return "spring";
+  if (month >= 6 && month <= 8) return "summer";
+  if (month >= 9 && month <= 11) return "autumn";
+  return "winter";
+};
+
+// Enhanced seasonal color palettes
+const getSeasonalColors = (season: string): string[] => {
+  const seasonalPalettes = {
+    spring: ["coral", "peach", "yellow", "lime", "turquoise", "pink", "lavender", "mint"],
+    summer: ["sage", "powder blue", "rose", "pearl", "champagne", "blush", "mauve", "seafoam"],
+    autumn: ["rust", "burgundy", "forest", "gold", "brown", "orange", "olive", "bronze"],
+    winter: ["navy", "black", "white", "crimson", "emerald", "royal purple", "silver", "charcoal"]
+  };
+  return seasonalPalettes[season as keyof typeof seasonalPalettes] || [];
+};
+
+// Calculate color compatibility score (0-1)
+const calculateColorCompatibilityScore = (itemColors: string[], userColors: string[]): number => {
+  let score = 0;
+  let maxScore = 0;
+
+  for (const itemColor of itemColors) {
+    for (const userColor of userColors) {
+      maxScore += 1;
+
+      // Exact match
+      if (itemColor.toLowerCase().includes(userColor.toLowerCase()) ||
+          userColor.toLowerCase().includes(itemColor.toLowerCase())) {
+        score += 1;
+      }
+      // Harmonious colors
+      else if (isColorHarmonious(itemColor, userColor)) {
+        score += 0.8;
+      }
+      // Same color family
+      else if (areInSameColorFamily(itemColor, userColor)) {
+        score += 0.6;
+      }
+    }
+  }
+
+  return maxScore > 0 ? score / maxScore : 0;
+};
+
+// Check if colors are in the same color family
+const areInSameColorFamily = (color1: string, color2: string): boolean => {
+  const colorFamilies = [
+    ["red", "pink", "coral", "rose", "crimson", "burgundy", "salmon"],
+    ["blue", "navy", "royal", "sky", "powder", "cerulean", "turquoise"],
+    ["green", "emerald", "forest", "sage", "mint", "lime", "olive"],
+    ["yellow", "gold", "mustard", "lemon", "cream", "butter", "amber"],
+    ["purple", "violet", "lavender", "plum", "magenta", "lilac", "mauve"],
+    ["brown", "tan", "beige", "camel", "coffee", "chocolate", "rust"]
+  ];
+
+  const c1 = color1.toLowerCase();
+  const c2 = color2.toLowerCase();
+
+  return colorFamilies.some(family =>
+    family.some(f => c1.includes(f)) && family.some(f => c2.includes(f))
+  );
+};
 
 const StyleRecommendations: React.FC = () => {
-  const { user } = useAuth();
-  const { profile } = useProfile();
+  // Add defensive checks for hooks
+  const authHook = useAuth();
+  const profileHook = useProfile();
+
+  // Safely destructure with fallbacks
+  const user = authHook?.user || null;
+  const profile = profileHook?.profile || null;
+  // Add defensive check for weather hook
+  const weatherHook = useWeather(profile?.location);
   const {
     weather,
     loading: weatherLoading,
+    error: weatherError,
     fetchWeather,
     getWeatherAdvice,
     getWeatherStatus,
-  } = useWeather();
+  } = weatherHook || {};
   const [recommendations, setRecommendations] = useState<
     OutfitRecommendation[]
   >([]);
@@ -65,28 +227,23 @@ const StyleRecommendations: React.FC = () => {
 
   // User preferences state
   const [selectedOccasion, setSelectedOccasion] = useState<string>("casual");
-  const [includeAccessories, setIncludeAccessories] = useState<boolean>(false);
+  const [includeAccessories, setIncludeAccessories] = useState<boolean>(true);
   const [showPreferences, setShowPreferences] = useState<boolean>(true);
 
   // Get unique occasions from wardrobe items
   const [availableOccasions, setAvailableOccasions] = useState<string[]>([]);
 
-  // Performance optimization
-  const { executeWithCache, debounce } = usePerformance({
+  // Performance optimization with defensive check
+  const performanceHook = usePerformance({
     cacheNamespace: CACHE_NAMESPACES.RECOMMENDATIONS,
     enableCaching: true,
     enableMonitoring: true,
   });
+  const { executeWithCache, debounce } = performanceHook || {};
 
   useEffect(() => {
     if (user && profile) {
       loadWardrobeItems();
-      // Fetch weather for user's location if available
-      if (profile.location) {
-        fetchWeather(profile.location);
-      } else {
-        fetchWeather(); // Use default location
-      }
     } else if (user && !profile) {
       setError("Profile not found. Please complete your profile setup.");
       setLoading(false);
@@ -129,9 +286,10 @@ const StyleRecommendations: React.FC = () => {
         .eq("user_id", user.id);
 
       if (fetchError) {
-        console.error("Error fetching wardrobe items:", fetchError);
+        const errorMessage = getErrorMessage(fetchError);
+        logError(fetchError, "Error fetching wardrobe items in StyleRecommendations");
         throw new Error(
-          `Failed to load your wardrobe items: ${fetchError.message}`,
+          `Failed to load your wardrobe items: ${errorMessage}`,
         );
       }
 
@@ -181,10 +339,8 @@ const StyleRecommendations: React.FC = () => {
       }
     } catch (error) {
       console.error("Error loading wardrobe items:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to load wardrobe items";
+      const errorMessage = getErrorMessage(error);
+      logError(error, "Error loading wardrobe items in StyleRecommendations component");
       setError(errorMessage);
       setWardrobeItems([]);
       setAvailableOccasions(["casual"]);
@@ -233,16 +389,29 @@ const StyleRecommendations: React.FC = () => {
         throw new Error("No wardrobe items available for recommendations");
       }
 
-      // Filter items based on user preferences
-      let filteredItems = wardrobeItems.filter(
-        (item) =>
-          item.occasion.includes(selectedOccasion) ||
-          item.occasion.includes("casual"), // Always include casual items as they're versatile
-      );
+      // STEP 1: Filter by OCCASION first (primary filter)
+      console.log("Step 1: Filtering by occasion:", selectedOccasion);
+      let occasionFilteredItems = wardrobeItems.filter((item) => {
+        // Exact occasion match gets priority
+        if (item.occasion.includes(selectedOccasion)) {
+          return true;
+        }
+        // Versatile items work for most occasions
+        if (item.occasion.includes("versatile")) {
+          return true;
+        }
+        // Casual items can work for some other occasions
+        if (selectedOccasion !== "formal" && selectedOccasion !== "business" && item.occasion.includes("casual")) {
+          return true;
+        }
+        return false;
+      });
 
-      // Handle accessories based on user preference
+      console.log(`Occasion filter: ${occasionFilteredItems.length} items from ${wardrobeItems.length} total`);
+
+      // STEP 2: Handle accessories based on user preference
       if (!includeAccessories) {
-        filteredItems = filteredItems.filter(
+        occasionFilteredItems = occasionFilteredItems.filter(
           (item) =>
             ![
               "accessories",
@@ -254,6 +423,76 @@ const StyleRecommendations: React.FC = () => {
             ].includes(item.category.toLowerCase()),
         );
       }
+
+      // STEP 3: Advanced color prioritization with scoring and seasonal awareness
+      let colorPrioritizedItems = occasionFilteredItems;
+      const currentSeason = getCurrentSeason();
+      const seasonalColors = getSeasonalColors(currentSeason);
+
+      console.log(`Step 2: Advanced color prioritization for ${currentSeason} season`);
+
+      if (profile.favorite_colors && profile.favorite_colors.length > 0) {
+        console.log("Prioritizing color compatibility with favorite colors:", profile.favorite_colors);
+
+        // Calculate comprehensive color scores for each item
+        const itemsWithColorScores = occasionFilteredItems.map((item) => {
+          let colorScore = 0;
+
+          // Score based on favorite colors compatibility
+          const favoriteColorScore = calculateColorCompatibilityScore(item.color, profile.favorite_colors!);
+          colorScore += favoriteColorScore * 0.4; // 40% weight
+
+          // Score based on color palette colors (from profile analysis)
+          if (profile.color_palette_colors && profile.color_palette_colors.length > 0) {
+            const paletteScore = calculateColorCompatibilityScore(item.color, profile.color_palette_colors);
+            colorScore += paletteScore * 0.3; // 30% weight
+          }
+
+          // Score based on seasonal appropriateness
+          const seasonalScore = calculateColorCompatibilityScore(item.color, seasonalColors);
+          colorScore += seasonalScore * 0.2; // 20% weight
+
+          // Score based on versatility (neutral colors)
+          const neutralColors = ["black", "white", "grey", "gray", "beige", "navy", "brown", "cream", "charcoal"];
+          const neutralScore = item.color.some(color =>
+            neutralColors.some(neutral => color.toLowerCase().includes(neutral))
+          ) ? 1 : 0;
+          colorScore += neutralScore * 0.1; // 10% weight
+
+          return { item, colorScore };
+        });
+
+        // Sort by color score (highest first) and extract items
+        colorPrioritizedItems = itemsWithColorScores
+          .sort((a, b) => b.colorScore - a.colorScore)
+          .map(({ item }) => item);
+
+        // Log color score distribution for debugging
+        const highScoreItems = itemsWithColorScores.filter(({ colorScore }) => colorScore > 0.7).length;
+        const mediumScoreItems = itemsWithColorScores.filter(({ colorScore }) => colorScore > 0.4 && colorScore <= 0.7).length;
+        const lowScoreItems = itemsWithColorScores.filter(({ colorScore }) => colorScore <= 0.4).length;
+
+        console.log(`Color scores: ${highScoreItems} high (>0.7), ${mediumScoreItems} medium (0.4-0.7), ${lowScoreItems} low (≤0.4)`);
+      } else {
+        // If no favorite colors, just prioritize seasonal and neutral colors
+        const itemsWithSeasonalScores = occasionFilteredItems.map((item) => {
+          const seasonalScore = calculateColorCompatibilityScore(item.color, seasonalColors);
+          const neutralColors = ["black", "white", "grey", "gray", "beige", "navy", "brown", "cream"];
+          const neutralScore = item.color.some(color =>
+            neutralColors.some(neutral => color.toLowerCase().includes(neutral))
+          ) ? 0.5 : 0;
+
+          return { item, score: seasonalScore + neutralScore };
+        });
+
+        colorPrioritizedItems = itemsWithSeasonalScores
+          .sort((a, b) => b.score - a.score)
+          .map(({ item }) => item);
+
+        console.log("No favorite colors found, prioritizing seasonal and neutral colors");
+      }
+
+      let filteredItems = colorPrioritizedItems;
 
       console.log("Filtered items for recommendations:", filteredItems);
 
@@ -300,22 +539,27 @@ const StyleRecommendations: React.FC = () => {
         selectedOccasion,
       );
 
-      // Use cached execution for recommendations
-      const recs = await executeWithCache(
-        `recommendations_${selectedOccasion}_${includeAccessories}_${user.id}`,
-        async () =>
-          simpleStyleAI.generateRecommendations(
-            filteredItems,
-            styleProfile,
-            {
-              occasion: selectedOccasion,
-              timeOfDay: "day",
-              weather: weather || undefined,
-            },
-            includeAccessories,
-          ),
-        5 * 60 * 1000, // 5 minutes cache
-      );
+      // Use cached execution for recommendations with fallback
+      const generateRecommendations = async () =>
+        safeStyleAI.generateRecommendations(
+          filteredItems,
+          styleProfile,
+          {
+            occasion: selectedOccasion,
+            timeOfDay: "day",
+            weather: weather || undefined,
+            prioritizeColors: true, // Flag to prioritize color matching
+          },
+          includeAccessories,
+        );
+
+      const recs = executeWithCache
+        ? await executeWithCache(
+            `recommendations_${selectedOccasion}_${includeAccessories}_${user.id}`,
+            generateRecommendations,
+            5 * 60 * 1000, // 5 minutes cache
+          )
+        : await generateRecommendations();
 
       console.log("Generated recommendations:", recs);
 
@@ -332,14 +576,8 @@ const StyleRecommendations: React.FC = () => {
       setRecommendations(recs);
     } catch (error) {
       console.error("Error loading recommendations:", error);
-      let errorMessage = "Failed to generate recommendations";
-
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === "string") {
-        errorMessage = error;
-      }
-
+      const errorMessage = getErrorMessage(error);
+      logError(error, "Error generating recommendations in StyleRecommendations component");
       setError(errorMessage);
       setRecommendations([]);
     } finally {
@@ -361,10 +599,9 @@ const StyleRecommendations: React.FC = () => {
   >(null);
 
   useEffect(() => {
-    debouncedLoadRecommendationsRef.current = debounce(
-      loadRecommendations,
-      500,
-    );
+    debouncedLoadRecommendationsRef.current = debounce
+      ? debounce(loadRecommendations, 500)
+      : loadRecommendations;
 
     // Cleanup function
     return () => {
@@ -414,6 +651,25 @@ const StyleRecommendations: React.FC = () => {
       console.error("Error saving feedback:", error);
     }
   };
+
+  // Early return for safety if hooks are not properly initialized
+  if (!authHook || !profileHook || !weatherHook || !performanceHook) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <div className="flex items-center space-x-4">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+          <div>
+            <h3 className="text-lg font-semibold">
+              Initializing style assistant...
+            </h3>
+            <p className="text-muted-foreground">
+              Setting up components
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading && wardrobeItems.length === 0) {
     return (
@@ -502,44 +758,106 @@ const StyleRecommendations: React.FC = () => {
                   checked={includeAccessories}
                   onCheckedChange={setIncludeAccessories}
                 />
-                <Label htmlFor="accessories">Include Accessories</Label>
+                <Label htmlFor="accessories" className="flex items-center gap-2">
+                  Include Accessories
+                  {wardrobeItems.some(item => ["accessories", "jewelry", "bags", "hats", "belts", "scarves"].includes(item.category.toLowerCase())) && (
+                    <Badge variant="secondary" className="text-xs">
+                      {wardrobeItems.filter(item => ["accessories", "jewelry", "bags", "hats", "belts", "scarves"].includes(item.category.toLowerCase())).length} available
+                    </Badge>
+                  )}
+                </Label>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Weather Integration */}
-      <Card className="card-premium">
+      {/* Enhanced Algorithm Status */}
+      <Card className="card-premium border-purple-200 bg-purple-50 dark:bg-purple-950/20">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-blue-600" />
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm font-medium">Weather-Aware Styling</p>
-                {weather ? (
-                  <p className="text-xs text-muted-foreground">
-                    {weather.description} • {Math.round(weather.temperature)}°C
-                  </p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    {getWeatherStatus()}
-                  </p>
-                )}
+                <p className="text-sm font-medium text-purple-900 dark:text-purple-100">
+                  Advanced AI Algorithm Active
+                </p>
+                <p className="text-xs text-purple-700 dark:text-purple-200">
+                  Prioritizing <strong>{selectedOccasion}</strong> items for <strong>{getCurrentSeason()}</strong>
+                  {profile?.favorite_colors && profile.favorite_colors.length > 0 && (
+                    <> with your colors: <strong>{profile.favorite_colors.join(", ")}</strong></>
+                  )}
+                </p>
               </div>
             </div>
-            {weather ? (
-              <Badge variant="secondary">{getWeatherAdvice(weather)}</Badge>
-            ) : (
-              <Badge variant="outline" className="text-xs">
-                Weather unavailable
+            <div className="flex gap-1 flex-wrap">
+              <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
+                Occasion 1st
               </Badge>
-            )}
+              <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
+                Colors 2nd
+              </Badge>
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
+                Season-Aware
+              </Badge>
+              <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                Trend-Conscious
+              </Badge>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Weather Integration */}
+      {weather && (
+        <Card className="card-premium">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Sparkles className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Weather-Aware Styling</p>
+                  <p className="text-xs text-muted-foreground">
+                    {weather.description} ��� {Math.round(weather.temperature)}°C
+                  </p>
+                </div>
+              </div>
+              <Badge variant="secondary">{getWeatherAdvice?.(weather) || "Weather info"}</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Accessory Suggestions when disabled */}
+      {!includeAccessories && wardrobeItems.some(item => ["accessories", "jewelry", "bags", "hats", "belts", "scarves"].includes(item.category.toLowerCase())) && (
+        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <ShoppingBag className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  Accessory Suggestions Available
+                </p>
+                <p className="text-xs text-blue-700 dark:text-blue-200">
+                  You have {wardrobeItems.filter(item => ["accessories", "jewelry", "bags", "hats", "belts", "scarves"].includes(item.category.toLowerCase())).length} accessories that could complement these outfits. Enable "Include Accessories" to see them in your recommendations.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-600 dark:text-blue-300 dark:hover:bg-blue-900"
+                onClick={() => setIncludeAccessories(true)}
+              >
+                Enable
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recommendations Grid */}
       <div className="space-y-6">
@@ -603,12 +921,14 @@ const StyleRecommendations: React.FC = () => {
                   Try selecting "casual" occasion as it's more flexible
                 </span>
               </div>
-              <div className="flex items-start gap-2">
-                <div className="w-1 h-1 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
-                <span>
-                  Include accessories to create more outfit combinations
-                </span>
-              </div>
+              {wardrobeItems.some(item => ["accessories", "jewelry", "bags", "hats", "belts", "scarves"].includes(item.category.toLowerCase())) && !includeAccessories && (
+                <div className="flex items-start gap-2">
+                  <div className="w-1 h-1 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
+                  <span>
+                    Enable "Include Accessories" - you have accessories that could complete your outfits
+                  </span>
+                </div>
+              )}
               <div className="flex items-start gap-2">
                 <div className="w-1 h-1 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
                 <span>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useOnboarding } from './OnboardingProvider';
+import { useOneTimeExperience, EXPERIENCE_IDS } from '@/hooks/useOneTimeExperience';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -46,6 +47,8 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
     skipOnboarding,
     completeOnboarding
   } = useOnboarding();
+
+  const { hasSeenExperience, markExperienceComplete } = useOneTimeExperience();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -172,6 +175,11 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
     }
     
     if (currentStepIndex === totalSteps - 1) {
+      // Mark tutorial as completed for this user's lifetime
+      markExperienceComplete(EXPERIENCE_IDS.WELCOME_TUTORIAL, {
+        completed_steps: totalSteps,
+        completion_method: 'completed'
+      });
       completeOnboarding();
     } else {
       nextStep();
@@ -359,7 +367,14 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={skipOnboarding}
+                  onClick={() => {
+                    // Mark tutorial as seen even if skipped, so user won't see it again
+                    markExperienceComplete(EXPERIENCE_IDS.WELCOME_TUTORIAL, {
+                      completed_steps: currentStepIndex + 1,
+                      completion_method: 'skipped'
+                    });
+                    skipOnboarding();
+                  }}
                   className="text-gray-500 hover:text-gray-700"
                 >
                   <SkipForward className="h-4 w-4 mr-1" />

@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
 import { ColorPaletteSetup } from "@/components/ColorPaletteSetup";
+import { LocationSelector } from "@/components/LocationSelector";
 import type { ColorPalette } from "@/data/predefinedColorPalettes";
 import type { ColorSeasonAnalysis } from "@/lib/colorSeasonAnalysis";
 
@@ -95,7 +96,30 @@ const Onboarding = () => {
     }
   }, [user, loading, navigate]);
 
-  // Removed redundant profile check - route guards handle this now
+  // Safety check - if user has completed onboarding, redirect them out
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      if (!user) return;
+
+      try {
+        const { data } = await supabase
+          .from('user_onboarding')
+          .select('onboarding_completed, tutorial_skipped')
+          .eq('user_id', user.id)
+          .single();
+
+        if (data && (data.onboarding_completed || data.tutorial_skipped)) {
+          console.log('User has already completed onboarding, redirecting to dashboard');
+          navigate('/dashboard');
+        }
+      } catch (error) {
+        // If there's an error fetching onboarding status, continue with onboarding
+        console.log('No onboarding record found, continuing with onboarding flow');
+      }
+    };
+
+    checkOnboardingStatus();
+  }, [user, navigate]);
 
 
 
@@ -201,6 +225,18 @@ const Onboarding = () => {
           throw error;
         }
       }
+
+      // Mark onboarding as completed in user_onboarding table
+      await supabase
+        .from('user_onboarding')
+        .upsert({
+          user_id: user.id,
+          onboarding_completed: true,
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
 
       // Invalidate profile cache to ensure fresh data
       if (window.profileCache) {
@@ -339,21 +375,18 @@ const Onboarding = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    placeholder="City, Country"
-                    value={profileData.location}
-                    onChange={(e) =>
-                      setProfileData((prev) => ({
-                        ...prev,
-                        location: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
+                <LocationSelector
+                  value={profileData.location}
+                  onChange={(value) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      location: value,
+                    }))
+                  }
+                  placeholder="Select your city..."
+                  required
+                  label="Location"
+                />
                 <div className="space-y-2">
                   <Label htmlFor="gender_identity">Gender Identity</Label>
                   <Select

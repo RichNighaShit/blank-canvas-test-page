@@ -85,9 +85,15 @@ class ErrorMonitoringService {
         this.queueError(errorWithUser);
       }
 
-      // Log to console in development
+      // Log to console in development with proper error message extraction
       if (import.meta.env.DEV) {
-        console.error('Error reported to monitoring service:', errorWithUser);
+        console.error('Error reported to monitoring service:', {
+          message: errorWithUser.message,
+          stack: errorWithUser.stack,
+          url: errorWithUser.url,
+          severity: errorWithUser.severity,
+          timestamp: errorWithUser.timestamp
+        });
       }
     } catch (err) {
       console.error('Failed to report error:', err);

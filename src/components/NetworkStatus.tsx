@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, Wifi, WifiOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { getErrorMessage } from '@/lib/errorUtils';
 
 export const NetworkStatus: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -22,7 +23,8 @@ export const NetworkStatus: React.FC = () => {
       clearTimeout(timeoutId);
       return !error;
     } catch (error) {
-      console.warn('Supabase connection check failed:', error);
+      const errorMessage = getErrorMessage(error);
+      console.warn('Supabase connection check failed:', errorMessage);
       return false;
     }
   };
