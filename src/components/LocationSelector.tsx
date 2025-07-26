@@ -285,18 +285,15 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             {value && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+              <span
+                className="h-4 w-4 flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground rounded cursor-pointer transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
                   clearSelection();
                 }}
               >
                 <X className="h-3 w-3" />
-              </Button>
+              </span>
             )}
             <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
           </div>
