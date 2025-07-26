@@ -50,10 +50,11 @@ const StyleRecommendations: React.FC = () => {
   const {
     weather,
     loading: weatherLoading,
+    error: weatherError,
     fetchWeather,
     getWeatherAdvice,
     getWeatherStatus,
-  } = useWeather();
+  } = useWeather(profile?.location);
   const [recommendations, setRecommendations] = useState<
     OutfitRecommendation[]
   >([]);
