@@ -153,13 +153,15 @@ export class SimpleStyleAI {
         // Group items by category
         const itemsByCategory = this.groupByCategory(weatherFilteredItems);
 
-        // Generate diverse outfit combinations with advanced color theory and weather context
+        // Generate combinations prioritizing occasion and color compatibility
         const combinations = this.generateAdvancedCombinations(
           itemsByCategory,
           context.occasion,
           profile.preferred_style,
           includeAccessories,
           context.weather,
+          profile, // Pass profile for color preferences
+          context.prioritizeColors || false,
         );
 
         if (combinations.length === 0) {
