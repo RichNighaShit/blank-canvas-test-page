@@ -11,7 +11,16 @@ export const getErrorMessage = (error: any): string => {
 
   // Handle network errors
   if (error instanceof TypeError && error.message?.includes('NetworkError')) {
-    return 'Network connection error';
+    return 'Network connection error - please check your internet connection';
+  }
+
+  if (error instanceof TypeError && error.message?.includes('Failed to fetch')) {
+    return 'Failed to connect to server - please check your internet connection';
+  }
+
+  // Handle authentication specific errors
+  if (error?.message?.includes('Auth') && error?.message?.includes('NetworkError')) {
+    return 'Authentication failed due to network connection issues';
   }
 
   // Check for standard error properties
