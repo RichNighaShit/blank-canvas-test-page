@@ -239,16 +239,13 @@ const EditProfile = () => {
                       required
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="location">Location *</Label>
-                    <Input
-                      id="location"
-                      value={form.location}
-                      onChange={(e) => handleChange("location", e.target.value)}
-                      placeholder="City, Country"
-                      required
-                    />
-                  </div>
+                  <LocationSelector
+                    value={form.location}
+                    onChange={(value) => handleChange("location", value)}
+                    placeholder="Select your city..."
+                    required
+                    label="Location"
+                  />
                   <div>
                     <Label htmlFor="gender_identity">Gender Identity</Label>
                     <Select
