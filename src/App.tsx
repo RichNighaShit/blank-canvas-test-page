@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { PerformanceDashboard } from "./components/PerformanceDashboard";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
+import LazyLoadErrorBoundary from "./components/LazyLoadErrorBoundary";
 import { OnboardingProvider } from "./components/onboarding";
 import { AppContent } from "./components/AppContent";
 import NetworkStatus from "./components/NetworkStatus";
