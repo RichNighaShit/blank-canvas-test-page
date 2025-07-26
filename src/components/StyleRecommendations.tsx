@@ -641,37 +641,59 @@ const StyleRecommendations: React.FC = () => {
         </Card>
       )}
 
-      {/* Weather Integration */}
-      <Card className="card-premium">
+      {/* Recommendation Filters Info */}
+      <Card className="card-premium border-purple-200 bg-purple-50 dark:bg-purple-950/20">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-blue-600" />
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm font-medium">Weather-Aware Styling</p>
-                {weather ? (
-                  <p className="text-xs text-muted-foreground">
-                    {weather.description} • {Math.round(weather.temperature)}°C
-                  </p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    {getWeatherStatus?.() || "Weather unavailable"}
-                  </p>
-                )}
+                <p className="text-sm font-medium text-purple-900 dark:text-purple-100">
+                  Smart Filtering Active
+                </p>
+                <p className="text-xs text-purple-700 dark:text-purple-200">
+                  Prioritizing <strong>{selectedOccasion}</strong> items
+                  {profile?.favorite_colors && profile.favorite_colors.length > 0 && (
+                    <> with colors: <strong>{profile.favorite_colors.join(", ")}</strong></>
+                  )}
+                </p>
               </div>
             </div>
-            {weather ? (
-              <Badge variant="secondary">{getWeatherAdvice?.(weather) || "Weather info"}</Badge>
-            ) : (
-              <Badge variant="outline" className="text-xs">
-                Weather unavailable
+            <div className="flex gap-1">
+              <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
+                Occasion 1st
               </Badge>
-            )}
+              <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
+                Colors 2nd
+              </Badge>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Weather Integration */}
+      {weather && (
+        <Card className="card-premium">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Sparkles className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Weather-Aware Styling</p>
+                  <p className="text-xs text-muted-foreground">
+                    {weather.description} • {Math.round(weather.temperature)}°C
+                  </p>
+                </div>
+              </div>
+              <Badge variant="secondary">{getWeatherAdvice?.(weather) || "Weather info"}</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Accessory Suggestions when disabled */}
       {!includeAccessories && wardrobeItems.some(item => ["accessories", "jewelry", "bags", "hats", "belts", "scarves"].includes(item.category.toLowerCase())) && (
