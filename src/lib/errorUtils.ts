@@ -3,30 +3,59 @@
  */
 export const getErrorMessage = (error: any): string => {
   if (typeof error === 'string') return error;
+
+  // Handle AbortError specifically (check this early)
+  if (error instanceof DOMException && error.name === 'AbortError') {
+    return 'Request was cancelled or timed out';
+  }
+
+  // Handle network errors
+  if (error instanceof TypeError && error.message?.includes('NetworkError')) {
+    return 'Network connection error';
+  }
+
+  // Check for standard error properties
   if (error?.message) return error.message;
   if (error?.error_description) return error.error_description;
   if (error?.details) return error.details;
   if (error?.code && error?.message) return `${error.code}: ${error.message}`;
-  
-  // Handle AbortError specifically
-  if (error instanceof DOMException && error.name === 'AbortError') {
-    return 'Request was cancelled or timed out';
+
+  // Handle Supabase specific errors
+  if (error?.error && typeof error.error === 'string') return error.error;
+  if (error?.msg && typeof error.msg === 'string') return error.msg;
+
+  // Handle Error objects that might not have accessible message property
+  if (error instanceof Error) {
+    return error.toString();
   }
-  
-  // Handle network errors
-  if (error instanceof TypeError && error.message.includes('NetworkError')) {
-    return 'Network connection error';
+
+  // Special handling for objects with name property (like DOMException)
+  if (error?.name && error?.message) {
+    return `${error.name}: ${error.message}`;
   }
-  
-  // Try to stringify if it's an object
+
+  // Try to stringify if it's an object, but be more careful
   if (error && typeof error === 'object') {
     try {
+      // Check if it has useful properties to extract
+      const keys = Object.keys(error);
+      if (keys.length === 0) {
+        return 'Empty error object';
+      }
+
+      // Look for common error message properties
+      for (const key of ['message', 'error', 'description', 'details', 'msg']) {
+        if (error[key] && typeof error[key] === 'string') {
+          return error[key];
+        }
+      }
+
       return JSON.stringify(error);
     } catch {
-      return String(error);
+      return error.toString();
     }
   }
-  
+
   return 'Unknown error occurred';
 };
 
