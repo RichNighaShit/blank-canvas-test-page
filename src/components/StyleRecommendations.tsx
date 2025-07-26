@@ -424,54 +424,72 @@ const StyleRecommendations: React.FC = () => {
         );
       }
 
-      // STEP 3: If we have user's color preferences, prioritize items with compatible colors
+      // STEP 3: Advanced color prioritization with scoring and seasonal awareness
       let colorPrioritizedItems = occasionFilteredItems;
+      const currentSeason = getCurrentSeason();
+      const seasonalColors = getSeasonalColors(currentSeason);
+
+      console.log(`Step 2: Advanced color prioritization for ${currentSeason} season`);
+
       if (profile.favorite_colors && profile.favorite_colors.length > 0) {
-        console.log("Step 2: Prioritizing color compatibility with favorite colors:", profile.favorite_colors);
+        console.log("Prioritizing color compatibility with favorite colors:", profile.favorite_colors);
 
-        // Separate items by color compatibility
-        const colorMatchingItems = occasionFilteredItems.filter((item) =>
-          item.color.some(itemColor =>
-            profile.favorite_colors!.some(favColor =>
-              itemColor.toLowerCase().includes(favColor.toLowerCase()) ||
-              favColor.toLowerCase().includes(itemColor.toLowerCase())
-            )
-          )
-        );
+        // Calculate comprehensive color scores for each item
+        const itemsWithColorScores = occasionFilteredItems.map((item) => {
+          let colorScore = 0;
 
-        const colorHarmoniousItems = occasionFilteredItems.filter((item) =>
-          !colorMatchingItems.includes(item) &&
-          item.color.some(itemColor =>
-            profile.favorite_colors!.some(favColor =>
-              safeStyleAI.areColorsHarmonious?.(itemColor, favColor) ||
-              isColorHarmonious(itemColor, favColor)
-            )
-          )
-        );
+          // Score based on favorite colors compatibility
+          const favoriteColorScore = calculateColorCompatibilityScore(item.color, profile.favorite_colors!);
+          colorScore += favoriteColorScore * 0.4; // 40% weight
 
-        const neutralItems = occasionFilteredItems.filter((item) =>
-          !colorMatchingItems.includes(item) &&
-          !colorHarmoniousItems.includes(item) &&
-          item.color.some(color =>
-            ["black", "white", "grey", "gray", "beige", "navy", "brown", "cream"].includes(color.toLowerCase())
-          )
-        );
+          // Score based on color palette colors (from profile analysis)
+          if (profile.color_palette_colors && profile.color_palette_colors.length > 0) {
+            const paletteScore = calculateColorCompatibilityScore(item.color, profile.color_palette_colors);
+            colorScore += paletteScore * 0.3; // 30% weight
+          }
 
-        const remainingItems = occasionFilteredItems.filter((item) =>
-          !colorMatchingItems.includes(item) &&
-          !colorHarmoniousItems.includes(item) &&
-          !neutralItems.includes(item)
-        );
+          // Score based on seasonal appropriateness
+          const seasonalScore = calculateColorCompatibilityScore(item.color, seasonalColors);
+          colorScore += seasonalScore * 0.2; // 20% weight
 
-        // Prioritize in order: exact color matches, harmonious colors, neutrals, then others
-        colorPrioritizedItems = [
-          ...colorMatchingItems,
-          ...colorHarmoniousItems,
-          ...neutralItems,
-          ...remainingItems
-        ];
+          // Score based on versatility (neutral colors)
+          const neutralColors = ["black", "white", "grey", "gray", "beige", "navy", "brown", "cream", "charcoal"];
+          const neutralScore = item.color.some(color =>
+            neutralColors.some(neutral => color.toLowerCase().includes(neutral))
+          ) ? 1 : 0;
+          colorScore += neutralScore * 0.1; // 10% weight
 
-        console.log(`Color prioritization: ${colorMatchingItems.length} exact matches, ${colorHarmoniousItems.length} harmonious, ${neutralItems.length} neutrals, ${remainingItems.length} others`);
+          return { item, colorScore };
+        });
+
+        // Sort by color score (highest first) and extract items
+        colorPrioritizedItems = itemsWithColorScores
+          .sort((a, b) => b.colorScore - a.colorScore)
+          .map(({ item }) => item);
+
+        // Log color score distribution for debugging
+        const highScoreItems = itemsWithColorScores.filter(({ colorScore }) => colorScore > 0.7).length;
+        const mediumScoreItems = itemsWithColorScores.filter(({ colorScore }) => colorScore > 0.4 && colorScore <= 0.7).length;
+        const lowScoreItems = itemsWithColorScores.filter(({ colorScore }) => colorScore <= 0.4).length;
+
+        console.log(`Color scores: ${highScoreItems} high (>0.7), ${mediumScoreItems} medium (0.4-0.7), ${lowScoreItems} low (≤0.4)`);
+      } else {
+        // If no favorite colors, just prioritize seasonal and neutral colors
+        const itemsWithSeasonalScores = occasionFilteredItems.map((item) => {
+          const seasonalScore = calculateColorCompatibilityScore(item.color, seasonalColors);
+          const neutralColors = ["black", "white", "grey", "gray", "beige", "navy", "brown", "cream"];
+          const neutralScore = item.color.some(color =>
+            neutralColors.some(neutral => color.toLowerCase().includes(neutral))
+          ) ? 0.5 : 0;
+
+          return { item, score: seasonalScore + neutralScore };
+        });
+
+        colorPrioritizedItems = itemsWithSeasonalScores
+          .sort((a, b) => b.score - a.score)
+          .map(({ item }) => item);
+
+        console.log("No favorite colors found, prioritizing seasonal and neutral colors");
       }
 
       let filteredItems = colorPrioritizedItems;
