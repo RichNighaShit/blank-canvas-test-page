@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { getErrorMessage, logError } from '@/lib/errorUtils';
+import { supabaseWithRetry, getNetworkErrorMessage } from '@/lib/networkUtils';
 
 interface OneTimeExperience {
   user_id: string;
