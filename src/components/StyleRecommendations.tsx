@@ -178,10 +178,8 @@ const StyleRecommendations: React.FC = () => {
       }
     } catch (error) {
       console.error("Error loading wardrobe items:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to load wardrobe items";
+      const errorMessage = getErrorMessage(error);
+      logError(error, "Error loading wardrobe items in StyleRecommendations component");
       setError(errorMessage);
       setWardrobeItems([]);
       setAvailableOccasions(["casual"]);
