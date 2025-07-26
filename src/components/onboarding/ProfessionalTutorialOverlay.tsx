@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useOnboarding } from './OnboardingProvider';
+import { useOneTimeExperience, EXPERIENCE_IDS } from '@/hooks/useOneTimeExperience';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
