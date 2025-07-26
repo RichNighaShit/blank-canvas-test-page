@@ -389,6 +389,8 @@ export class SimpleStyleAI {
     preferredStyle?: string,
     includeAccessories: boolean = true,
     weather?: WeatherData,
+    profile?: StyleProfile,
+    prioritizeColors: boolean = false,
   ): WardrobeItem[][] {
     try {
       // First try advanced color theory approach
