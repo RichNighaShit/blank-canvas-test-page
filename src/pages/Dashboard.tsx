@@ -220,26 +220,7 @@ const Dashboard = () => {
     }
   };
 
-  const getWeatherIcon = (condition: string) => {
-    const conditionLower = condition.toLowerCase();
-    if (conditionLower.includes("rain")) return CloudRain;
-    if (conditionLower.includes("snow")) return Snowflake;
-    if (conditionLower.includes("cloud")) return Cloud;
-    if (conditionLower.includes("clear") || conditionLower.includes("sun"))
-      return Sun;
-    return Thermometer;
-  };
 
-  const getStyleAdvice = () => {
-    if (!weather) return null;
-
-    const temp = weather.temperature;
-    if (temp < 10)
-      return { advice: "Layer up with warm clothing", icon: Thermometer };
-    if (temp < 20) return { advice: "Light jacket weather", icon: Wind };
-    if (temp < 25) return { advice: "Perfect for light layers", icon: Sun };
-    return { advice: "Stay cool with breathable fabrics", icon: Sun };
-  };
 
   const getCompletionMessage = () => {
     if (stats.completionRate < 20) return "Just getting started!";
