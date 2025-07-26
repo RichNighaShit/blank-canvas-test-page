@@ -109,6 +109,7 @@ interface OnboardingProviderProps {
 
 export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children }) => {
   const { flowState, markTermsAccepted, markOnboardingCompleted, markTutorialSkipped } = useUserFlow();
+  const { hasSeenExperience, isLoading: experienceLoading } = useOneTimeExperience();
   const [isActive, setIsActive] = useState(false);
   const [currentFlow, setCurrentFlow] = useState<OnboardingFlow | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
