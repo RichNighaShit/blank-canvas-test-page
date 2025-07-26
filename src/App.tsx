@@ -88,17 +88,21 @@ function App() {
           } />
           <Route path="/wardrobe" element={
             <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
-                <Wardrobe />
-              </Suspense>
+              <LazyLoadErrorBoundary componentName="Wardrobe">
+                <Suspense fallback={<PageLoader />}>
+                  <Wardrobe />
+                </Suspense>
+              </LazyLoadErrorBoundary>
             </ProtectedRoute>
           } />
 
           <Route path="/wardrobe-setup" element={
             <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
-                <WardrobeSetup />
-              </Suspense>
+              <LazyLoadErrorBoundary componentName="WardrobeSetup">
+                <Suspense fallback={<PageLoader />}>
+                  <WardrobeSetup />
+                </Suspense>
+              </LazyLoadErrorBoundary>
             </ProtectedRoute>
           } />
 
