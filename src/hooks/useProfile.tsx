@@ -271,7 +271,7 @@ export const useProfile = () => {
           setRetryCount(0);
         }
       } else if (error instanceof DOMException && error.name === 'AbortError') {
-        console.error("Request timed out after 10 seconds");
+        console.error("Request timed out after 15 seconds");
         if (retryCount < 1) {
           console.log("Retrying after timeout...");
           setRetryCount(prev => prev + 1);
