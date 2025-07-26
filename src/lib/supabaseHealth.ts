@@ -36,6 +36,16 @@ export const checkSupabaseHealth = async (): Promise<HealthCheckResult> => {
     clearTimeout(timeoutId);
     
     if (dbError) {
+      // Handle AbortError specifically when it comes as a dbError
+      if (dbError instanceof DOMException && dbError.name === 'AbortError') {
+        return {
+          healthy: false,
+          details: 'Database connection timeout (5 seconds) - please check your internet connection',
+          timestamp: new Date(),
+          latency: Date.now() - startTime
+        };
+      }
+
       const errorMessage = getErrorMessage(dbError);
       return {
         healthy: false,
