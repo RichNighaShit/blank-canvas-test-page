@@ -208,7 +208,9 @@ const StyleRecommendations = () => {
                         Featured
                       </Badge>
                     </div>
-                    <StyleRecs />
+                    <StyleRecommendationsErrorBoundary>
+                      <StyleRecs />
+                    </StyleRecommendationsErrorBoundary>
                   </div>
                 </div>
               </TabsContent>
