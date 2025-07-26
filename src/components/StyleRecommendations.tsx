@@ -37,6 +37,12 @@ import {
   WardrobeItem,
   StyleProfile,
 } from "@/lib/simpleStyleAI";
+import AdvancedVirtualTryOn from "./AdvancedVirtualTryOn";
+import { useWeather } from "@/hooks/useWeather";
+import { usePerformance } from "@/hooks/usePerformance";
+import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
+import { OptimizedImage } from "./OptimizedImage";
+import { getErrorMessage, logError } from "@/lib/errorUtils";
 
 // Add safety check for the AI module
 const safeStyleAI = simpleStyleAI || {
@@ -45,12 +51,6 @@ const safeStyleAI = simpleStyleAI || {
     return [];
   }
 };
-import AdvancedVirtualTryOn from "./AdvancedVirtualTryOn";
-import { useWeather } from "@/hooks/useWeather";
-import { usePerformance } from "@/hooks/usePerformance";
-import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
-import { OptimizedImage } from "./OptimizedImage";
-import { getErrorMessage, logError } from "@/lib/errorUtils";
 
 const StyleRecommendations: React.FC = () => {
   // Add defensive checks for hooks
