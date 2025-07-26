@@ -260,7 +260,7 @@ const Header = React.memo(() => {
                   <Settings className="mr-2 h-4 w-4" />
                   Edit Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/profile/palette")} data-tour="color-palette-nav">
+                <DropdownMenuItem onClick={() => navigate("/profile/palette")} {...(import.meta.env.DEV && { 'data-tour': 'color-palette-nav' })}>
                   <Palette className="mr-2 h-4 w-4" />
                   Your Color Palette
                 </DropdownMenuItem>
