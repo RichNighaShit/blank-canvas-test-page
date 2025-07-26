@@ -545,6 +545,33 @@ const StyleRecommendations: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Accessory Suggestions when disabled */}
+      {!includeAccessories && wardrobeItems.some(item => ["accessories", "jewelry", "bags", "hats", "belts", "scarves"].includes(item.category.toLowerCase())) && (
+        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <ShoppingBag className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  Accessory Suggestions Available
+                </p>
+                <p className="text-xs text-blue-700 dark:text-blue-200">
+                  You have {wardrobeItems.filter(item => ["accessories", "jewelry", "bags", "hats", "belts", "scarves"].includes(item.category.toLowerCase())).length} accessories that could complement these outfits. Enable "Include Accessories" to see them in your recommendations.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-600 dark:text-blue-300 dark:hover:bg-blue-900"
+                onClick={() => setIncludeAccessories(true)}
+              >
+                Enable
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Recommendations Grid */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
