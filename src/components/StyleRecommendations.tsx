@@ -52,36 +52,149 @@ const safeStyleAI = simpleStyleAI || {
   }
 };
 
-// Helper function for color harmony
+// Enhanced color harmony detection with advanced color theory
 const isColorHarmonious = (color1: string, color2: string): boolean => {
-  const complementaryPairs = [
-    ["red", "green"], ["blue", "orange"], ["yellow", "purple"],
-    ["pink", "green"], ["teal", "coral"], ["navy", "gold"]
-  ];
-
-  const analogousFamilies = [
-    ["red", "orange", "pink"], ["blue", "green", "teal"],
-    ["yellow", "orange", "gold"], ["purple", "pink", "magenta"]
-  ];
-
   const c1 = color1.toLowerCase();
   const c2 = color2.toLowerCase();
 
-  // Check complementary pairs
+  // Neutral colors work with everything
+  const neutrals = ["black", "white", "grey", "gray", "beige", "cream", "ivory", "charcoal", "stone"];
+  if (neutrals.some(n => c1.includes(n)) || neutrals.some(n => c2.includes(n))) {
+    return true;
+  }
+
+  // Advanced complementary pairs with variations
+  const complementaryPairs = [
+    ["red", "green"], ["crimson", "emerald"], ["burgundy", "forest"],
+    ["blue", "orange"], ["navy", "coral"], ["royal", "peach"],
+    ["yellow", "purple"], ["gold", "violet"], ["mustard", "lavender"],
+    ["pink", "sage"], ["rose", "mint"], ["blush", "seafoam"],
+    ["teal", "coral"], ["turquoise", "salmon"], ["aqua", "apricot"]
+  ];
+
+  // Analogous color families with more variations
+  const analogousFamilies = [
+    ["red", "orange", "pink", "coral", "salmon", "crimson", "burgundy"],
+    ["blue", "teal", "turquoise", "navy", "royal", "cerulean", "sky"],
+    ["green", "emerald", "forest", "sage", "mint", "olive", "lime"],
+    ["yellow", "gold", "mustard", "amber", "cream", "butter", "lemon"],
+    ["purple", "violet", "lavender", "plum", "magenta", "lilac", "mauve"],
+    ["brown", "tan", "beige", "camel", "coffee", "chocolate", "rust"]
+  ];
+
+  // Monochromatic variations (same hue, different saturation/brightness)
+  const monochromaticFamilies = [
+    ["light", "pale", "soft", "pastel"], // Light variations
+    ["dark", "deep", "rich", "intense"], // Dark variations
+    ["bright", "vivid", "bold", "electric"], // Bright variations
+    ["muted", "dusty", "faded", "vintage"] // Muted variations
+  ];
+
+  // Check complementary harmony
   for (const [comp1, comp2] of complementaryPairs) {
     if ((c1.includes(comp1) && c2.includes(comp2)) || (c1.includes(comp2) && c2.includes(comp1))) {
       return true;
     }
   }
 
-  // Check analogous families
+  // Check analogous harmony
   for (const family of analogousFamilies) {
     if (family.some(f => c1.includes(f)) && family.some(f => c2.includes(f))) {
       return true;
     }
   }
 
+  // Check monochromatic harmony (same base color with different tones)
+  for (const family of analogousFamilies) {
+    const baseColor1 = family.find(f => c1.includes(f));
+    const baseColor2 = family.find(f => c2.includes(f));
+    if (baseColor1 && baseColor2 && baseColor1 === baseColor2) {
+      return true;
+    }
+  }
+
+  // Check triadic harmony (evenly spaced colors)
+  const triadicSets = [
+    ["red", "blue", "yellow"],
+    ["orange", "green", "purple"],
+    ["pink", "teal", "gold"],
+    ["coral", "navy", "cream"]
+  ];
+
+  for (const set of triadicSets) {
+    if (set.some(s => c1.includes(s)) && set.some(s => c2.includes(s))) {
+      return true;
+    }
+  }
+
   return false;
+};
+
+// Get current season for season-aware recommendations
+const getCurrentSeason = (): string => {
+  const month = new Date().getMonth() + 1;
+  if (month >= 3 && month <= 5) return "spring";
+  if (month >= 6 && month <= 8) return "summer";
+  if (month >= 9 && month <= 11) return "autumn";
+  return "winter";
+};
+
+// Enhanced seasonal color palettes
+const getSeasonalColors = (season: string): string[] => {
+  const seasonalPalettes = {
+    spring: ["coral", "peach", "yellow", "lime", "turquoise", "pink", "lavender", "mint"],
+    summer: ["sage", "powder blue", "rose", "pearl", "champagne", "blush", "mauve", "seafoam"],
+    autumn: ["rust", "burgundy", "forest", "gold", "brown", "orange", "olive", "bronze"],
+    winter: ["navy", "black", "white", "crimson", "emerald", "royal purple", "silver", "charcoal"]
+  };
+  return seasonalPalettes[season as keyof typeof seasonalPalettes] || [];
+};
+
+// Calculate color compatibility score (0-1)
+const calculateColorCompatibilityScore = (itemColors: string[], userColors: string[]): number => {
+  let score = 0;
+  let maxScore = 0;
+
+  for (const itemColor of itemColors) {
+    for (const userColor of userColors) {
+      maxScore += 1;
+
+      // Exact match
+      if (itemColor.toLowerCase().includes(userColor.toLowerCase()) ||
+          userColor.toLowerCase().includes(itemColor.toLowerCase())) {
+        score += 1;
+      }
+      // Harmonious colors
+      else if (isColorHarmonious(itemColor, userColor)) {
+        score += 0.8;
+      }
+      // Same color family
+      else if (areInSameColorFamily(itemColor, userColor)) {
+        score += 0.6;
+      }
+    }
+  }
+
+  return maxScore > 0 ? score / maxScore : 0;
+};
+
+// Check if colors are in the same color family
+const areInSameColorFamily = (color1: string, color2: string): boolean => {
+  const colorFamilies = [
+    ["red", "pink", "coral", "rose", "crimson", "burgundy", "salmon"],
+    ["blue", "navy", "royal", "sky", "powder", "cerulean", "turquoise"],
+    ["green", "emerald", "forest", "sage", "mint", "lime", "olive"],
+    ["yellow", "gold", "mustard", "lemon", "cream", "butter", "amber"],
+    ["purple", "violet", "lavender", "plum", "magenta", "lilac", "mauve"],
+    ["brown", "tan", "beige", "camel", "coffee", "chocolate", "rust"]
+  ];
+
+  const c1 = color1.toLowerCase();
+  const c2 = color2.toLowerCase();
+
+  return colorFamilies.some(family =>
+    family.some(f => c1.includes(f)) && family.some(f => c2.includes(f))
+  );
 };
 
 const StyleRecommendations: React.FC = () => {
@@ -685,7 +798,7 @@ const StyleRecommendations: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium">Weather-Aware Styling</p>
                   <p className="text-xs text-muted-foreground">
-                    {weather.description} • {Math.round(weather.temperature)}°C
+                    {weather.description} ��� {Math.round(weather.temperature)}°C
                   </p>
                 </div>
               </div>
