@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw } from "lucide-react";
+import { getErrorMessage } from "@/lib/errorUtils";
 
 interface Props {
   children: React.ReactNode;
