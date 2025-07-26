@@ -3,22 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { checkSupabaseHealth } from "@/lib/supabaseHealth";
 import { logError } from "@/lib/errorLogger";
-
-// Utility function to extract error messages safely
-const getErrorMessage = (error: any): string => {
-  if (typeof error === 'string') return error;
-  if (error?.message) return error.message;
-  if (error?.error_description) return error.error_description;
-  if (error?.details) return error.details;
-  if (error && typeof error === 'object') {
-    try {
-      return JSON.stringify(error);
-    } catch {
-      return String(error);
-    }
-  }
-  return 'Unknown error occurred';
-};
+import { getErrorMessage, logError as logErrorWithMessage } from "@/lib/errorUtils";
 
 // Test basic Supabase connectivity with detailed diagnostics
 const testConnection = async (): Promise<{ connected: boolean; details: string }> => {
