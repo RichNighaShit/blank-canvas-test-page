@@ -70,9 +70,11 @@ function App() {
           {/* Onboarding route */}
           <Route path="/onboarding" element={
             <OnboardingRoute>
-              <Suspense fallback={<PageLoader />}>
-                <Onboarding />
-              </Suspense>
+              <LazyLoadErrorBoundary componentName="Onboarding">
+                <Suspense fallback={<PageLoader />}>
+                  <Onboarding />
+                </Suspense>
+              </LazyLoadErrorBoundary>
             </OnboardingRoute>
           } />
 
