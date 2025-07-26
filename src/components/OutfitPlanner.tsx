@@ -29,6 +29,7 @@ import {
 } from "@/lib/simpleStyleAI";
 import { usePerformance } from "@/hooks/usePerformance";
 import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
+import { getErrorMessage, logError } from "@/lib/errorUtils";
 
 interface PlannedOutfit {
   id: string;
