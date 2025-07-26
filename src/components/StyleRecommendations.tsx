@@ -362,10 +362,9 @@ const StyleRecommendations: React.FC = () => {
   >(null);
 
   useEffect(() => {
-    debouncedLoadRecommendationsRef.current = debounce(
-      loadRecommendations,
-      500,
-    );
+    debouncedLoadRecommendationsRef.current = debounce
+      ? debounce(loadRecommendations, 500)
+      : loadRecommendations;
 
     // Cleanup function
     return () => {
