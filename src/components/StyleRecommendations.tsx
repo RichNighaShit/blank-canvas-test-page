@@ -42,6 +42,7 @@ import { useWeather } from "@/hooks/useWeather";
 import { usePerformance } from "@/hooks/usePerformance";
 import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
 import { OptimizedImage } from "./OptimizedImage";
+import { getErrorMessage, logError } from "@/lib/errorUtils";
 
 const StyleRecommendations: React.FC = () => {
   const { user } = useAuth();
