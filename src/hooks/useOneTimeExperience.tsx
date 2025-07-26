@@ -99,7 +99,7 @@ export const useOneTimeExperience = (): UseOneTimeExperienceReturn => {
         });
       }
     } catch (error) {
-      console.error('Unexpected error marking experience complete:', error);
+      logError(error, 'Unexpected error marking experience complete');
     }
   };
 
