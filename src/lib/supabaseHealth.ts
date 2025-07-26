@@ -40,7 +40,7 @@ export const checkSupabaseHealth = async (): Promise<HealthCheckResult> => {
       if (dbError instanceof DOMException && dbError.name === 'AbortError') {
         return {
           healthy: false,
-          details: 'Database connection timeout (5 seconds) - please check your internet connection',
+          details: 'Database connection timeout (8 seconds) - please check your internet connection',
           timestamp: new Date(),
           latency: Date.now() - startTime
         };
@@ -66,7 +66,7 @@ export const checkSupabaseHealth = async (): Promise<HealthCheckResult> => {
     if (error instanceof DOMException && error.name === 'AbortError') {
       return {
         healthy: false,
-        details: 'Database connection timeout (5 seconds) - please check your internet connection',
+        details: 'Database connection timeout (8 seconds) - please check your internet connection',
         timestamp: new Date(),
         latency: Date.now() - startTime
       };
