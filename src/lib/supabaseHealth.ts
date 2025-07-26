@@ -36,9 +36,10 @@ export const checkSupabaseHealth = async (): Promise<HealthCheckResult> => {
     clearTimeout(timeoutId);
     
     if (dbError) {
+      const errorMessage = getErrorMessage(dbError);
       return {
         healthy: false,
-        details: `Database error: ${dbError.message}`,
+        details: `Database error: ${errorMessage}`,
         timestamp: new Date(),
         latency: Date.now() - startTime
       };
