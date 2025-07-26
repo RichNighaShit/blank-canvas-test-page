@@ -80,12 +80,13 @@ const StyleRecommendations: React.FC = () => {
   // Get unique occasions from wardrobe items
   const [availableOccasions, setAvailableOccasions] = useState<string[]>([]);
 
-  // Performance optimization
-  const { executeWithCache, debounce } = usePerformance({
+  // Performance optimization with defensive check
+  const performanceHook = usePerformance({
     cacheNamespace: CACHE_NAMESPACES.RECOMMENDATIONS,
     enableCaching: true,
     enableMonitoring: true,
   });
+  const { executeWithCache, debounce } = performanceHook || {};
 
   useEffect(() => {
     if (user && profile) {
