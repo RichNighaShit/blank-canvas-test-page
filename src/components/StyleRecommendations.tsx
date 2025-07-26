@@ -67,7 +67,7 @@ const StyleRecommendations: React.FC = () => {
 
   // User preferences state
   const [selectedOccasion, setSelectedOccasion] = useState<string>("casual");
-  const [includeAccessories, setIncludeAccessories] = useState<boolean>(false);
+  const [includeAccessories, setIncludeAccessories] = useState<boolean>(true);
   const [showPreferences, setShowPreferences] = useState<boolean>(true);
 
   // Get unique occasions from wardrobe items
