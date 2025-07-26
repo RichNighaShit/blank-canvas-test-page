@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useUserFlow } from '@/hooks/useUserFlow';
+import { useOneTimeExperience, EXPERIENCE_IDS } from '@/hooks/useOneTimeExperience';
 
 export interface OnboardingStep {
   id: string;
