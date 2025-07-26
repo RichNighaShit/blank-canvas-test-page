@@ -31,7 +31,12 @@ class RouteErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Route Error Boundary caught an error:", error, errorInfo);
+    const errorMessage = getErrorMessage(error);
+    console.error("Route Error Boundary caught an error:", errorMessage, {
+      componentStack: errorInfo.componentStack,
+      errorMessage: error.message,
+      errorStack: error.stack
+    });
   }
 
   handleRetry = () => {
