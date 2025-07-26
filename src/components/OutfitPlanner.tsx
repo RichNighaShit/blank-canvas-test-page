@@ -93,7 +93,7 @@ const OutfitPlanner: React.FC = () => {
       if (error) throw error;
       setWardrobeItems(data || []);
     } catch (error) {
-      console.error("Error fetching wardrobe items:", error);
+      logError(error, "Error fetching wardrobe items in OutfitPlanner");
     }
   };
 
