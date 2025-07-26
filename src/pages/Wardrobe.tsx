@@ -106,9 +106,11 @@ const Wardrobe = () => {
         .order("created_at", { ascending: false });
 
       if (error) {
+        const errorMessage = getErrorMessage(error);
+        logError(error, "Error fetching wardrobe items");
         toast({
           title: "Error",
-          description: "Failed to load wardrobe items",
+          description: `Failed to load wardrobe items: ${errorMessage}`,
           variant: "destructive",
         });
       } else {
@@ -121,7 +123,7 @@ const Wardrobe = () => {
         });
       }
     } catch (error) {
-      console.error("Error fetching wardrobe items:", error);
+      logError(error, "Error fetching wardrobe items");
     } finally {
       setLoading(false);
     }
