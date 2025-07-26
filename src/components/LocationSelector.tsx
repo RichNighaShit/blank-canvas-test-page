@@ -1,20 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { 
   MapPin, 
@@ -37,7 +24,6 @@ interface LocationResult {
   latitude: number;
   longitude: number;
   population?: number;
-  timezone?: string;
   displayName: string;
 }
 
@@ -66,6 +52,9 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   const [loading, setLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
+  
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Popular cities for quick selection
   const popularCities = [
@@ -80,10 +69,26 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     'Singapore, Singapore',
     'Mumbai, India',
     'São Paulo, Brazil',
-    'Mexico City, Mexico'
+    'Mexico City, Mexico',
+    'Lahore, Pakistan',
+    'Karachi, Pakistan',
+    'Islamabad, Pakistan',
+    'Rawalpindi, Pakistan'
   ];
 
-  // Debounced search function
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Search locations using geocoding API
   const searchLocations = useCallback(
     async (query: string) => {
       if (!query || query.length < 2) {
@@ -122,7 +127,6 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
             latitude: result.latitude,
             longitude: result.longitude,
             population: result.population,
-            timezone: result.timezone,
             displayName: result.admin1 
               ? `${result.name}, ${result.admin1}, ${result.country}`
               : `${result.name}, ${result.country}`
@@ -147,7 +151,11 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   // Debounce search queries
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      searchLocations(searchQuery);
+      if (searchQuery) {
+        searchLocations(searchQuery);
+      } else {
+        setLocations([]);
+      }
     }, 300);
 
     return () => clearTimeout(timeoutId);
@@ -203,6 +211,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         
         onChange(locationName);
         setOpen(false);
+        setSearchQuery("");
       } else {
         throw new Error("Could not determine your location");
       }
@@ -241,6 +250,13 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     setLocations([]);
   };
 
+  const toggleDropdown = () => {
+    setOpen(!open);
+    if (!open) {
+      setTimeout(() => inputRef.current?.focus(), 0);
+    }
+  };
+
   return (
     <div className={cn("space-y-2", className)}>
       {label && (
@@ -249,140 +265,154 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         </Label>
       )}
       
-      <div className="relative">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className={cn(
-                "w-full justify-between text-left font-normal",
-                !value && "text-muted-foreground",
-                error && "border-destructive"
-              )}
-            >
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <span className="truncate">
-                  {value || placeholder}
-                </span>
-              </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                {value && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      clearSelection();
-                    }}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                )}
-                <ChevronDown className="h-4 w-4 opacity-50" />
-              </div>
-            </Button>
-          </PopoverTrigger>
-          
-          <PopoverContent className="w-full p-0" align="start">
-            <Command>
-              <div className="flex items-center border-b px-3">
-                <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                <CommandInput
+      <div className="relative" ref={dropdownRef}>
+        {/* Main Input Button */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={toggleDropdown}
+          className={cn(
+            "w-full justify-between text-left font-normal",
+            !value && "text-muted-foreground",
+            error && "border-destructive"
+          )}
+        >
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <span className="truncate">
+              {value || placeholder}
+            </span>
+          </div>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {value && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearSelection();
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+            <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
+          </div>
+        </Button>
+
+        {/* Dropdown Content */}
+        {open && (
+          <div className="absolute top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-lg z-50 max-h-80 overflow-hidden">
+            {/* Search Input */}
+            <div className="p-3 border-b">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  ref={inputRef}
                   placeholder="Search cities worldwide..."
                   value={searchQuery}
-                  onValueChange={setSearchQuery}
-                  className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-10"
                 />
-                {loading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                {loading && (
+                  <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin" />
+                )}
+              </div>
+            </div>
+
+            {/* Dropdown List */}
+            <div className="max-h-60 overflow-y-auto">
+              {/* GPS Location Option */}
+              <div className="p-2 border-b">
+                <div className="text-xs font-medium text-muted-foreground mb-2">Current Location</div>
+                <button
+                  type="button"
+                  onClick={getCurrentLocation}
+                  disabled={gpsLoading}
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-accent rounded-sm text-left"
+                >
+                  {gpsLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Navigation className="h-4 w-4 text-blue-500" />
+                  )}
+                  <span className="text-sm">Use my current location</span>
+                </button>
               </div>
 
-              <CommandList>
-                {/* GPS Location Option */}
-                <CommandGroup heading="Current Location">
-                  <CommandItem
-                    onSelect={getCurrentLocation}
-                    className="flex items-center gap-2 cursor-pointer"
-                    disabled={gpsLoading}
-                  >
-                    {gpsLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Navigation className="h-4 w-4 text-blue-500" />
-                    )}
-                    <span>Use my current location</span>
-                  </CommandItem>
-                </CommandGroup>
-
-                {/* Search Results */}
-                {searchQuery && (
-                  <CommandGroup heading="Search Results">
-                    {loading ? (
-                      <div className="flex items-center justify-center py-6">
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        <span className="text-sm text-muted-foreground">Searching...</span>
-                      </div>
-                    ) : searchError ? (
-                      <div className="flex items-center gap-2 py-6 px-4">
-                        <AlertCircle className="h-4 w-4 text-destructive" />
-                        <span className="text-sm text-destructive">{searchError}</span>
-                      </div>
-                    ) : locations.length > 0 ? (
-                      locations.map((location) => (
-                        <CommandItem
-                          key={location.id}
-                          onSelect={() => handleSelect(location)}
-                          className="flex items-center justify-between cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <div className="flex flex-col">
-                              <span className="text-sm">{location.displayName}</span>
-                              {location.population && (
-                                <span className="text-xs text-muted-foreground">
-                                  Population: {location.population.toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {value === location.displayName && (
-                            <Check className="h-4 w-4 text-primary" />
-                          )}
-                        </CommandItem>
-                      ))
-                    ) : (
-                      <CommandEmpty>No locations found.</CommandEmpty>
-                    )}
-                  </CommandGroup>
-                )}
-
-                {/* Popular Cities */}
-                {!searchQuery && (
-                  <CommandGroup heading="Popular Cities">
-                    {popularCities.map((city) => (
-                      <CommandItem
-                        key={city}
-                        onSelect={() => handleSelect(city)}
-                        className="flex items-center justify-between cursor-pointer"
+              {/* Search Results */}
+              {searchQuery && (
+                <div className="p-2 border-b">
+                  <div className="text-xs font-medium text-muted-foreground mb-2">Search Results</div>
+                  {loading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <span className="text-sm text-muted-foreground">Searching...</span>
+                    </div>
+                  ) : searchError ? (
+                    <div className="flex items-center gap-2 py-4 px-2 text-destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <span className="text-sm">{searchError}</span>
+                    </div>
+                  ) : locations.length > 0 ? (
+                    locations.map((location) => (
+                      <button
+                        key={location.id}
+                        type="button"
+                        onClick={() => handleSelect(location)}
+                        className="w-full flex items-center justify-between px-3 py-2 hover:bg-accent rounded-sm text-left"
                       >
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{city}</span>
+                          <div className="flex flex-col">
+                            <span className="text-sm">{location.displayName}</span>
+                            {location.population && (
+                              <span className="text-xs text-muted-foreground">
+                                Population: {location.population.toLocaleString()}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        {value === city && (
+                        {value === location.displayName && (
                           <Check className="h-4 w-4 text-primary" />
                         )}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="py-4 px-2 text-center text-sm text-muted-foreground">
+                      No locations found for "{searchQuery}"
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Popular Cities */}
+              {!searchQuery && (
+                <div className="p-2">
+                  <div className="text-xs font-medium text-muted-foreground mb-2">Popular Cities</div>
+                  {popularCities.map((city) => (
+                    <button
+                      key={city}
+                      type="button"
+                      onClick={() => handleSelect(city)}
+                      className="w-full flex items-center justify-between px-3 py-2 hover:bg-accent rounded-sm text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{city}</span>
+                      </div>
+                      {value === city && (
+                        <Check className="h-4 w-4 text-primary" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Status badges */}
