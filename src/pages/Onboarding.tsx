@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
 import { ColorPaletteSetup } from "@/components/ColorPaletteSetup";
+import { LocationSelector } from "@/components/LocationSelector";
 import type { ColorPalette } from "@/data/predefinedColorPalettes";
 import type { ColorSeasonAnalysis } from "@/lib/colorSeasonAnalysis";
 
