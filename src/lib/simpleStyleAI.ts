@@ -1523,17 +1523,20 @@ export class SimpleStyleAI {
       let confidence = 0;
       const reasoning: string[] = [];
 
-      // Enhanced scoring system with weighted factors
+      // Enhanced scoring system with optimized weights
       const scoringWeights = {
-        base: 0.1,
-        diversity: 0.12,
-        style: 0.22,
-        colorHarmony: 0.18,
-        occasion: 0.2,
-        weather: 0.15,
-        completeness: 0.1,
-        fashion: 0.08,
-        goals: 0.05,
+        base: 0.05,
+        diversity: 0.10,
+        style: 0.18,
+        colorHarmony: 0.20, // Increased weight for color importance
+        occasion: 0.25, // Increased weight for occasion importance
+        weather: 0.12,
+        completeness: 0.08,
+        fashion: 0.06,
+        goals: 0.04,
+        seasonality: 0.05, // New factor
+        versatility: 0.04, // New factor
+        trendiness: 0.03, // New factor
       };
 
       // Base confidence for having valid items
