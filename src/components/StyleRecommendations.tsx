@@ -52,6 +52,8 @@ const StyleRecommendations: React.FC = () => {
   // Safely destructure with fallbacks
   const user = authHook?.user || null;
   const profile = profileHook?.profile || null;
+  // Add defensive check for weather hook
+  const weatherHook = useWeather(profile?.location);
   const {
     weather,
     loading: weatherLoading,
@@ -59,7 +61,7 @@ const StyleRecommendations: React.FC = () => {
     fetchWeather,
     getWeatherAdvice,
     getWeatherStatus,
-  } = useWeather(profile?.location);
+  } = weatherHook || {};
   const [recommendations, setRecommendations] = useState<
     OutfitRecommendation[]
   >([]);
