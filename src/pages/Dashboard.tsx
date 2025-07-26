@@ -77,9 +77,11 @@ const Dashboard = () => {
   const {
     weather,
     loading: weatherLoading,
+    error: weatherError,
     fetchWeather,
+    getWeatherAdvice,
     getWeatherStatus,
-  } = useWeather();
+  } = useWeather(profile?.location);
   const navigate = useNavigate();
   const { handleError, handleApiError, logUserAction } = useErrorHandler();
 
