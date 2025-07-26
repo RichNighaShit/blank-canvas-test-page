@@ -77,7 +77,7 @@ export const useOneTimeExperience = (): UseOneTimeExperienceReturn => {
         });
 
       if (error) {
-        console.error('Error marking experience complete:', error);
+        logError(error, 'Error marking experience complete');
       } else {
         // Update local state
         setExperiences(prev => {
