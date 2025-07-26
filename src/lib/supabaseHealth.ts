@@ -64,19 +64,10 @@ export const checkSupabaseHealth = async (): Promise<HealthCheckResult> => {
     };
     
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      return {
-        healthy: false,
-        details: 'Database connection timeout (8 seconds) - please check your internet connection',
-        timestamp: new Date(),
-        latency: Date.now() - startTime
-      };
-    }
-
-    const errorMessage = getErrorMessage(error);
+    const errorMessage = getNetworkErrorMessage(error);
     return {
       healthy: false,
-      details: `Unexpected error: ${errorMessage}`,
+      details: `Health check failed: ${errorMessage}`,
       timestamp: new Date(),
       latency: Date.now() - startTime
     };
