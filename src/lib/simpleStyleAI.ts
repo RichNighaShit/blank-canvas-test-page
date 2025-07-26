@@ -1701,14 +1701,34 @@ export class SimpleStyleAI {
         reasoning.push("Follows current fashion trends");
       }
 
-      // Seasonal color intelligence
-      const seasonalScore = this.calculateSeasonalColorScore(validItems);
-      confidence += seasonalScore * 0.05; // Small additional bonus for seasonal appropriateness
+      // Enhanced seasonal intelligence
+      const seasonalScore = this.calculateEnhancedSeasonalScore(validItems);
+      confidence += seasonalScore * scoringWeights.seasonality;
 
       if (seasonalScore > 0.8) {
-        reasoning.push("Perfect seasonal color palette");
+        reasoning.push("Perfect seasonal harmony for " + this.getCurrentSeason());
       } else if (seasonalScore > 0.6) {
-        reasoning.push("Season-appropriate color choices");
+        reasoning.push("Season-appropriate styling choices");
+      }
+
+      // Versatility scoring
+      const versatilityScore = this.calculateVersatilityScore(validItems);
+      confidence += versatilityScore * scoringWeights.versatility;
+
+      if (versatilityScore > 0.8) {
+        reasoning.push("Highly versatile outfit for multiple occasions");
+      } else if (versatilityScore > 0.6) {
+        reasoning.push("Good versatility for day-to-evening transition");
+      }
+
+      // Trend relevance scoring
+      const trendinessScore = this.calculateTrendinessScore(validItems);
+      confidence += trendinessScore * scoringWeights.trendiness;
+
+      if (trendinessScore > 0.7) {
+        reasoning.push("On-trend styling with contemporary appeal");
+      } else if (trendinessScore > 0.5) {
+        reasoning.push("Incorporates current fashion elements");
       }
 
       // Goal alignment (if user has specific goals)
