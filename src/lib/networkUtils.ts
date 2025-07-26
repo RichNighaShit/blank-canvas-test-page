@@ -110,3 +110,32 @@ export const supabaseWithRetry = <T>(
     return result.data;
   }, options);
 };
+
+/**
+ * Check if we should use mock data (for restrictive network environments)
+ */
+export const shouldUseMockData = (): boolean => {
+  // Check if we're in a restrictive environment or if network is poor
+  if (!isOnline()) {
+    return true;
+  }
+
+  // Check if we're in development and want to force mock data
+  if (import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Get network configuration for the current environment
+ */
+export const getNetworkConfig = () => {
+  return {
+    useMockData: shouldUseMockData(),
+    isOnline: isOnline(),
+    maxRetries: isOnline() ? 2 : 0,
+    timeout: isOnline() ? 10000 : 5000,
+  };
+};
