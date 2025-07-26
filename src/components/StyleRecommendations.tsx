@@ -600,12 +600,14 @@ const StyleRecommendations: React.FC = () => {
                   Try selecting "casual" occasion as it's more flexible
                 </span>
               </div>
-              <div className="flex items-start gap-2">
-                <div className="w-1 h-1 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
-                <span>
-                  Include accessories to create more outfit combinations
-                </span>
-              </div>
+              {wardrobeItems.some(item => ["accessories", "jewelry", "bags", "hats", "belts", "scarves"].includes(item.category.toLowerCase())) && !includeAccessories && (
+                <div className="flex items-start gap-2">
+                  <div className="w-1 h-1 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
+                  <span>
+                    Enable "Include Accessories" - you have accessories that could complete your outfits
+                  </span>
+                </div>
+              )}
               <div className="flex items-start gap-2">
                 <div className="w-1 h-1 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
                 <span>
