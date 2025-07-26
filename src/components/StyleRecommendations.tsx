@@ -52,6 +52,38 @@ const safeStyleAI = simpleStyleAI || {
   }
 };
 
+// Helper function for color harmony
+const isColorHarmonious = (color1: string, color2: string): boolean => {
+  const complementaryPairs = [
+    ["red", "green"], ["blue", "orange"], ["yellow", "purple"],
+    ["pink", "green"], ["teal", "coral"], ["navy", "gold"]
+  ];
+
+  const analogousFamilies = [
+    ["red", "orange", "pink"], ["blue", "green", "teal"],
+    ["yellow", "orange", "gold"], ["purple", "pink", "magenta"]
+  ];
+
+  const c1 = color1.toLowerCase();
+  const c2 = color2.toLowerCase();
+
+  // Check complementary pairs
+  for (const [comp1, comp2] of complementaryPairs) {
+    if ((c1.includes(comp1) && c2.includes(comp2)) || (c1.includes(comp2) && c2.includes(comp1))) {
+      return true;
+    }
+  }
+
+  // Check analogous families
+  for (const family of analogousFamilies) {
+    if (family.some(f => c1.includes(f)) && family.some(f => c2.includes(f))) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 const StyleRecommendations: React.FC = () => {
   // Add defensive checks for hooks
   const authHook = useAuth();
