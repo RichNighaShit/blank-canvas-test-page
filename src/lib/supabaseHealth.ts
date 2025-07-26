@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getErrorMessage } from './errorUtils';
+import { withNetworkRetry, getNetworkErrorMessage } from './networkUtils';
 
 export interface HealthCheckResult {
   healthy: boolean;
