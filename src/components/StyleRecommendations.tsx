@@ -130,9 +130,10 @@ const StyleRecommendations: React.FC = () => {
         .eq("user_id", user.id);
 
       if (fetchError) {
-        console.error("Error fetching wardrobe items:", fetchError);
+        const errorMessage = getErrorMessage(fetchError);
+        logError(fetchError, "Error fetching wardrobe items in StyleRecommendations");
         throw new Error(
-          `Failed to load your wardrobe items: ${fetchError.message}`,
+          `Failed to load your wardrobe items: ${errorMessage}`,
         );
       }
 
