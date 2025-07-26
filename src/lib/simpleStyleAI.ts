@@ -722,6 +722,151 @@ export class SimpleStyleAI {
       });
   }
 
+  /**
+   * Prioritize items within each category by occasion match and color compatibility
+   */
+  private prioritizeItemsByOccasionAndColor(
+    itemsByCategory: { [key: string]: WardrobeItem[] },
+    occasion: string,
+    profile: StyleProfile
+  ): { [key: string]: WardrobeItem[] } {
+    const prioritizedCategories: { [key: string]: WardrobeItem[] } = {};
+
+    Object.keys(itemsByCategory).forEach(category => {
+      const items = itemsByCategory[category];
+
+      // Sort items by priority: occasion match first, then color compatibility
+      const sortedItems = items.sort((a, b) => {
+        // Priority 1: Occasion match score (higher is better)
+        const occasionScoreA = this.calculateOccasionPriority(a, occasion);
+        const occasionScoreB = this.calculateOccasionPriority(b, occasion);
+
+        if (occasionScoreA !== occasionScoreB) {
+          return occasionScoreB - occasionScoreA;
+        }
+
+        // Priority 2: Color compatibility with user preferences (higher is better)
+        const colorScoreA = this.calculateColorPriority(a, profile);
+        const colorScoreB = this.calculateColorPriority(b, profile);
+
+        if (colorScoreA !== colorScoreB) {
+          return colorScoreB - colorScoreA;
+        }
+
+        // Priority 3: Usage history (less used is better for variety)
+        const usageA = this.usedItemsHistory[a.id] || 0;
+        const usageB = this.usedItemsHistory[b.id] || 0;
+        return usageA - usageB;
+      });
+
+      prioritizedCategories[category] = sortedItems;
+    });
+
+    return prioritizedCategories;
+  }
+
+  /**
+   * Calculate occasion match priority score (0-3)
+   */
+  private calculateOccasionPriority(item: WardrobeItem, occasion: string): number {
+    if (item.occasion.includes(occasion)) {
+      return 3; // Exact match
+    }
+    if (item.occasion.includes("versatile")) {
+      return 2; // Versatile items
+    }
+    if (item.occasion.includes("casual") && !["formal", "business"].includes(occasion)) {
+      return 1; // Casual for non-formal occasions
+    }
+    return 0; // No match
+  }
+
+  /**
+   * Calculate color compatibility priority score (0-3)
+   */
+  private calculateColorPriority(item: WardrobeItem, profile: StyleProfile): number {
+    let score = 0;
+
+    // Check favorite colors
+    if (profile.favorite_colors && profile.favorite_colors.length > 0) {
+      const hasExactMatch = item.color.some(itemColor =>
+        profile.favorite_colors!.some(favColor =>
+          itemColor.toLowerCase().includes(favColor.toLowerCase()) ||
+          favColor.toLowerCase().includes(itemColor.toLowerCase())
+        )
+      );
+
+      if (hasExactMatch) {
+        score += 3; // Exact color match
+      } else {
+        // Check for color harmony
+        const hasHarmony = item.color.some(itemColor =>
+          profile.favorite_colors!.some(favColor =>
+            this.areColorsHarmonious(itemColor, favColor)
+          )
+        );
+        if (hasHarmony) {
+          score += 2; // Harmonious colors
+        }
+      }
+    }
+
+    // Check color palette colors
+    if (profile.color_palette_colors && profile.color_palette_colors.length > 0) {
+      const hasPaletteMatch = item.color.some(itemColor =>
+        profile.color_palette_colors!.some(paletteColor =>
+          itemColor.toLowerCase().includes(paletteColor.toLowerCase()) ||
+          paletteColor.toLowerCase().includes(itemColor.toLowerCase())
+        )
+      );
+
+      if (hasPaletteMatch) {
+        score += 1; // Color palette match
+      }
+    }
+
+    // Neutral colors are always compatible
+    if (this.isNeutralColor(item.color)) {
+      score += 1;
+    }
+
+    return Math.min(3, score); // Cap at 3
+  }
+
+  /**
+   * Simple color harmony check
+   */
+  private areColorsHarmonious(color1: string, color2: string): boolean {
+    const complementaryPairs = [
+      ["red", "green"], ["blue", "orange"], ["yellow", "purple"],
+      ["pink", "green"], ["teal", "coral"], ["navy", "gold"]
+    ];
+
+    const analogousFamilies = [
+      ["red", "orange", "pink"], ["blue", "green", "teal"],
+      ["yellow", "orange", "gold"], ["purple", "pink", "magenta"]
+    ];
+
+    const c1 = color1.toLowerCase();
+    const c2 = color2.toLowerCase();
+
+    // Check complementary pairs
+    for (const [comp1, comp2] of complementaryPairs) {
+      if ((c1.includes(comp1) && c2.includes(comp2)) || (c1.includes(comp2) && c2.includes(comp1))) {
+        return true;
+      }
+    }
+
+    // Check analogous families
+    for (const family of analogousFamilies) {
+      if (family.some(f => c1.includes(f)) && family.some(f => c2.includes(f))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   private generateDiverseCombinations(
     itemsByCategory: { [key: string]: WardrobeItem[] },
     occasion: string,
