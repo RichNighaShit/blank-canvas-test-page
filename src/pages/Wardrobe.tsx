@@ -21,6 +21,7 @@ import Header from "@/components/Header";
 import { Search, Filter, Sparkles, Shirt, Grid3X3, List } from "lucide-react";
 import { usePerformance } from "@/hooks/usePerformance";
 import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
+import { getErrorMessage, logError } from "@/lib/errorUtils";
 
 interface ClothingItem {
   id: string;
