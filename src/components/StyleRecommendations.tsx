@@ -417,6 +417,7 @@ const StyleRecommendations: React.FC = () => {
             occasion: selectedOccasion,
             timeOfDay: "day",
             weather: weather || undefined,
+            prioritizeColors: true, // Flag to prioritize color matching
           },
           includeAccessories,
         );
