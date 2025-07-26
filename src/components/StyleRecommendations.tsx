@@ -415,6 +415,25 @@ const StyleRecommendations: React.FC = () => {
     }
   };
 
+  // Early return for safety if hooks are not properly initialized
+  if (!authHook || !profileHook || !weatherHook || !performanceHook) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <div className="flex items-center space-x-4">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+          <div>
+            <h3 className="text-lg font-semibold">
+              Initializing style assistant...
+            </h3>
+            <p className="text-muted-foreground">
+              Setting up components
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading && wardrobeItems.length === 0) {
     return (
       <div className="flex items-center justify-center p-12">
