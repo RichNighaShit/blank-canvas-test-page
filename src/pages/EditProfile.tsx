@@ -20,6 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Shirt, Palette, Target, Shuffle, Check, Loader2 } from "lucide-react";
 import { SimpleProfilePhotoUpload } from "@/components/SimpleProfilePhotoUpload";
+import { LocationSelector } from "@/components/LocationSelector";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, invalidateProfileCache } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
