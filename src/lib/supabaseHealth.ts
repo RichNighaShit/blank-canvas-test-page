@@ -23,9 +23,9 @@ export const checkSupabaseHealth = async (): Promise<HealthCheckResult> => {
       };
     }
 
-    // Check 2: Database connectivity
+    // Check 2: Database connectivity with reasonable timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // Increased to 8 seconds
     
     const { error: dbError } = await supabase
       .from('profiles')
