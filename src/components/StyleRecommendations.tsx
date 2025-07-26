@@ -327,14 +327,8 @@ const StyleRecommendations: React.FC = () => {
       setRecommendations(recs);
     } catch (error) {
       console.error("Error loading recommendations:", error);
-      let errorMessage = "Failed to generate recommendations";
-
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === "string") {
-        errorMessage = error;
-      }
-
+      const errorMessage = getErrorMessage(error);
+      logError(error, "Error generating recommendations in StyleRecommendations component");
       setError(errorMessage);
       setRecommendations([]);
     } finally {
