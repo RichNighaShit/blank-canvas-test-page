@@ -26,9 +26,9 @@ export const useOneTimeExperience = (): UseOneTimeExperienceReturn => {
   const [experiences, setExperiences] = useState<OneTimeExperience[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load user's completed experiences with retry logic
+  // Load user's completed experiences with network retry
   useEffect(() => {
-    const loadExperiences = async (retryCount = 0) => {
+    const loadExperiences = async () => {
       if (!user) {
         setExperiences([]);
         setIsLoading(false);
@@ -36,55 +36,29 @@ export const useOneTimeExperience = (): UseOneTimeExperienceReturn => {
       }
 
       try {
-        // Add timeout for network requests
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-        const { data, error } = await supabase
-          .from('user_one_time_experiences')
-          .select('*')
-          .eq('user_id', user.id)
-          .abortSignal(controller.signal);
-
-        clearTimeout(timeoutId);
-
-        if (error) {
-          // Check if this is a network error and retry
-          if ((error.message?.includes('NetworkError') || error.message?.includes('Failed to fetch')) && retryCount < 2) {
-            console.log(`Network error loading experiences, retrying... (${retryCount + 1}/2)`);
-            setTimeout(() => loadExperiences(retryCount + 1), 2000);
-            return;
+        const data = await supabaseWithRetry(
+          () => supabase
+            .from('user_one_time_experiences')
+            .select('*')
+            .eq('user_id', user.id),
+          {
+            retries: 2,
+            timeout: 10000,
+            onRetry: (attempt, error) => {
+              const errorMsg = getNetworkErrorMessage(error);
+              console.log(`Loading experiences failed (attempt ${attempt}): ${errorMsg}`);
+            }
           }
+        );
 
-          logError(error, 'Error loading one-time experiences');
-          // Set empty experiences for graceful fallback
-          setExperiences([]);
-        } else {
-          setExperiences(data || []);
-        }
+        setExperiences(data || []);
       } catch (error) {
-        // Handle AbortError and network errors
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          if (retryCount < 2) {
-            console.log(`Request timeout loading experiences, retrying... (${retryCount + 1}/2)`);
-            setTimeout(() => loadExperiences(retryCount + 1), 1000);
-            return;
-          } else {
-            console.error('Max retries reached for loading experiences');
-          }
-        } else if (error instanceof TypeError && error.message?.includes('NetworkError') && retryCount < 2) {
-          console.log(`Network error loading experiences, retrying... (${retryCount + 1}/2)`);
-          setTimeout(() => loadExperiences(retryCount + 1), 2000);
-          return;
-        }
-
-        logError(error, 'Unexpected error loading experiences');
+        const errorMsg = getNetworkErrorMessage(error);
+        console.error('Error loading one-time experiences:', errorMsg);
         // Set empty experiences for graceful fallback
         setExperiences([]);
       } finally {
-        if (retryCount === 0) { // Only set loading to false on the initial call
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     };
 
