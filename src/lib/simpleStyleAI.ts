@@ -53,7 +53,7 @@ export class SimpleStyleAI {
   generateRecommendations(
     wardrobeItems: WardrobeItem[],
     profile: StyleProfile,
-    context: { occasion: string; timeOfDay?: string; weather?: WeatherData },
+    context: { occasion: string; timeOfDay?: string; weather?: WeatherData; prioritizeColors?: boolean },
     includeAccessories: boolean = true,
   ): OutfitRecommendation[] {
     return this.measurePerformance("generateRecommendations", () => {
