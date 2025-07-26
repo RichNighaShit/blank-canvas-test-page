@@ -3934,6 +3934,129 @@ export class SimpleStyleAI {
     }
   }
 
+  /**
+   * Calculate enhanced seasonal appropriateness score
+   */
+  private calculateEnhancedSeasonalScore(outfit: WardrobeItem[]): number {
+    try {
+      const currentSeason = this.getCurrentSeason();
+      const seasonalColors = this.getSeasonalColors(currentSeason);
+      const allColors = outfit.flatMap((item) => item.color);
+
+      if (allColors.length === 0) return 0.5;
+
+      let score = 0;
+
+      // Color seasonal match
+      const colorMatches = allColors.filter(color =>
+        seasonalColors.some(seasonalColor =>
+          color.toLowerCase().includes(seasonalColor.toLowerCase()) ||
+          this.areColorsHarmonious(color, seasonalColor)
+        )
+      ).length;
+
+      const colorScore = colorMatches / allColors.length;
+      score += colorScore * 0.6; // 60% weight for colors
+
+      // Fabric seasonal appropriateness
+      const seasonalFabrics = this.getSeasonalFabrics(currentSeason);
+      const fabricScore = outfit.filter(item =>
+        item.tags && seasonalFabrics.some(fabric =>
+          item.tags!.some(tag => tag.toLowerCase().includes(fabric))
+        )
+      ).length / outfit.length;
+      score += fabricScore * 0.4; // 40% weight for fabrics
+
+      return Math.min(1, score);
+    } catch (error) {
+      console.warn("Error calculating enhanced seasonal score:", error);
+      return 0.5;
+    }
+  }
+
+  /**
+   * Calculate outfit versatility score
+   */
+  private calculateVersatilityScore(outfit: WardrobeItem[]): number {
+    let score = 0;
+    const totalItems = outfit.length;
+
+    // Multi-occasion items
+    const versatileItems = outfit.filter(item =>
+      item.occasion.includes("versatile") || item.occasion.length > 2
+    ).length;
+    score += (versatileItems / totalItems) * 0.4;
+
+    // Neutral/basic items that mix well
+    const basicItems = outfit.filter(item =>
+      this.isNeutralColor(item.color) ||
+      item.tags?.includes("basic") ||
+      item.style === "minimalist"
+    ).length;
+    score += (basicItems / totalItems) * 0.3;
+
+    // Mix-and-match potential
+    const mixableStyles = ["casual", "smart-casual", "minimalist", "contemporary"];
+    const mixableItems = outfit.filter(item =>
+      mixableStyles.includes(item.style)
+    ).length;
+    score += (mixableItems / totalItems) * 0.3;
+
+    return Math.min(1, score);
+  }
+
+  /**
+   * Calculate trend relevance score
+   */
+  private calculateTrendinessScore(outfit: WardrobeItem[]): number {
+    let score = 0;
+    const totalItems = outfit.length;
+
+    // Trend colors
+    const trendColors = this.getTrendColors();
+    const trendColorItems = outfit.filter(item =>
+      item.color.some(color =>
+        trendColors.some(trendColor =>
+          color.toLowerCase().includes(trendColor.toLowerCase())
+        )
+      )
+    ).length;
+    score += (trendColorItems / totalItems) * 0.4;
+
+    // Contemporary styles
+    const contemporaryStyles = ["contemporary", "modern", "minimalist", "smart-casual"];
+    const contemporaryItems = outfit.filter(item =>
+      contemporaryStyles.includes(item.style) ||
+      item.tags?.includes("contemporary") ||
+      item.tags?.includes("modern")
+    ).length;
+    score += (contemporaryItems / totalItems) * 0.4;
+
+    // Current silhouettes and cuts
+    const trendTags = ["oversized", "cropped", "high-waisted", "wide-leg", "structured"];
+    const trendItems = outfit.filter(item =>
+      item.tags && trendTags.some(tag =>
+        item.tags!.some(itemTag => itemTag.toLowerCase().includes(tag))
+      )
+    ).length;
+    score += (trendItems / totalItems) * 0.2;
+
+    return Math.min(1, score);
+  }
+
+  /**
+   * Get seasonal fabric preferences
+   */
+  private getSeasonalFabrics(season: string): string[] {
+    const seasonalFabrics = {
+      spring: ["cotton", "linen", "silk", "light wool", "denim"],
+      summer: ["linen", "cotton", "silk", "chiffon", "jersey"],
+      autumn: ["wool", "cashmere", "denim", "leather", "corduroy"],
+      winter: ["wool", "cashmere", "velvet", "tweed", "fleece"]
+    };
+    return seasonalFabrics[season as keyof typeof seasonalFabrics] || [];
+  }
+
   private calculateSeasonalColorScore(outfit: WardrobeItem[]): number {
     try {
       const currentSeason = this.getCurrentSeason();
