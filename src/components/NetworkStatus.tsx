@@ -23,7 +23,8 @@ export const NetworkStatus: React.FC = () => {
       clearTimeout(timeoutId);
       return !error;
     } catch (error) {
-      console.warn('Supabase connection check failed:', error);
+      const errorMessage = getErrorMessage(error);
+      console.warn('Supabase connection check failed:', errorMessage);
       return false;
     }
   };
