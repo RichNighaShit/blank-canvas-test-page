@@ -37,6 +37,14 @@ import {
   WardrobeItem,
   StyleProfile,
 } from "@/lib/simpleStyleAI";
+
+// Add safety check for the AI module
+const safeStyleAI = simpleStyleAI || {
+  generateRecommendations: () => {
+    console.warn("StyleAI not available, returning empty recommendations");
+    return [];
+  }
+};
 import AdvancedVirtualTryOn from "./AdvancedVirtualTryOn";
 import { useWeather } from "@/hooks/useWeather";
 import { usePerformance } from "@/hooks/usePerformance";
