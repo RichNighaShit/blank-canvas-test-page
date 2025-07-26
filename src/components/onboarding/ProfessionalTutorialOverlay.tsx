@@ -48,6 +48,8 @@ export const ProfessionalTutorialOverlay: React.FC = () => {
     completeOnboarding
   } = useOnboarding();
 
+  const { hasSeenExperience, markExperienceComplete } = useOneTimeExperience();
+
   const location = useLocation();
   const navigate = useNavigate();
   const [spotlightPosition, setSpotlightPosition] = useState<SpotlightPosition | null>(null);
