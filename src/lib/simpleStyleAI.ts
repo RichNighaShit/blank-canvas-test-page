@@ -393,6 +393,11 @@ export class SimpleStyleAI {
     prioritizeColors: boolean = false,
   ): WardrobeItem[][] {
     try {
+      // Sort items within each category by occasion and color priority
+      if (prioritizeColors && profile) {
+        itemsByCategory = this.prioritizeItemsByOccasionAndColor(itemsByCategory, occasion, profile);
+      }
+
       // First try advanced color theory approach
       const advancedCombinations = this.generateWithAdvancedColorTheory(
         itemsByCategory,
