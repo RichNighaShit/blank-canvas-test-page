@@ -45,8 +45,13 @@ import { OptimizedImage } from "./OptimizedImage";
 import { getErrorMessage, logError } from "@/lib/errorUtils";
 
 const StyleRecommendations: React.FC = () => {
-  const { user } = useAuth();
-  const { profile } = useProfile();
+  // Add defensive checks for hooks
+  const authHook = useAuth();
+  const profileHook = useProfile();
+
+  // Safely destructure with fallbacks
+  const user = authHook?.user || null;
+  const profile = profileHook?.profile || null;
   const {
     weather,
     loading: weatherLoading,
