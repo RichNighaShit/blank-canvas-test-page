@@ -53,6 +53,7 @@ import {
 import { usePerformance } from "@/hooks/usePerformance";
 import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
+import { getErrorMessage, logError } from "@/lib/errorUtils";
 
 interface WardrobeStats {
   totalItems: number;
@@ -498,7 +499,7 @@ const Dashboard = () => {
                       <span className="text-sm">Temperature</span>
                     </div>
                     <span className="font-semibold">
-                      {Math.round(weather.temperature)}°C
+                      {Math.round(weather.temperature)}��C
                     </span>
                   </div>
 
