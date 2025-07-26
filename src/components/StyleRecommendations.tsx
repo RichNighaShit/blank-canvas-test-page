@@ -313,7 +313,7 @@ const StyleRecommendations: React.FC = () => {
 
       // Use cached execution for recommendations with fallback
       const generateRecommendations = async () =>
-        simpleStyleAI.generateRecommendations(
+        safeStyleAI.generateRecommendations(
           filteredItems,
           styleProfile,
           {
