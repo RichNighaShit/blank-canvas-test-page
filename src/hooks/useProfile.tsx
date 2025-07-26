@@ -154,9 +154,9 @@ export const useProfile = () => {
 
       setIsOffline(false);
 
-      // Add timeout and better error handling
+      // Add timeout and better error handling - generous timeout to prevent abort errors
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
       // Start with a minimal query to test basic connectivity
       console.log('Attempting minimal profile query first...');
