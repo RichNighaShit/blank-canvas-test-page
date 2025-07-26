@@ -79,9 +79,11 @@ function App() {
           {/* Protected routes requiring complete profile */}
           <Route path="/dashboard" element={
             <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
-                <Dashboard />
-              </Suspense>
+              <LazyLoadErrorBoundary componentName="Dashboard">
+                <Suspense fallback={<PageLoader />}>
+                  <Dashboard />
+                </Suspense>
+              </LazyLoadErrorBoundary>
             </ProtectedRoute>
           } />
           <Route path="/wardrobe" element={
