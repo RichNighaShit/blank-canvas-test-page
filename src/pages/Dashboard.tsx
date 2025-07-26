@@ -481,71 +481,14 @@ const Dashboard = () => {
           {/* Sidebar */}
           <div className="space-y-8">
             {/* Weather Widget */}
-            <Card className="card-premium">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <WeatherIcon className="h-5 w-5 text-blue-600" />
-                  <span>Weather</span>
-                </CardTitle>
-                <CardDescription>
-                  {weather ? weather.location : getWeatherStatus()}
-                </CardDescription>
-              </CardHeader>
-              {weather ? (
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Thermometer className="h-4 w-4 text-red-500" />
-                      <span className="text-sm">Temperature</span>
-                    </div>
-                    <span className="font-semibold">
-                      {Math.round(weather.temperature)}°C
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Droplets className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm">Humidity</span>
-                    </div>
-                    <span className="font-semibold">{weather.humidity}%</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Wind className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm">Condition</span>
-                    </div>
-                    <span className="font-semibold capitalize">
-                      {weather.condition}
-                    </span>
-                  </div>
-
-                  {styleAdvice && (
-                    <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <styleAdvice.icon className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm font-medium">
-                          {styleAdvice.advice}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              ) : (
-                <CardContent className="p-4">
-                  <div className="text-center py-4">
-                    <CloudOff className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      Weather information not available
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Recommendations will be generated without weather data
-                    </p>
-                  </div>
-                </CardContent>
-              )}
-            </Card>
+            <WeatherWidget
+              weather={weather}
+              loading={weatherLoading}
+              error={weatherError}
+              onRefresh={() => fetchWeather()}
+              showAdvice={true}
+              advice={weather ? getWeatherAdvice(weather) : undefined}
+            />
 
             {/* Style Insights */}
             <Card className="card-premium">
