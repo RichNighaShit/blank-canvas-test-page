@@ -41,13 +41,13 @@ export const useOneTimeExperience = (): UseOneTimeExperienceReturn => {
           .eq('user_id', user.id);
 
         if (error) {
-          console.error('Error loading one-time experiences:', error);
+          logError(error, 'Error loading one-time experiences');
           setExperiences([]);
         } else {
           setExperiences(data || []);
         }
       } catch (error) {
-        console.error('Unexpected error loading experiences:', error);
+        logError(error, 'Unexpected error loading experiences');
         setExperiences([]);
       } finally {
         setIsLoading(false);
