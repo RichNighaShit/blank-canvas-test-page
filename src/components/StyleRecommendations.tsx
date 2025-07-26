@@ -538,7 +538,7 @@ const StyleRecommendations: React.FC = () => {
               </div>
             </div>
             {weather ? (
-              <Badge variant="secondary">{getWeatherAdvice(weather)}</Badge>
+              <Badge variant="secondary">{getWeatherAdvice?.(weather) || "Weather info"}</Badge>
             ) : (
               <Badge variant="outline" className="text-xs">
                 Weather unavailable
