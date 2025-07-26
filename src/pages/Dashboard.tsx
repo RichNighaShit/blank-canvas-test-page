@@ -248,8 +248,7 @@ const Dashboard = () => {
     return null;
   }
 
-  const WeatherIcon = weather ? getWeatherIcon(weather.condition) : Thermometer;
-  const styleAdvice = getStyleAdvice();
+
 
   return (
     <div className="min-h-screen bg-gradient-hero">
