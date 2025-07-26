@@ -6,7 +6,6 @@ import Header from "@/components/Header";
 import { SmartShoppingSuggestions } from "@/components/SmartShoppingSuggestions";
 import { StyleRecommendations as StyleRecs } from "@/components/StyleRecommendations";
 import StyleRecommendationsErrorBoundary from "@/components/StyleRecommendationsWrapper";
-import StyleRecommendationsDiagnostic from "@/components/StyleRecommendationsDiagnostic";
 
 import { OutfitPlanner } from "@/components/OutfitPlanner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
