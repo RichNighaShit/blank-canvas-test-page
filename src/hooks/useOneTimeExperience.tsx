@@ -73,41 +73,48 @@ export const useOneTimeExperience = (): UseOneTimeExperienceReturn => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('user_one_time_experiences')
-        .upsert({
-          user_id: user.id,
-          experience_id: experienceId,
-          completed_at: new Date().toISOString(),
-          metadata: metadata || {}
-        }, {
-          onConflict: 'user_id,experience_id'
-        });
-
-      if (error) {
-        logError(error, 'Error marking experience complete');
-      } else {
-        // Update local state
-        setExperiences(prev => {
-          const existing = prev.find(exp => exp.experience_id === experienceId);
-          if (existing) {
-            return prev.map(exp => 
-              exp.experience_id === experienceId 
-                ? { ...exp, completed_at: new Date().toISOString(), metadata: metadata || {} }
-                : exp
-            );
-          } else {
-            return [...prev, {
-              user_id: user.id,
-              experience_id: experienceId,
-              completed_at: new Date().toISOString(),
-              metadata: metadata || {}
-            }];
+      await supabaseWithRetry(
+        () => supabase
+          .from('user_one_time_experiences')
+          .upsert({
+            user_id: user.id,
+            experience_id: experienceId,
+            completed_at: new Date().toISOString(),
+            metadata: metadata || {}
+          }, {
+            onConflict: 'user_id,experience_id'
+          }),
+        {
+          retries: 2,
+          timeout: 8000,
+          onRetry: (attempt, error) => {
+            const errorMsg = getNetworkErrorMessage(error);
+            console.log(`Marking experience complete failed (attempt ${attempt}): ${errorMsg}`);
           }
-        });
-      }
+        }
+      );
+
+      // Update local state on success
+      setExperiences(prev => {
+        const existing = prev.find(exp => exp.experience_id === experienceId);
+        if (existing) {
+          return prev.map(exp =>
+            exp.experience_id === experienceId
+              ? { ...exp, completed_at: new Date().toISOString(), metadata: metadata || {} }
+              : exp
+          );
+        } else {
+          return [...prev, {
+            user_id: user.id,
+            experience_id: experienceId,
+            completed_at: new Date().toISOString(),
+            metadata: metadata || {}
+          }];
+        }
+      });
     } catch (error) {
-      logError(error, 'Unexpected error marking experience complete');
+      const errorMsg = getNetworkErrorMessage(error);
+      console.error('Error marking experience complete:', errorMsg);
     }
   };
 
