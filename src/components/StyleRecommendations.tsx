@@ -244,16 +244,29 @@ const StyleRecommendations: React.FC = () => {
         throw new Error("No wardrobe items available for recommendations");
       }
 
-      // Filter items based on user preferences
-      let filteredItems = wardrobeItems.filter(
-        (item) =>
-          item.occasion.includes(selectedOccasion) ||
-          item.occasion.includes("casual"), // Always include casual items as they're versatile
-      );
+      // STEP 1: Filter by OCCASION first (primary filter)
+      console.log("Step 1: Filtering by occasion:", selectedOccasion);
+      let occasionFilteredItems = wardrobeItems.filter((item) => {
+        // Exact occasion match gets priority
+        if (item.occasion.includes(selectedOccasion)) {
+          return true;
+        }
+        // Versatile items work for most occasions
+        if (item.occasion.includes("versatile")) {
+          return true;
+        }
+        // Casual items can work for some other occasions
+        if (selectedOccasion !== "formal" && selectedOccasion !== "business" && item.occasion.includes("casual")) {
+          return true;
+        }
+        return false;
+      });
 
-      // Handle accessories based on user preference
+      console.log(`Occasion filter: ${occasionFilteredItems.length} items from ${wardrobeItems.length} total`);
+
+      // STEP 2: Handle accessories based on user preference
       if (!includeAccessories) {
-        filteredItems = filteredItems.filter(
+        occasionFilteredItems = occasionFilteredItems.filter(
           (item) =>
             ![
               "accessories",
@@ -265,6 +278,58 @@ const StyleRecommendations: React.FC = () => {
             ].includes(item.category.toLowerCase()),
         );
       }
+
+      // STEP 3: If we have user's color preferences, prioritize items with compatible colors
+      let colorPrioritizedItems = occasionFilteredItems;
+      if (profile.favorite_colors && profile.favorite_colors.length > 0) {
+        console.log("Step 2: Prioritizing color compatibility with favorite colors:", profile.favorite_colors);
+
+        // Separate items by color compatibility
+        const colorMatchingItems = occasionFilteredItems.filter((item) =>
+          item.color.some(itemColor =>
+            profile.favorite_colors!.some(favColor =>
+              itemColor.toLowerCase().includes(favColor.toLowerCase()) ||
+              favColor.toLowerCase().includes(itemColor.toLowerCase())
+            )
+          )
+        );
+
+        const colorHarmoniousItems = occasionFilteredItems.filter((item) =>
+          !colorMatchingItems.includes(item) &&
+          item.color.some(itemColor =>
+            profile.favorite_colors!.some(favColor =>
+              safeStyleAI.areColorsHarmonious?.(itemColor, favColor) ||
+              isColorHarmonious(itemColor, favColor)
+            )
+          )
+        );
+
+        const neutralItems = occasionFilteredItems.filter((item) =>
+          !colorMatchingItems.includes(item) &&
+          !colorHarmoniousItems.includes(item) &&
+          item.color.some(color =>
+            ["black", "white", "grey", "gray", "beige", "navy", "brown", "cream"].includes(color.toLowerCase())
+          )
+        );
+
+        const remainingItems = occasionFilteredItems.filter((item) =>
+          !colorMatchingItems.includes(item) &&
+          !colorHarmoniousItems.includes(item) &&
+          !neutralItems.includes(item)
+        );
+
+        // Prioritize in order: exact color matches, harmonious colors, neutrals, then others
+        colorPrioritizedItems = [
+          ...colorMatchingItems,
+          ...colorHarmoniousItems,
+          ...neutralItems,
+          ...remainingItems
+        ];
+
+        console.log(`Color prioritization: ${colorMatchingItems.length} exact matches, ${colorHarmoniousItems.length} harmonious, ${neutralItems.length} neutrals, ${remainingItems.length} others`);
+      }
+
+      let filteredItems = colorPrioritizedItems;
 
       console.log("Filtered items for recommendations:", filteredItems);
 
