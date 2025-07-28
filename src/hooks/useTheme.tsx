@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from "react";
 
-type Theme = "default" | "muse" | "dark";
+type Theme = "default" | "muse" | "dark" | "forest";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -26,7 +26,7 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
-const VALID_THEMES: Theme[] = ["default", "muse", "dark"];
+const VALID_THEMES: Theme[] = ["default", "muse", "dark", "forest"];
 
 function isValidTheme(theme: string): theme is Theme {
   return VALID_THEMES.includes(theme as Theme);

@@ -211,7 +211,7 @@ const EditProfile = () => {
     <div className="min-h-screen bg-gradient-hero py-8">
       <div className="container mx-auto px-4 max-w-2xl">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">Edit Your Profile</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Edit Your Profile</h1>
           <p className="text-muted-foreground">
             Update your style preferences and personal info
           </p>
@@ -279,7 +279,7 @@ const EditProfile = () => {
               </div>
               <div>
                 <Label className="text-base font-medium">Fashion Style</Label>
-                <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                   {styleOptions.map((style) => (
                     <Button
                       key={style.id}
@@ -300,7 +300,7 @@ const EditProfile = () => {
               </div>
               <div>
                 <Label className="text-base font-medium">Favorite Colors</Label>
-                <div className="grid grid-cols-6 gap-3 mt-3">
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 mt-3">
                   {colorOptions.map((color) => (
                     <Button
                       key={color.id}
@@ -324,7 +324,7 @@ const EditProfile = () => {
               </div>
               <div>
                 <Label className="text-base font-medium">Goals</Label>
-                <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                   {goalOptions.map((goal) => (
                     <Button
                       key={goal.id}

@@ -206,11 +206,11 @@ export const WardrobeItemCard = ({
     <Dialog open={isEditing} onOpenChange={setIsEditing}>
       <DialogTrigger asChild>
         <Card className="group cursor-pointer hover:shadow-elegant transition-all duration-300 hover:scale-105 shadow-card">
-          <div className="aspect-square relative overflow-hidden rounded-t-lg">
+          <div className="aspect-square sm:aspect-square relative overflow-hidden rounded-t-lg">
             <OptimizedImage
               src={item.photo_url}
               alt={item.name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              className="w-full h-full object-cover sm:object-cover object-contain group-hover:scale-110 transition-transform duration-300"
               lazy={true}
               width={300}
               height={300}

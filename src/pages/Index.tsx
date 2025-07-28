@@ -156,7 +156,7 @@ const Index = () => {
             </div>
 
             <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-heading mb-8 bg-gradient-to-r from-purple-900 via-purple-700 to-pink-700 bg-clip-text text-transparent leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading mb-8 bg-gradient-to-r from-purple-900 via-purple-700 to-pink-700 bg-clip-text text-transparent leading-tight">
                 Your Perfect Style
                 <br />
                 <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Starts Here</span>
@@ -164,7 +164,7 @@ const Index = () => {
             </div>
 
             <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light px-4">
+              <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light px-4">
                 Discover colors that make you glow, organize your wardrobe effortlessly, and get
                 <span className="font-semibold text-purple-700"> personalized outfit recommendations</span> that match your style,
                 weather, and occasion. Transform how you dress with smart technology.
@@ -198,17 +198,11 @@ const Index = () => {
           <div className="absolute top-40 right-20 w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full opacity-10 animate-float" style={{ animationDelay: '1s' }}></div>
           <div className="absolute bottom-20 left-20 w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full opacity-15 animate-float" style={{ animationDelay: '2s' }}></div>
 
-          {/* Scroll Indicator */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <div className="flex flex-col items-center text-white/80">
-              <span className="text-sm mb-2">Scroll to explore</span>
-              <ChevronDown className="h-6 w-6" />
-            </div>
-          </div>
+
         </section>
 
         {/* Stats Section */}
-        <section className="py-12 md:py-20 bg-white/50 backdrop-blur-sm border-y border-purple-100">
+        <section className="py-16 bg-white/50 backdrop-blur-sm border-y border-purple-100">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
               {stats.map((stat, index) => {
@@ -228,7 +222,7 @@ const Index = () => {
         </section>
 
         {/* Features Grid */}
-        <section className="py-32 px-4">
+        <section className="py-16 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-20 animate-fade-in-up">
               <Badge variant="secondary" className="mb-6 px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-0">

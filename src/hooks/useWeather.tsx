@@ -9,9 +9,16 @@ export interface WeatherData {
   windSpeed: number;
   description: string;
   location: string;
-  source: "gps" | "profile" | "default" | "mock";
+  source: "profile" | "gps" | "manual" | "mock";
   timestamp: number;
   icon: string;
+  isManualEntry?: boolean;
+}
+
+export interface ManualWeatherEntry {
+  temperature: number;
+  condition: string;
+  location: string;
 }
 
 interface CachedWeatherData extends WeatherData {
@@ -33,13 +40,15 @@ const WEATHER_CONDITIONS = {
   fog: { icon: '🌫️', description: 'Foggy' }
 };
 
-export const useWeather = (defaultLocation?: string) => {
+export const useWeather = (profileLocation?: string) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locationPermission, setLocationPermission] = useState<
     "granted" | "denied" | "prompt" | "unavailable"
   >("prompt");
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [manualWeather, setManualWeather] = useState<ManualWeatherEntry | null>(null);
 
   // Load cached weather data
   const loadCachedWeather = useCallback((): WeatherData | null => {
@@ -118,7 +127,7 @@ export const useWeather = (defaultLocation?: string) => {
     }
 
     const weatherInfo = WEATHER_CONDITIONS[condition as keyof typeof WEATHER_CONDITIONS];
-    const location = locationName || defaultLocation || "Your area";
+    const location = locationName || profileLocation || "Your area";
 
     return {
       temperature,
@@ -131,7 +140,7 @@ export const useWeather = (defaultLocation?: string) => {
       timestamp: Date.now(),
       icon: weatherInfo.icon
     };
-  }, [defaultLocation]);
+  }, [profileLocation]);
 
   // Get user's GPS location
   const getCurrentPosition = useCallback((): Promise<GeolocationPosition> => {
@@ -293,9 +302,27 @@ export const useWeather = (defaultLocation?: string) => {
       let weatherData: WeatherData;
 
       try {
-        // Try GPS first (only if permission not explicitly denied)
-        if (locationPermission !== "denied") {
-          console.log("Attempting GPS location...");
+        // Try profile location first if available
+        if (userLocation) {
+          console.log("Attempting profile location weather for:", userLocation);
+          const geoData = await withNetworkRetry(
+            () => geocodeLocation(userLocation),
+            { retries: 1, timeout: 8000 }
+          );
+
+          weatherData = await withNetworkRetry(
+            () => fetchWeatherByCoordinates(
+              geoData.latitude,
+              geoData.longitude,
+              `${geoData.name}, ${geoData.country}`
+            ),
+            { retries: 1, timeout: 10000 }
+          );
+          weatherData.source = "profile";
+          console.log("Profile location weather successful");
+        } else if (locationPermission !== "denied") {
+          // Fallback to GPS if no profile location
+          console.log("No profile location, attempting GPS...");
           const position = await getCurrentPosition();
           weatherData = await withNetworkRetry(
             () => fetchWeatherByCoordinates(
@@ -304,19 +331,26 @@ export const useWeather = (defaultLocation?: string) => {
             ),
             { retries: 1, timeout: 10000 }
           );
+          weatherData.source = "gps";
           console.log("GPS weather successful");
         } else {
-          throw new Error("GPS permission denied");
+          throw new Error("No location available - GPS denied and no profile location");
         }
-      } catch (gpsError) {
-        console.log("GPS failed, trying location name:", getErrorMessage(gpsError));
+      } catch (locationError) {
+        console.log("Primary location methods failed:", getErrorMessage(locationError));
 
-        // Fallback to location name
-        const locationToUse = userLocation || defaultLocation || "London";
-        console.log("Using location:", locationToUse);
+        // Last resort: offer manual entry or use mock data
+        if (!userLocation && locationPermission === "denied") {
+          setShowManualEntry(true);
+          throw new Error("All automatic weather methods failed. Manual entry required.");
+        }
+
+        // Use a default location as final fallback
+        const defaultLoc = "London";
+        console.log("Using default location:", defaultLoc);
 
         const geoData = await withNetworkRetry(
-          () => geocodeLocation(locationToUse),
+          () => geocodeLocation(defaultLoc),
           { retries: 1, timeout: 8000 }
         );
 
@@ -328,10 +362,8 @@ export const useWeather = (defaultLocation?: string) => {
           ),
           { retries: 1, timeout: 10000 }
         );
-
-        // Update source to reflect the method used
-        weatherData.source = userLocation ? "profile" : "default";
-        console.log("Location-based weather successful");
+        weatherData.source = "mock";
+        console.log("Default location weather successful");
       }
 
       // Cache and set the weather data
@@ -343,10 +375,17 @@ export const useWeather = (defaultLocation?: string) => {
       const errorMessage = getErrorMessage(error);
       console.warn("Weather fetch failed:", errorMessage);
 
+      // Check if we should show manual entry
+      if (errorMessage.includes("Manual entry required")) {
+        setError("Cannot access weather automatically. Please enter weather manually or grant location permissions.");
+        setLoading(false);
+        return;
+      }
+
       // Always provide mock weather as fallback
       const mockWeather = generateMockWeather(userLocation);
       setWeather(mockWeather);
-      
+
       // Set appropriate error message
       if (errorMessage.includes("network") || errorMessage.includes("fetch")) {
         setError("Weather service unavailable - using simulated data");
@@ -369,7 +408,7 @@ export const useWeather = (defaultLocation?: string) => {
     fetchWeatherByCoordinates,
     geocodeLocation,
     cacheWeatherData,
-    defaultLocation
+    profileLocation
   ]);
 
   // Get weather-based styling advice
@@ -411,12 +450,12 @@ export const useWeather = (defaultLocation?: string) => {
     }
 
     switch (weather.source) {
-      case "gps":
-        return "Live weather from your location";
       case "profile":
         return "Live weather from your profile location";
-      case "default":
-        return "Live weather from default location";
+      case "gps":
+        return "Live weather from your current location";
+      case "manual":
+        return "Manual weather entry";
       case "mock":
         return "Simulated weather conditions";
       default:
@@ -424,10 +463,42 @@ export const useWeather = (defaultLocation?: string) => {
     }
   }, [loading, weather, error]);
 
+  // Set manual weather entry
+  const setManualWeatherEntry = useCallback((entry: ManualWeatherEntry) => {
+    const weatherInfo = WEATHER_CONDITIONS[entry.condition as keyof typeof WEATHER_CONDITIONS];
+    const manualWeatherData: WeatherData = {
+      temperature: entry.temperature,
+      condition: entry.condition,
+      humidity: 60, // Default value for manual entry
+      windSpeed: 5, // Default value for manual entry
+      description: `${weatherInfo.description} in ${entry.location}`,
+      location: entry.location,
+      source: "manual",
+      timestamp: Date.now(),
+      icon: weatherInfo.icon,
+      isManualEntry: true
+    };
+
+    setWeather(manualWeatherData);
+    setManualWeather(entry);
+    setShowManualEntry(false);
+    setError(null);
+
+    // Cache manual entry
+    cacheWeatherData(manualWeatherData);
+  }, [cacheWeatherData]);
+
+  // Clear manual weather and retry automatic
+  const retryAutomaticWeather = useCallback(() => {
+    setManualWeather(null);
+    setShowManualEntry(false);
+    fetchWeather(profileLocation);
+  }, [profileLocation, fetchWeather]);
+
   // Auto-fetch weather on mount and location changes
   useEffect(() => {
-    fetchWeather(defaultLocation);
-  }, [defaultLocation]); // Only depend on defaultLocation, not fetchWeather
+    fetchWeather(profileLocation);
+  }, [profileLocation]); // Only depend on profileLocation, not fetchWeather
 
   return {
     weather,
@@ -437,5 +508,10 @@ export const useWeather = (defaultLocation?: string) => {
     getWeatherAdvice,
     getWeatherStatus,
     locationPermission,
+    showManualEntry,
+    setShowManualEntry,
+    setManualWeatherEntry,
+    retryAutomaticWeather,
+    manualWeather
   };
 };

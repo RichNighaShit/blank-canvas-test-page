@@ -176,6 +176,16 @@ const Header = React.memo(() => {
                         </button>
                         <button
                           onClick={() => {
+                            navigate("/profile/palette");
+                            setMobileMenuOpen(false);
+                          }}
+                          className="flex items-center gap-3 text-left py-3 px-4 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted w-full transition-colors"
+                        >
+                          <Palette className="h-5 w-5" />
+                          Your Color Palette
+                        </button>
+                        <button
+                          onClick={() => {
                             handleSignOut();
                             setMobileMenuOpen(false);
                           }}

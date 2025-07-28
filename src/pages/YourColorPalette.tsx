@@ -309,7 +309,7 @@ const YourColorPalette = () => {
               </CardHeader>
               <CardContent>
                                                                 {/* Facial Feature Color Display */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+                <div className="grid grid-cols-1 gap-6 mb-6">
                   {colors.slice(0, 3).map((color, index) => {
                     // Validate color is a string and looks like a hex color
                     if (!color || typeof color !== 'string' || !color.match(/^#[0-9A-Fa-f]{6}$/)) {
@@ -618,11 +618,11 @@ const YourColorPalette = () => {
                             <h3 className="font-semibold text-foreground">{category.category}</h3>
                           </div>
                           <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{category.description}</p>
-                          <div className="grid grid-cols-6 gap-2">
+                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                             {category.colors.map((color, colorIndex) => (
                               <div key={colorIndex} className="group relative">
                                 <div
-                                  className="w-full h-12 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200 hover:shadow-lg"
+                                  className="w-full h-14 sm:h-12 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200 hover:shadow-lg active:scale-95"
                                   style={{ backgroundColor: color }}
                                   title={`Click to copy ${color}`}
                                   onClick={() => handleCopyColor(color)}
@@ -713,11 +713,11 @@ const YourColorPalette = () => {
                           Foundation Neutrals
                         </h4>
                         <p className="text-sm text-gray-600 mb-3">Your wardrobe building blocks - use for 60% of your outfits</p>
-                        <div className="grid grid-cols-8 gap-2">
+                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
                           {colorAnalysis.clothingRecommendations.neutrals.map((color, index) => (
                             <div key={index} className="group relative">
                               <div
-                                className="w-full h-10 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200"
+                                className="w-full h-12 sm:h-10 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200 active:scale-95"
                                 style={{ backgroundColor: color }}
                                 title={`Copy ${color}`}
                                 onClick={() => handleCopyColor(color)}
@@ -736,11 +736,11 @@ const YourColorPalette = () => {
                           Statement Accents
                         </h4>
                         <p className="text-sm text-gray-600 mb-3">Bold colors that make you shine - use for 30% of your outfits</p>
-                        <div className="grid grid-cols-8 gap-2">
+                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
                           {colorAnalysis.clothingRecommendations.accents.map((color, index) => (
                             <div key={index} className="group relative">
                               <div
-                                className="w-full h-10 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200"
+                                className="w-full h-12 sm:h-10 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200 active:scale-95"
                                 style={{ backgroundColor: color }}
                                 title={`Copy ${color}`}
                                 onClick={() => handleCopyColor(color)}

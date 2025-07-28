@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/hooks/useTheme";
-import { Palette, Sun, Moon } from "lucide-react";
+import { Palette, Sun, Moon, Trees } from "lucide-react";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -12,6 +12,8 @@ export function ThemeToggle() {
         return <Palette className="h-4 w-4" />;
       case "dark":
         return <Moon className="h-4 w-4" />;
+      case "forest":
+        return <Trees className="h-4 w-4" />;
       default:
         return <Sun className="h-4 w-4" />;
     }
@@ -37,6 +39,10 @@ export function ThemeToggle() {
         <DropdownMenuItem onClick={() => setTheme("dark")}>
           <Moon className="mr-2 h-4 w-4" />
           Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("forest")}>
+          <Trees className="mr-2 h-4 w-4" />
+          Forest
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
