@@ -156,7 +156,7 @@ const Index = () => {
             </div>
 
             <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-heading mb-8 bg-gradient-to-r from-purple-900 via-purple-700 to-pink-700 bg-clip-text text-transparent leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading mb-8 bg-gradient-to-r from-purple-900 via-purple-700 to-pink-700 bg-clip-text text-transparent leading-tight">
                 Your Perfect Style
                 <br />
                 <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Starts Here</span>
