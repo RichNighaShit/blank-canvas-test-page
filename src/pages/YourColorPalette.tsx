@@ -717,7 +717,7 @@ const YourColorPalette = () => {
                           {colorAnalysis.clothingRecommendations.neutrals.map((color, index) => (
                             <div key={index} className="group relative">
                               <div
-                                className="w-full h-10 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200"
+                                className="w-full h-12 sm:h-10 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-all duration-200 active:scale-95"
                                 style={{ backgroundColor: color }}
                                 title={`Copy ${color}`}
                                 onClick={() => handleCopyColor(color)}
