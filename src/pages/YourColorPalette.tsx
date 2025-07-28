@@ -736,7 +736,7 @@ const YourColorPalette = () => {
                           Statement Accents
                         </h4>
                         <p className="text-sm text-gray-600 mb-3">Bold colors that make you shine - use for 30% of your outfits</p>
-                        <div className="grid grid-cols-8 gap-2">
+                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
                           {colorAnalysis.clothingRecommendations.accents.map((color, index) => (
                             <div key={index} className="group relative">
                               <div
