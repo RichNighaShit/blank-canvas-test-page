@@ -104,6 +104,41 @@
     --shadow-button: 0 2px 12px -2px hsl(320 80% 60% / 0.3);
     --shadow-floating: 0 8px 40px -4px hsl(320 20% 20% / 0.15);
   }
+
+  .forest {
+    --background: 120 20% 97%;
+    --foreground: 120 25% 15%;
+    --card: 120 15% 94%;
+    --card-foreground: 120 25% 15%;
+    --popover: 120 15% 94%;
+    --popover-foreground: 120 25% 15%;
+    --primary: 120 60% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 120 60% 55%;
+    --secondary: 120 20% 88%;
+    --secondary-foreground: 120 25% 20%;
+    --muted: 120 15% 90%;
+    --muted-foreground: 120 10% 45%;
+    --accent: 120 25% 85%;
+    --accent-foreground: 120 25% 20%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 120 15% 82%;
+    --input: 120 15% 82%;
+    --ring: 120 60% 45%;
+
+    /* Forest-specific gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(120 60% 45%), hsl(140 70% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(120 60% 45% / 0.1), hsl(140 70% 50% / 0.1));
+    --gradient-hero: linear-gradient(135deg, hsl(120 60% 45% / 0.05), hsl(140 70% 50% / 0.05));
+    --gradient-accent: linear-gradient(135deg, hsl(120 60% 55%), hsl(140 70% 60%));
+
+    /* Forest-specific shadows */
+    --shadow-elegant: 0 4px 32px -4px hsl(120 60% 45% / 0.15), 0 2px 16px -2px hsl(120 60% 45% / 0.1);
+    --shadow-card: 0 2px 20px -2px hsl(120 25% 15% / 0.08), 0 1px 8px -1px hsl(120 25% 15% / 0.04);
+    --shadow-button: 0 2px 12px -2px hsl(120 60% 45% / 0.3);
+    --shadow-floating: 0 8px 40px -4px hsl(120 25% 15% / 0.15);
+  }
 }
 
 @layer base {
