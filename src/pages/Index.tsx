@@ -202,7 +202,7 @@ const Index = () => {
         </section>
 
         {/* Stats Section */}
-        <section className="py-12 md:py-20 bg-white/50 backdrop-blur-sm border-y border-purple-100">
+        <section className="py-16 bg-white/50 backdrop-blur-sm border-y border-purple-100">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
               {stats.map((stat, index) => {
@@ -577,7 +577,7 @@ const Index = () => {
             <div className="border-t border-gray-700 pt-8">
               <div className="flex flex-col sm:flex-row justify-between items-center">
                 <p className="text-gray-400 text-sm mb-4 sm:mb-0">
-                  © 2024 DripMuse. All rights reserved. Built with ��️ for fashion enthusiasts.
+                  © 2024 DripMuse. All rights reserved. Built with ❤️ for fashion enthusiasts.
                 </p>
                 <div className="flex space-x-6">
                   <span className="text-gray-400 text-xs flex items-center">
