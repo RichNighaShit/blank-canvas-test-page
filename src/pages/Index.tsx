@@ -164,7 +164,7 @@ const Index = () => {
             </div>
 
             <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light px-4">
+              <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light px-4">
                 Discover colors that make you glow, organize your wardrobe effortlessly, and get
                 <span className="font-semibold text-purple-700"> personalized outfit recommendations</span> that match your style,
                 weather, and occasion. Transform how you dress with smart technology.
