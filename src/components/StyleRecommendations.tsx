@@ -214,6 +214,9 @@ const StyleRecommendations: React.FC = () => {
     fetchWeather,
     getWeatherAdvice,
     getWeatherStatus,
+    showManualEntry,
+    setManualWeatherEntry,
+    retryAutomaticWeather,
   } = weatherHook || {};
   const [recommendations, setRecommendations] = useState<
     OutfitRecommendation[]
