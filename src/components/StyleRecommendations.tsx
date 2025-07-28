@@ -27,6 +27,7 @@ import {
   RefreshCw,
   Settings,
   AlertCircle,
+  Edit3,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
