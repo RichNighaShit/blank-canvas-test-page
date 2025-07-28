@@ -15,6 +15,9 @@ interface WeatherWidgetProps {
   compact?: boolean;
   showAdvice?: boolean;
   advice?: string;
+  showManualEntry?: boolean;
+  onManualEntry?: (entry: ManualWeatherEntry) => void;
+  onRetryAutomatic?: () => void;
 }
 
 export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
