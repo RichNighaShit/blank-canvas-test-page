@@ -173,14 +173,14 @@ const StyleRecommendations = () => {
                 </TabsTrigger>
                 <TabsTrigger
                   value="planner"
-                  className="flex flex-col gap-1 h-16 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+                  className="flex flex-col gap-1 h-12 sm:h-16 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
                 >
                   <Calendar className="h-5 w-5" />
                   <span className="text-xs font-medium">Outfit Planner</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="shopping"
-                  className="flex flex-col gap-1 h-16 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+                  className="flex flex-col gap-1 h-12 sm:h-16 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
                 >
                   <ShoppingCart className="h-5 w-5" />
                   <span className="text-xs font-medium">Smart Shopping</span>
