@@ -198,13 +198,7 @@ const Index = () => {
           <div className="absolute top-40 right-20 w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full opacity-10 animate-float" style={{ animationDelay: '1s' }}></div>
           <div className="absolute bottom-20 left-20 w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full opacity-15 animate-float" style={{ animationDelay: '2s' }}></div>
 
-          {/* Scroll Indicator */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <div className="flex flex-col items-center text-white/80">
-              <span className="text-sm mb-2">Scroll to explore</span>
-              <ChevronDown className="h-6 w-6" />
-            </div>
-          </div>
+
         </section>
 
         {/* Stats Section */}
