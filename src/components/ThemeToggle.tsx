@@ -12,6 +12,8 @@ export function ThemeToggle() {
         return <Palette className="h-4 w-4" />;
       case "dark":
         return <Moon className="h-4 w-4" />;
+      case "forest":
+        return <Trees className="h-4 w-4" />;
       default:
         return <Sun className="h-4 w-4" />;
     }
