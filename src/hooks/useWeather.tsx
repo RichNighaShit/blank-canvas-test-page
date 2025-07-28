@@ -408,7 +408,7 @@ export const useWeather = (profileLocation?: string) => {
     fetchWeatherByCoordinates,
     geocodeLocation,
     cacheWeatherData,
-    defaultLocation
+    profileLocation
   ]);
 
   // Get weather-based styling advice
