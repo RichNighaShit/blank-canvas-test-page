@@ -27,8 +27,17 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   onRefresh,
   compact = false,
   showAdvice = false,
-  advice
+  advice,
+  showManualEntry = false,
+  onManualEntry,
+  onRetryAutomatic
 }) => {
+  const [isManualMode, setIsManualMode] = useState(false);
+  const [manualData, setManualData] = useState<ManualWeatherEntry>({
+    temperature: 20,
+    condition: 'clear',
+    location: 'My Location'
+  });
   const getSourceBadgeVariant = (source: WeatherData['source']) => {
     switch (source) {
       case 'gps':
