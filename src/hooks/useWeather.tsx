@@ -302,9 +302,27 @@ export const useWeather = (profileLocation?: string) => {
       let weatherData: WeatherData;
 
       try {
-        // Try GPS first (only if permission not explicitly denied)
-        if (locationPermission !== "denied") {
-          console.log("Attempting GPS location...");
+        // Try profile location first if available
+        if (userLocation) {
+          console.log("Attempting profile location weather for:", userLocation);
+          const geoData = await withNetworkRetry(
+            () => geocodeLocation(userLocation),
+            { retries: 1, timeout: 8000 }
+          );
+
+          weatherData = await withNetworkRetry(
+            () => fetchWeatherByCoordinates(
+              geoData.latitude,
+              geoData.longitude,
+              `${geoData.name}, ${geoData.country}`
+            ),
+            { retries: 1, timeout: 10000 }
+          );
+          weatherData.source = "profile";
+          console.log("Profile location weather successful");
+        } else if (locationPermission !== "denied") {
+          // Fallback to GPS if no profile location
+          console.log("No profile location, attempting GPS...");
           const position = await getCurrentPosition();
           weatherData = await withNetworkRetry(
             () => fetchWeatherByCoordinates(
@@ -313,19 +331,26 @@ export const useWeather = (profileLocation?: string) => {
             ),
             { retries: 1, timeout: 10000 }
           );
+          weatherData.source = "gps";
           console.log("GPS weather successful");
         } else {
-          throw new Error("GPS permission denied");
+          throw new Error("No location available - GPS denied and no profile location");
         }
-      } catch (gpsError) {
-        console.log("GPS failed, trying location name:", getErrorMessage(gpsError));
+      } catch (locationError) {
+        console.log("Primary location methods failed:", getErrorMessage(locationError));
 
-        // Fallback to location name
-        const locationToUse = userLocation || defaultLocation || "London";
-        console.log("Using location:", locationToUse);
+        // Last resort: offer manual entry or use mock data
+        if (!userLocation && locationPermission === "denied") {
+          setShowManualEntry(true);
+          throw new Error("All automatic weather methods failed. Manual entry required.");
+        }
+
+        // Use a default location as final fallback
+        const defaultLoc = "London";
+        console.log("Using default location:", defaultLoc);
 
         const geoData = await withNetworkRetry(
-          () => geocodeLocation(locationToUse),
+          () => geocodeLocation(defaultLoc),
           { retries: 1, timeout: 8000 }
         );
 
@@ -337,10 +362,8 @@ export const useWeather = (profileLocation?: string) => {
           ),
           { retries: 1, timeout: 10000 }
         );
-
-        // Update source to reflect the method used
-        weatherData.source = userLocation ? "profile" : "default";
-        console.log("Location-based weather successful");
+        weatherData.source = "mock";
+        console.log("Default location weather successful");
       }
 
       // Cache and set the weather data
