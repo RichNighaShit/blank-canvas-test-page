@@ -772,43 +772,7 @@ const StyleRecommendations: React.FC = () => {
         </Card>
       )}
 
-      {/* Enhanced Algorithm Status */}
-      <Card className="card-premium border-purple-200 bg-purple-50 dark:bg-purple-950/20">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-purple-900 dark:text-purple-100">
-                  Advanced AI Algorithm Active
-                </p>
-                <p className="text-xs text-purple-700 dark:text-purple-200">
-                  Prioritizing <strong>{selectedOccasion}</strong> items for <strong>{getCurrentSeason()}</strong>
-                  {profile?.favorite_colors && profile.favorite_colors.length > 0 && (
-                    <> with your colors: <strong>{profile.favorite_colors.join(", ")}</strong></>
-                  )}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-1 flex-wrap">
-              <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
-                Occasion 1st
-              </Badge>
-              <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
-                Colors 2nd
-              </Badge>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
-                Season-Aware
-              </Badge>
-              <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
-                Trend-Conscious
-              </Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Weather Integration */}
       {weather && (
