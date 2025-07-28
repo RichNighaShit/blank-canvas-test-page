@@ -161,7 +161,7 @@ const StyleRecommendations = () => {
           {/* Main Content */}
           <div className="max-w-7xl mx-auto">
             <Tabs defaultValue="outfits" className="space-y-12">
-              <TabsList className="grid w-full grid-cols-3 h-20 bg-card border border-border rounded-2xl p-2 shadow-card">
+              <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto sm:h-20 bg-card border border-border rounded-2xl p-2 shadow-card gap-2 sm:gap-0">
                 <TabsTrigger
                   value="outfits"
                   className="flex flex-col gap-1 h-16 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
