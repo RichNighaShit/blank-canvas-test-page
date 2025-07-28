@@ -40,6 +40,10 @@ export function ThemeToggle() {
           <Moon className="mr-2 h-4 w-4" />
           Dark
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("forest")}>
+          <Trees className="mr-2 h-4 w-4" />
+          Forest
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
