@@ -40,13 +40,15 @@ const WEATHER_CONDITIONS = {
   fog: { icon: '🌫️', description: 'Foggy' }
 };
 
-export const useWeather = (defaultLocation?: string) => {
+export const useWeather = (profileLocation?: string) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locationPermission, setLocationPermission] = useState<
     "granted" | "denied" | "prompt" | "unavailable"
   >("prompt");
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [manualWeather, setManualWeather] = useState<ManualWeatherEntry | null>(null);
 
   // Load cached weather data
   const loadCachedWeather = useCallback((): WeatherData | null => {
