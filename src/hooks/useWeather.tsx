@@ -450,12 +450,12 @@ export const useWeather = (profileLocation?: string) => {
     }
 
     switch (weather.source) {
-      case "gps":
-        return "Live weather from your location";
       case "profile":
         return "Live weather from your profile location";
-      case "default":
-        return "Live weather from default location";
+      case "gps":
+        return "Live weather from your current location";
+      case "manual":
+        return "Manual weather entry";
       case "mock":
         return "Simulated weather conditions";
       default:
