@@ -119,7 +119,7 @@ export const BatchDeleteWardrobe = ({
             </label>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
             {items.map((item) => (
               <div key={item.id} className="space-y-2">
                 <div className="aspect-square relative overflow-hidden rounded-lg border">
