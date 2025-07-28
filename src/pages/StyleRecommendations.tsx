@@ -164,7 +164,7 @@ const StyleRecommendations = () => {
               <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto sm:h-20 bg-card border border-border rounded-2xl p-2 shadow-card gap-2 sm:gap-0">
                 <TabsTrigger
                   value="outfits"
-                  className="flex flex-col gap-1 h-16 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+                  className="flex flex-col gap-1 h-12 sm:h-16 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
                 >
                   <Sparkles className="h-5 w-5" />
                   <span className="text-xs font-medium">
