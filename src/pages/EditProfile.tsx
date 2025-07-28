@@ -211,7 +211,7 @@ const EditProfile = () => {
     <div className="min-h-screen bg-gradient-hero py-8">
       <div className="container mx-auto px-4 max-w-2xl">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">Edit Your Profile</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Edit Your Profile</h1>
           <p className="text-muted-foreground">
             Update your style preferences and personal info
           </p>
