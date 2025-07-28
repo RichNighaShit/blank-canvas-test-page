@@ -433,10 +433,42 @@ export const useWeather = (profileLocation?: string) => {
     }
   }, [loading, weather, error]);
 
+  // Set manual weather entry
+  const setManualWeatherEntry = useCallback((entry: ManualWeatherEntry) => {
+    const weatherInfo = WEATHER_CONDITIONS[entry.condition as keyof typeof WEATHER_CONDITIONS];
+    const manualWeatherData: WeatherData = {
+      temperature: entry.temperature,
+      condition: entry.condition,
+      humidity: 60, // Default value for manual entry
+      windSpeed: 5, // Default value for manual entry
+      description: `${weatherInfo.description} in ${entry.location}`,
+      location: entry.location,
+      source: "manual",
+      timestamp: Date.now(),
+      icon: weatherInfo.icon,
+      isManualEntry: true
+    };
+
+    setWeather(manualWeatherData);
+    setManualWeather(entry);
+    setShowManualEntry(false);
+    setError(null);
+
+    // Cache manual entry
+    cacheWeatherData(manualWeatherData);
+  }, [cacheWeatherData]);
+
+  // Clear manual weather and retry automatic
+  const retryAutomaticWeather = useCallback(() => {
+    setManualWeather(null);
+    setShowManualEntry(false);
+    fetchWeather(profileLocation);
+  }, [profileLocation, fetchWeather]);
+
   // Auto-fetch weather on mount and location changes
   useEffect(() => {
-    fetchWeather(defaultLocation);
-  }, [defaultLocation]); // Only depend on defaultLocation, not fetchWeather
+    fetchWeather(profileLocation);
+  }, [profileLocation]); // Only depend on profileLocation, not fetchWeather
 
   return {
     weather,
@@ -446,5 +478,10 @@ export const useWeather = (profileLocation?: string) => {
     getWeatherAdvice,
     getWeatherStatus,
     locationPermission,
+    showManualEntry,
+    setShowManualEntry,
+    setManualWeatherEntry,
+    retryAutomaticWeather,
+    manualWeather
   };
 };
