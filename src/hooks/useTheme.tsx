@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from "react";
 
-type Theme = "default" | "muse" | "dark";
+type Theme = "default" | "muse" | "dark" | "forest";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
