@@ -222,7 +222,7 @@ const Index = () => {
         </section>
 
         {/* Features Grid */}
-        <section className="py-32 px-4">
+        <section className="py-16 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-20 animate-fade-in-up">
               <Badge variant="secondary" className="mb-6 px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-0">
@@ -577,7 +577,7 @@ const Index = () => {
             <div className="border-t border-gray-700 pt-8">
               <div className="flex flex-col sm:flex-row justify-between items-center">
                 <p className="text-gray-400 text-sm mb-4 sm:mb-0">
-                  © 2024 DripMuse. All rights reserved. Built with ❤️ for fashion enthusiasts.
+                  © 2024 DripMuse. All rights reserved. Built with ��️ for fashion enthusiasts.
                 </p>
                 <div className="flex space-x-6">
                   <span className="text-gray-400 text-xs flex items-center">
