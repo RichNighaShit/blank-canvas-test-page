@@ -127,7 +127,7 @@ export const useWeather = (profileLocation?: string) => {
     }
 
     const weatherInfo = WEATHER_CONDITIONS[condition as keyof typeof WEATHER_CONDITIONS];
-    const location = locationName || defaultLocation || "Your area";
+    const location = locationName || profileLocation || "Your area";
 
     return {
       temperature,
