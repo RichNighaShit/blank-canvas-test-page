@@ -167,6 +167,7 @@
   .card-premium {
     @apply bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl shadow-card;
     @apply transition-all duration-300 hover:shadow-elegant hover:border-primary/20;
+    @apply focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30;
   }
   
   .card-interactive {
