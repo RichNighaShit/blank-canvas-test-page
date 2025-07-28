@@ -375,10 +375,17 @@ export const useWeather = (profileLocation?: string) => {
       const errorMessage = getErrorMessage(error);
       console.warn("Weather fetch failed:", errorMessage);
 
+      // Check if we should show manual entry
+      if (errorMessage.includes("Manual entry required")) {
+        setError("Cannot access weather automatically. Please enter weather manually or grant location permissions.");
+        setLoading(false);
+        return;
+      }
+
       // Always provide mock weather as fallback
       const mockWeather = generateMockWeather(userLocation);
       setWeather(mockWeather);
-      
+
       // Set appropriate error message
       if (errorMessage.includes("network") || errorMessage.includes("fetch")) {
         setError("Weather service unavailable - using simulated data");
