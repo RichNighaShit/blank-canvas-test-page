@@ -713,7 +713,7 @@ const YourColorPalette = () => {
                           Foundation Neutrals
                         </h4>
                         <p className="text-sm text-gray-600 mb-3">Your wardrobe building blocks - use for 60% of your outfits</p>
-                        <div className="grid grid-cols-8 gap-2">
+                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
                           {colorAnalysis.clothingRecommendations.neutrals.map((color, index) => (
                             <div key={index} className="group relative">
                               <div
