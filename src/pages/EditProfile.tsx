@@ -324,7 +324,7 @@ const EditProfile = () => {
               </div>
               <div>
                 <Label className="text-base font-medium">Goals</Label>
-                <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                   {goalOptions.map((goal) => (
                     <Button
                       key={goal.id}
