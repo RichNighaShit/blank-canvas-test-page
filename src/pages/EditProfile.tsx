@@ -279,7 +279,7 @@ const EditProfile = () => {
               </div>
               <div>
                 <Label className="text-base font-medium">Fashion Style</Label>
-                <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                   {styleOptions.map((style) => (
                     <Button
                       key={style.id}
