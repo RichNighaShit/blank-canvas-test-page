@@ -300,7 +300,7 @@ const EditProfile = () => {
               </div>
               <div>
                 <Label className="text-base font-medium">Favorite Colors</Label>
-                <div className="grid grid-cols-6 gap-3 mt-3">
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 mt-3">
                   {colorOptions.map((color) => (
                     <Button
                       key={color.id}
