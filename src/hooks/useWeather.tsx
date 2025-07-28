@@ -9,9 +9,16 @@ export interface WeatherData {
   windSpeed: number;
   description: string;
   location: string;
-  source: "gps" | "profile" | "default" | "mock";
+  source: "profile" | "gps" | "manual" | "mock";
   timestamp: number;
   icon: string;
+  isManualEntry?: boolean;
+}
+
+export interface ManualWeatherEntry {
+  temperature: number;
+  condition: string;
+  location: string;
 }
 
 interface CachedWeatherData extends WeatherData {
