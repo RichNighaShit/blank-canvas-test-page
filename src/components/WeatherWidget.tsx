@@ -40,11 +40,11 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   });
   const getSourceBadgeVariant = (source: WeatherData['source']) => {
     switch (source) {
-      case 'gps':
-        return 'default';
       case 'profile':
+        return 'default';
+      case 'gps':
         return 'secondary';
-      case 'default':
+      case 'manual':
         return 'outline';
       case 'mock':
         return 'destructive';
@@ -55,18 +55,35 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 
   const getSourceLabel = (source: WeatherData['source']) => {
     switch (source) {
-      case 'gps':
-        return 'Live GPS';
       case 'profile':
         return 'Profile Location';
-      case 'default':
-        return 'Default Location';
+      case 'gps':
+        return 'Live GPS';
+      case 'manual':
+        return 'Manual Entry';
       case 'mock':
         return 'Simulated';
       default:
         return 'Unknown';
     }
   };
+
+  const handleManualSubmit = () => {
+    if (onManualEntry) {
+      onManualEntry(manualData);
+      setIsManualMode(false);
+    }
+  };
+
+  const weatherConditions = [
+    { value: 'clear', label: 'Clear' },
+    { value: 'clouds', label: 'Cloudy' },
+    { value: 'rain', label: 'Rainy' },
+    { value: 'snow', label: 'Snowy' },
+    { value: 'thunderstorm', label: 'Thunderstorm' },
+    { value: 'mist', label: 'Misty' },
+    { value: 'fog', label: 'Foggy' }
+  ];
 
   if (compact) {
     return (
