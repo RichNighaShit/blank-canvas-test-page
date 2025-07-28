@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, MapPin, Thermometer, Droplets, Wind, RefreshCw, AlertCircle } from 'lucide-react';
-import { WeatherData } from '@/hooks/useWeather';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, MapPin, Thermometer, Droplets, Wind, RefreshCw, AlertCircle, Edit3, Check, X } from 'lucide-react';
+import { WeatherData, ManualWeatherEntry } from '@/hooks/useWeather';
 
 interface WeatherWidgetProps {
   weather: WeatherData | null;
