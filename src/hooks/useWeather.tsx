@@ -140,7 +140,7 @@ export const useWeather = (profileLocation?: string) => {
       timestamp: Date.now(),
       icon: weatherInfo.icon
     };
-  }, [defaultLocation]);
+  }, [profileLocation]);
 
   // Get user's GPS location
   const getCurrentPosition = useCallback((): Promise<GeolocationPosition> => {
