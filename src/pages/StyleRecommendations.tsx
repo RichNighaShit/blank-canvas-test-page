@@ -137,7 +137,7 @@ const StyleRecommendations = () => {
                 Style Me
               </h1>
             </div>
-            <p className="text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed font-light">
+            <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed font-light">
               Your personal stylist ready to create the perfect look for any
               occasion, using advanced fashion insights
             </p>
