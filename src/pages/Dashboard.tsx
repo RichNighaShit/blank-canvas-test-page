@@ -259,7 +259,7 @@ const Dashboard = () => {
         <div className="mb-12">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-4xl md:text-5xl font-heading mb-2">
+              <h1 className="text-3xl md:text-4xl font-heading mb-2">
                 Welcome back, {profile?.display_name || "Fashionista"}!
               </h1>
               <p className="text-xl text-muted-foreground">
