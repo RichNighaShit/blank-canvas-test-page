@@ -1,5 +1,7 @@
+
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { HelmetProvider } from 'react-helmet-async';
 import App from "./App.tsx";
 import "./index.css";
 import { BrowserRouter } from "react-router-dom";
@@ -21,13 +23,15 @@ logger.info("Application starting", {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <ThemeProvider defaultTheme="default">
-        <BrowserRouter>
-          <App />
-          <Toaster />
-        </BrowserRouter>
-      </ThemeProvider>
-    </ErrorBoundary>
+    <HelmetProvider>
+      <ErrorBoundary>
+        <ThemeProvider defaultTheme="default">
+          <BrowserRouter>
+            <App />
+            <Toaster />
+          </BrowserRouter>
+        </ThemeProvider>
+      </ErrorBoundary>
+    </HelmetProvider>
   </React.StrictMode>,
 );
