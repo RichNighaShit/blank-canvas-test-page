@@ -30,10 +30,10 @@ const SocialProofSection: React.FC = () => {
   ];
 
   const stats = [
-    { number: "50K+", label: "Happy Users", icon: Users, description: "Trust DripMuse daily" },
-    { number: "96%", label: "Accuracy Rate", icon: TrendingUp, description: "Color match precision" },
-    { number: "$2,100", label: "Average Saved", icon: Heart, description: "Per user annually" },
-    { number: "4.9/5", label: "User Rating", icon: Star, description: "App store rating" }
+    { number: "1K+", label: "Active Users", icon: Users, description: "Growing community" },
+    { number: "AI", label: "Color Analysis", icon: TrendingUp, description: "Powered technology" },
+    { number: "Free", label: "To Start", icon: Heart, description: "No credit card required" },
+    { number: "24/7", label: "Available", icon: Star, description: "Access anytime" }
   ];
 
   return (
