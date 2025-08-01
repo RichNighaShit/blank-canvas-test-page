@@ -6,7 +6,7 @@ import MuseIntroAnimation from '@/components/MuseIntroAnimation';
 import PoeticStanzas from '@/components/PoetricStanzas';
 import WatercolorCursor from '@/components/WatercolorCursor';
 import AmbientSoundLayer from '@/components/AmbientSoundLayer';
-import VelouriaShowcase from '@/components/VelouriaShowcase';
+import DripMuseShowcase from '@/components/DripMuseShowcase';
 import {
   Sparkles,
   ArrowRight,
