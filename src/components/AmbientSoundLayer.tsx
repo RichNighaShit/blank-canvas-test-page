@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, MousePointer, MousePointerOff } from 'lucide-react';
 
 const AmbientSoundLayer: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
