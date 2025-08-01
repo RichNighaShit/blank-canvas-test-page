@@ -391,6 +391,12 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Real Features Showcase */}
+      <RealFeaturesShowcase />
+
+      {/* Actual User Flow */}
+      <ActualUserFlow />
+
       {/* Call to Action - Dreamy Finale */}
       <section className="relative py-32 px-8 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-tr from-purple-100/60 via-pink-50/40 to-rose-100/60"></div>
