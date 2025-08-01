@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import MuseIntroAnimation from '@/components/MuseIntroAnimation';
-import PoeticStanzas from '@/components/PoetricStanzas';
+
 import WatercolorCursor from '@/components/WatercolorCursor';
 import AmbientSoundLayer from '@/components/AmbientSoundLayer';
 import DripMuseShowcase from '@/components/DripMuseShowcase';
