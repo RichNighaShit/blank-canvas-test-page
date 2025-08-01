@@ -9,7 +9,11 @@ interface CursorTrail {
   size: number;
 }
 
-const WatercolorCursor: React.FC = () => {
+interface WatercolorCursorProps {
+  enabled?: boolean;
+}
+
+const WatercolorCursor: React.FC<WatercolorCursorProps> = ({ enabled = true }) => {
   const [cursorTrails, setCursorTrails] = useState<CursorTrail[]>([]);
   const [isVisible, setIsVisible] = useState(false);
   const trailIdRef = useRef(0);
