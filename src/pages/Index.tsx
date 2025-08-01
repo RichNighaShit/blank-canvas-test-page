@@ -151,7 +151,7 @@ const Index = () => {
               {/* Floating Badge */}
               <div className="inline-flex items-center space-x-3 bg-white/40 backdrop-blur-md rounded-full px-6 py-3 border border-white/50 shadow-lg shadow-purple-100/20">
                 <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
-                <span className="text-sm font-medium text-slate-700 tracking-wide">Ethereal Style Discovery</span>
+                <span className="text-sm font-medium text-slate-700 tracking-wide">Velouria • Ethereal Style Discovery</span>
               </div>
 
               {/* Main Headline - Serif Typography */}
