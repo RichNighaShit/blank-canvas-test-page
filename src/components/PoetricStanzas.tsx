@@ -11,35 +11,35 @@ interface Stanza {
 const poeticStanzas: Stanza[] = [
   {
     id: 1,
-    text: "Colors whisper secrets to those who listen...",
+    text: "AI discovers the colors that make you shine ✨",
     trigger: 15,
     position: 'right',
     delay: 0
   },
   {
     id: 2,
-    text: "In every hue lies a story untold",
+    text: "Your wardrobe, organized and intelligent 👗",
     trigger: 30,
     position: 'left',
     delay: 500
   },
   {
     id: 3,
-    text: "Beauty blooms where intention meets intuition",
+    text: "Every outfit tells your unique story 🎨",
     trigger: 50,
     position: 'center',
     delay: 0
   },
   {
     id: 4,
-    text: "Your palette is your poetry",
+    text: "Smart suggestions for every occasion 🌟",
     trigger: 70,
     position: 'right',
     delay: 300
   },
   {
     id: 5,
-    text: "Style is the echo of your soul's song",
+    text: "Your style evolution begins here 🚀",
     trigger: 85,
     position: 'left',
     delay: 0
