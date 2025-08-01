@@ -8,6 +8,8 @@ import WatercolorCursor from '@/components/WatercolorCursor';
 import AmbientSoundLayer from '@/components/AmbientSoundLayer';
 import DripMuseShowcase from '@/components/DripMuseShowcase';
 import ParallaxBackground from '@/components/ParallaxBackground';
+import RealFeaturesShowcase from '@/components/RealFeaturesShowcase';
+import ActualUserFlow from '@/components/ActualUserFlow';
 import {
   Sparkles,
   ArrowRight,
