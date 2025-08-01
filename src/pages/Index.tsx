@@ -59,6 +59,9 @@ const Index = () => {
 
       {/* Ambient Sound Layer */}
       {pageLoaded && <AmbientSoundLayer />}
+
+      {/* Velouria Design System Showcase */}
+      {pageLoaded && <VelouriaShowcase />}
       {/* Botanical Background Pattern */}
       <div className="fixed inset-0 pointer-events-none opacity-10">
         <svg width="100%" height="100%" className="absolute inset-0">
