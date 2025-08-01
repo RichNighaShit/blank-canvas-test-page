@@ -53,4 +53,4 @@ const DripMuseShowcase: React.FC = () => {
   );
 };
 
-export default VelouriaShowcase;
+export default DripMuseShowcase;
