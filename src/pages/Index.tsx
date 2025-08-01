@@ -306,20 +306,20 @@ const Index = () => {
             <div className="lg:col-span-2 lg:col-start-2 text-center space-y-12">
               <div className="space-y-8">
                 <h2 className="font-serif text-5xl lg:text-6xl text-slate-800 leading-tight tracking-tight">
-                  Where Technology
+                  Your Personal
                   <span className="block text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text italic">
-                    Meets Poetry
+                    AI Stylist
                   </span>
                 </h2>
-                
+
                 <div className="max-w-2xl mx-auto space-y-6 text-lg text-slate-600 font-light leading-relaxed">
                   <p>
-                    In the delicate dance between science and art, we've crafted an experience 
-                    that honors both your analytical mind and your creative spirit.
+                    DripMuse combines advanced AI with color theory to help you discover your perfect style.
+                    Our technology analyzes your features, organizes your wardrobe, and creates personalized recommendations.
                   </p>
                   <p>
-                    Each color recommendation is a verse, every outfit suggestion a stanza 
-                    in the ongoing poem of your personal style journey.
+                    Save time every morning, build confidence in your choices, and discover
+                    new outfit combinations you never thought possible.
                   </p>
                 </div>
               </div>
