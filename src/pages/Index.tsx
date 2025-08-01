@@ -263,12 +263,12 @@ const Index = () => {
                 >
                   <div className="flex items-center space-x-4 mb-4">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400/60 to-rose-400/60 flex items-center justify-center backdrop-blur-sm">
-                      <Heart className="h-6 w-6 text-white" />
+                      <Sparkles className="h-6 w-6 text-white" />
                     </div>
-                    <h3 className="text-lg font-serif text-slate-700">Soulful Expression</h3>
+                    <h3 className="text-lg font-serif text-slate-700">Outfit Recommendations</h3>
                   </div>
                   <p className="text-slate-600 font-light leading-relaxed">
-                    Express your inner world through thoughtful curation and mindful style choices.
+                    Get personalized outfit suggestions based on weather, occasion, and your style preferences.
                   </p>
                 </div>
               </div>
