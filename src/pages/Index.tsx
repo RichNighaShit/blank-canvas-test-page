@@ -384,7 +384,7 @@ const Index = () => {
           <div className="space-y-8">
             <div className="inline-flex items-center space-x-3 bg-white/50 backdrop-blur-md rounded-full px-6 py-3 border border-white/60 shadow-lg">
               <Star className="h-5 w-5 text-purple-400 animate-pulse" />
-              <span className="text-sm font-medium text-slate-700 tracking-wide">Begin Your Transformation</span>
+              <span className="text-sm font-medium text-slate-700 tracking-wide">Velouria Experience • Begin Your Transformation</span>
             </div>
 
             <h2 className="font-serif text-5xl lg:text-6xl text-slate-800 leading-tight tracking-tight">
