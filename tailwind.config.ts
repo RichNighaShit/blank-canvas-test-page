@@ -69,6 +69,15 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				muse: {
+					mauve: 'rgb(221, 190, 216)',
+					lavender: 'rgb(230, 224, 244)',
+					dustyRose: 'rgb(217, 175, 195)',
+					mistyPearl: 'rgb(248, 245, 250)',
+					deepMauve: 'rgb(193, 154, 188)',
+					softPink: 'rgb(236, 204, 227)',
+					whisperLavender: 'rgb(244, 240, 250)'
 				}
 			},
 			borderRadius: {
