@@ -183,7 +183,7 @@ const LiveColorDemo: React.FC = () => {
                 <div>
                   <h3 className="font-serif text-xl text-slate-700 mb-2">AI-Powered Analysis</h3>
                   <p className="text-slate-600 font-light leading-relaxed">
-                    Our advanced AI analyzes 127 facial data points to determine your optimal color palette
+                    Our AI analyzes your facial features and coloring to determine your optimal color palette
                   </p>
                 </div>
               </div>
