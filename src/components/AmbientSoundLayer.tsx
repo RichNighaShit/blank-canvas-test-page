@@ -116,6 +116,12 @@ const AmbientSoundLayer: React.FC<AmbientSoundLayerProps> = ({
     setIsPlaying(!isPlaying);
   };
 
+  const toggleMouseTrail = () => {
+    if (onMouseTrailToggle) {
+      onMouseTrailToggle(!mouseTrailEnabled);
+    }
+  };
+
   return (
     <div className="fixed bottom-8 left-8 z-40">
       <div className="bg-white/20 backdrop-blur-md rounded-full p-3 border border-white/30 shadow-lg hover:bg-white/30 transition-all duration-300">
