@@ -57,13 +57,18 @@ const Index = () => {
       {showIntro && <MuseIntroAnimation onComplete={handleIntroComplete} />}
 
       {/* Watercolor Cursor */}
-      {pageLoaded && <WatercolorCursor />}
+      {pageLoaded && <WatercolorCursor enabled={mouseTrailEnabled} />}
 
       {/* Poetic Stanzas */}
       {pageLoaded && <PoeticStanzas />}
 
       {/* Ambient Sound Layer */}
-      {pageLoaded && <AmbientSoundLayer />}
+      {pageLoaded && (
+        <AmbientSoundLayer
+          onMouseTrailToggle={handleMouseTrailToggle}
+          mouseTrailEnabled={mouseTrailEnabled}
+        />
+      )}
 
       {/* Velouria Design System Showcase */}
       {pageLoaded && <VelouriaShowcase />}
