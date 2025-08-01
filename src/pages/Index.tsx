@@ -335,9 +335,9 @@ const Index = () => {
                       <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-400/40 to-pink-400/40 flex items-center justify-center backdrop-blur-sm">
                         <Palette className="h-8 w-8 text-purple-600" />
                       </div>
-                      <h3 className="font-serif text-lg text-slate-700">Color Divination</h3>
+                      <h3 className="font-serif text-lg text-slate-700">Color Analysis</h3>
                       <p className="text-sm text-slate-600 font-light leading-relaxed">
-                        Unveil the colors that make your soul luminous through AI-powered analysis
+                        Discover your perfect color palette with our AI that analyzes your unique features
                       </p>
                     </div>
                   </div>
