@@ -161,11 +161,16 @@ const Index = () => {
                   <span className="block text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text transform rotate-1 ml-8">Your</span>
                   <span className="block transform -rotate-1">Inner Muse</span>
                 </h1>
-                
-                <p className="text-xl text-slate-600 font-light leading-relaxed max-w-lg">
-                  Discover the poetry in your palette, the grace in your garments. 
-                  Let AI unveil the colors that make your soul sing.
-                </p>
+
+                <div className="space-y-4">
+                  <p className="text-xl text-slate-600 font-light leading-relaxed max-w-lg">
+                    Discover the poetry in your palette, the grace in your garments.
+                    Let AI unveil the colors that make your soul sing.
+                  </p>
+                  <p className="text-sm text-slate-500 font-light italic tracking-widest">
+                    — Powered by Velouria, the ethereal design system —
+                  </p>
+                </div>
               </div>
 
               {/* Floating Action Buttons */}
