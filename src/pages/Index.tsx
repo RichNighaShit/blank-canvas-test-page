@@ -292,6 +292,9 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Live Color Analysis Demo */}
+      <LiveColorDemo />
+
       {/* About Section - Poetic Layout */}
       <section className="relative py-32 px-8 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-bl from-rose-50/60 via-white to-purple-50/40"></div>
