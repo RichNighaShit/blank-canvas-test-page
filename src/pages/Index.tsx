@@ -369,9 +369,9 @@ const Index = () => {
                       <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-pink-400/40 to-rose-400/40 flex items-center justify-center backdrop-blur-sm">
                         <Sparkles className="h-8 w-8 text-pink-600" />
                       </div>
-                      <h3 className="font-serif text-lg text-slate-700">Inspired Curation</h3>
+                      <h3 className="font-serif text-lg text-slate-700">Smart Recommendations</h3>
                       <p className="text-sm text-slate-600 font-light leading-relaxed">
-                        Receive outfit inspirations that honor your unique aesthetic vision
+                        Get outfit suggestions tailored to weather, occasion, and your personal style
                       </p>
                     </div>
                   </div>
