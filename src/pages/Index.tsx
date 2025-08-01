@@ -55,6 +55,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen overflow-hidden relative" style={{ cursor: mouseTrailEnabled ? 'none' : 'default' }}>
+      {/* Parallax Background */}
+      {pageLoaded && <ParallaxBackground />}
+
       {/* Intro Animation */}
       {showIntro && <MuseIntroAnimation onComplete={handleIntroComplete} />}
 
