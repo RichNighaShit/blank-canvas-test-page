@@ -115,7 +115,7 @@ const SocialProofSection: React.FC = () => {
                 {/* Savings Highlight */}
                 <div className="mt-6 pt-6 border-t border-white/30">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Money Saved:</span>
+                    <span className="text-sm text-slate-600">Benefit:</span>
                     <span className="font-bold text-green-600 text-lg">{testimonial.saved}</span>
                   </div>
                 </div>
