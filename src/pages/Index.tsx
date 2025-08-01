@@ -59,8 +59,7 @@ const Index = () => {
       {/* Watercolor Cursor */}
       {pageLoaded && <WatercolorCursor enabled={mouseTrailEnabled} />}
 
-      {/* Poetic Stanzas */}
-      {pageLoaded && <PoeticStanzas />}
+
 
       {/* Ambient Sound Layer */}
       {pageLoaded && (
