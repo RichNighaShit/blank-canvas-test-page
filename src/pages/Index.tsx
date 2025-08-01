@@ -47,6 +47,10 @@ const Index = () => {
     setPageLoaded(true);
   };
 
+  const handleMouseTrailToggle = (enabled: boolean) => {
+    setMouseTrailEnabled(enabled);
+  };
+
   return (
     <div className="min-h-screen overflow-hidden relative" style={{ cursor: 'none' }}>
       {/* Intro Animation */}
