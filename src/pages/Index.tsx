@@ -28,6 +28,7 @@ const Index = () => {
   const [scrollY, setScrollY] = useState(0);
   const [showIntro, setShowIntro] = useState(true);
   const [pageLoaded, setPageLoaded] = useState(false);
+  const [mouseTrailEnabled, setMouseTrailEnabled] = useState(true);
 
   useEffect(() => {
     if (user) {
