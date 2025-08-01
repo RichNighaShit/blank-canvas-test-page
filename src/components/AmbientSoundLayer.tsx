@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX, MousePointer, MousePointerOff } from 'lucide-react';
+import { Volume2, VolumeX, MousePointer, X } from 'lucide-react';
 
 interface AmbientSoundLayerProps {
   onMouseTrailToggle?: (enabled: boolean) => void;
