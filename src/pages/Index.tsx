@@ -1,603 +1,414 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import ModernHeader from '@/components/ModernHeader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   Sparkles,
-  Shirt,
-  BarChart3,
-  ShoppingBag,
-  Camera,
-  Users,
   ArrowRight,
-  Check,
+  Feather,
+  Moon,
   Star,
-  Zap,
-  Crown,
-  Palette,
-  TrendingUp,
-  Brain,
-  Target,
   Heart,
-  Smartphone,
-  Clock,
-  Shield,
-  Trophy,
-  Wand2,
-  ChevronDown
+  Flower2,
+  Palette,
+  Camera,
+  ChevronDown,
+  User,
+  LogIn
 } from 'lucide-react';
 
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [scrollY, setScrollY] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       navigate('/dashboard');
     }
   }, [user, navigate]);
 
-  const features = [
-    {
-      icon: Palette,
-      title: 'Color Analysis & Palette',
-      description: 'Discover your perfect color palette with AI-powered analysis that determines which colors complement your skin tone, hair, and eyes.',
-      color: 'from-purple-500 to-purple-600',
-      gradient: 'from-purple-500/10 to-purple-600/10',
-      details: ['Skin tone analysis', 'Seasonal color matching', 'Personalized palette', 'Color recommendations']
-    },
-    {
-      icon: Shirt,
-      title: 'Digital Wardrobe',
-      description: 'Organize your clothing collection by uploading photos. Categorize items by type, color, season, and occasion for easy browsing.',
-      color: 'from-blue-500 to-blue-600',
-      gradient: 'from-blue-500/10 to-blue-600/10',
-      details: ['Photo upload', 'Item categorization', 'Digital organization', 'Quick browsing']
-    },
-    {
-      icon: Sparkles,
-      title: 'Outfit Recommendations',
-      description: 'Get personalized outfit suggestions based on your wardrobe, color palette, weather conditions, and the occasion you\'re dressing for.',
-      color: 'from-pink-500 to-pink-600',
-      gradient: 'from-pink-500/10 to-pink-600/10',
-      details: ['Weather-based suggestions', 'Occasion matching', 'Color coordination', 'Personal style preferences']
-    },
-    {
-      icon: BarChart3,
-      title: 'Style Analytics',
-      description: 'Track your fashion choices and see insights about your style patterns, most-worn items, and color preferences over time.',
-      color: 'from-emerald-500 to-emerald-600',
-      gradient: 'from-emerald-500/10 to-emerald-600/10',
-      details: ['Wear frequency tracking', 'Style pattern analysis', 'Color usage insights', 'Wardrobe statistics']
-    },
-    {
-      icon: Target,
-      title: 'Style Goals & Planning',
-      description: 'Set style goals, plan outfits for upcoming events, and track your progress toward building your ideal wardrobe.',
-      color: 'from-orange-500 to-orange-600',
-      gradient: 'from-orange-500/10 to-orange-600/10',
-      details: ['Goal setting', 'Outfit planning', 'Progress tracking', 'Style development']
-    },
-    {
-      icon: Heart,
-      title: 'Personal Style Profile',
-      description: 'Build a comprehensive style profile including your preferences, body type, lifestyle, and fashion goals for better recommendations.',
-      color: 'from-rose-500 to-rose-600',
-      gradient: 'from-rose-500/10 to-rose-600/10',
-      details: ['Style preferences', 'Body type settings', 'Lifestyle factors', 'Fashion goals']
-    }
-  ];
-
-  const benefits = [
-    'Save time every morning with personalized outfit recommendations',
-    'Discover new style combinations from your existing wardrobe',
-    'Find colors that complement your skin tone and enhance your look',
-    'Keep track of your clothing items in an organized digital wardrobe',
-    'Get outfit suggestions based on weather and occasion',
-    'Build confidence with colors and styles that suit you best',
-    'Track your style preferences and see what you wear most',
-    'Plan outfits ahead of time for events and occasions'
-  ];
-
-  const stats = [
-    { number: 'AI-Powered', label: 'Outfit Recommendations', icon: Brain },
-    { number: 'Smart', label: 'Wardrobe Organization', icon: Shirt },
-    { number: 'Color', label: 'Analysis Technology', icon: Palette },
-    { number: '24/7', label: 'Style Assistant', icon: Sparkles }
-  ];
-
-  const howItWorks = [
-    {
-      step: 1,
-      icon: Camera,
-      title: 'Complete Color Analysis',
-      description: 'Upload a photo for AI-powered color analysis to discover your perfect color palette'
-    },
-    {
-      step: 2,
-      icon: Shirt,
-      title: 'Add Your Clothes',
-      description: 'Upload photos of your clothing items and organize them into categories'
-    },
-    {
-      step: 3,
-      icon: Sparkles,
-      title: 'Get Style Recommendations',
-      description: 'Receive outfit suggestions based on your colors, wardrobe, weather, and occasion'
-    },
-    {
-      step: 4,
-      icon: BarChart3,
-      title: 'Track Your Style',
-      description: 'Monitor your style choices and see analytics about your fashion preferences'
-    }
-  ];
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
-      <ModernHeader />
-      
-      <div className="relative overflow-hidden">
-        {/* Hero Section */}
-        <section className="relative min-h-screen flex items-center justify-center px-4 py-20">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-600/5 via-transparent to-pink-600/5"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(168,85,247,0.1),transparent)] animate-pulse-soft"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(236,72,153,0.1),transparent)] animate-pulse-soft"></div>
-          
-          <div className="relative z-10 max-w-6xl mx-auto text-center">
-            <div className="animate-fade-in-up">
-              <Badge variant="secondary" className="mb-8 px-6 py-3 text-lg font-semibold bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-0 animate-pulse">
-                <Sparkles className="mr-2 h-5 w-5 animate-pulse" />
-                AI-Powered Fashion Revolution
-              </Badge>
-            </div>
-
-            <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading mb-8 bg-gradient-to-r from-purple-900 via-purple-700 to-pink-700 bg-clip-text text-transparent leading-tight">
-                Your Perfect Style
-                <br />
-                <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Starts Here</span>
-              </h1>
-            </div>
-
-            <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light px-4">
-                Discover colors that make you glow, organize your wardrobe effortlessly, and get
-                <span className="font-semibold text-purple-700"> personalized outfit recommendations</span> that match your style,
-                weather, and occasion. Transform how you dress with smart technology.
-              </p>
-            </div>
-
-            <div className="animate-fade-in-up flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center px-4" style={{ animationDelay: '0.3s' }}>
-              <Button
-                size="lg"
-                className="btn-premium text-lg md:text-xl px-8 md:px-12 py-4 md:py-6 text-white shadow-glow hover:scale-105 transform transition-all duration-300 w-full sm:w-auto"
-                onClick={() => navigate('/auth')}
-              >
-                <Palette className="mr-3 h-5 w-5 md:h-6 md:w-6" />
-                Start Color Analysis
-                <ArrowRight className="ml-3 h-5 w-5 md:h-6 md:w-6" />
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="text-lg md:text-xl px-8 md:px-12 py-4 md:py-6 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 hover:scale-105 transition-all duration-300 bg-white/90 backdrop-blur-sm w-full sm:w-auto"
-                onClick={() => window.scrollTo({ top: document.getElementById('how-it-works')?.offsetTop || 800, behavior: 'smooth' })}
-              >
-                <Camera className="mr-3 h-5 w-5 md:h-6 md:w-6" />
-                See How It Works
-              </Button>
-            </div>
-          </div>
-          
-          {/* Floating elements */}
-          <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full opacity-20 animate-float"></div>
-          <div className="absolute top-40 right-20 w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full opacity-10 animate-float" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute bottom-20 left-20 w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full opacity-15 animate-float" style={{ animationDelay: '2s' }}></div>
-
-
-        </section>
-
-        {/* Stats Section */}
-        <section className="py-16 bg-white/50 backdrop-blur-sm border-y border-purple-100">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-              {stats.map((stat, index) => {
-                const Icon = stat.icon;
-                return (
-                  <div key={index} className="text-center animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center">
-                      <Icon className="h-8 w-8 text-purple-600" />
-                    </div>
-                    <div className="text-4xl font-bold font-heading text-gray-900 mb-2">{stat.number}</div>
-                    <div className="text-muted-foreground font-medium">{stat.label}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Features Grid */}
-        <section className="py-16 px-4">
-          <div className="container mx-auto">
-            <div className="text-center mb-20 animate-fade-in-up">
-              <Badge variant="secondary" className="mb-6 px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-0">
-                <Palette className="mr-2 h-4 w-4" />
-                Exclusive Features
-              </Badge>
-              <h2 className="text-section font-heading mb-6 text-gray-900">
-                Everything You Need for Style Success
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Comprehensive tools designed to enhance your fashion experience with modern technology
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {features.map((feature, index) => {
-                const Icon = feature.icon;
-                return (
-                  <Card key={index} className="card-interactive group border-0 shadow-elegant bg-white/80 backdrop-blur-sm animate-fade-in-up hover:shadow-glow transition-all duration-500" style={{ animationDelay: `${index * 0.1}s` }}>
-                    <CardHeader className="pb-4">
-                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                        <Icon className="h-8 w-8 text-white" />
-                      </div>
-                      <CardTitle className="text-xl font-heading text-gray-900 mb-3">{feature.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground leading-relaxed mb-4">{feature.description}</p>
-
-                      {/* Feature details */}
-                      <div className="space-y-2 mb-6">
-                        {feature.details.map((detail, idx) => (
-                          <div key={idx} className="flex items-center text-sm text-gray-600">
-                            <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-3"></div>
-                            {detail}
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex items-center text-purple-600 font-semibold group-hover:text-purple-700 transition-colors cursor-pointer">
-                        <span>Explore Feature</span>
-                        <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works Section */}
-        <section id="how-it-works" className="py-32 px-4 bg-gradient-to-b from-gray-50 to-white">
-          <div className="container mx-auto">
-            <div className="text-center mb-20 animate-fade-in-up">
-              <Badge variant="secondary" className="mb-6 px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 border-0">
-                <Clock className="mr-2 h-4 w-4" />
-                Simple Process
-              </Badge>
-              <h2 className="text-section font-heading mb-6 text-gray-900">
-                How DripMuse Works
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Get started in minutes and transform your style experience with our intuitive 4-step process
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
-              {/* Connection lines for desktop */}
-              <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-200 via-blue-200 to-purple-200 transform -translate-y-1/2 z-0"></div>
-
-              {howItWorks.map((step, index) => {
-                const Icon = step.icon;
-                return (
-                  <div key={index} className="relative z-10 text-center animate-fade-in-up" style={{ animationDelay: `${index * 0.2}s` }}>
-                    <div className="relative mb-8">
-                      <div className="w-20 h-20 mx-auto bg-white rounded-full shadow-elegant border-4 border-purple-100 flex items-center justify-center mb-4">
-                        <Icon className="h-10 w-10 text-purple-600" />
-                      </div>
-                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">{step.step}</span>
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-heading text-gray-900 mb-3">{step.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">{step.description}</p>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="text-center mt-16 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
-              <Button
-                size="lg"
-                className="btn-premium text-lg px-10 py-4 text-white shadow-glow"
-                onClick={() => navigate('/auth')}
-              >
-                <Sparkles className="mr-3 h-5 w-5" />
-                Start Your Journey Today
-                <ArrowRight className="ml-3 h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* Benefits Section */}
-        <section className="py-32 bg-gradient-to-br from-purple-50 to-pink-50 mx-4 rounded-3xl">
-          <div className="max-w-6xl mx-auto px-8 text-center">
-            <div className="animate-fade-in-up">
-              <h2 className="text-section font-heading mb-6 text-gray-900">
-                Why Fashion Lovers Choose DripMuse
-              </h2>
-              <p className="text-xl text-muted-foreground mb-16 max-w-3xl mx-auto">
-                Join thousands who've transformed their style experience with our premium platform
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left max-w-4xl mx-auto">
-              {benefits.map((benefit, index) => (
-                <div key={index} className="flex items-start space-x-4 animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 mt-1">
-                    <Check className="h-5 w-5 text-white" />
-                  </div>
-                  <p className="text-lg text-gray-700 font-medium">{benefit}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Trust & Security Section */}
-        <section className="py-20 px-4 bg-white border-y border-gray-100">
-          <div className="container mx-auto">
-            <div className="text-center mb-16 animate-fade-in-up">
-              <h3 className="text-2xl font-heading mb-4 text-gray-900">Trusted by Fashion Lovers Worldwide</h3>
-              <p className="text-muted-foreground">Your privacy and data security are our top priorities</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-2xl flex items-center justify-center">
-                  <Shield className="h-8 w-8 text-green-600" />
-                </div>
-                <h4 className="font-semibold text-gray-900 mb-2">Privacy Protected</h4>
-                <p className="text-sm text-muted-foreground">Your photos and data are encrypted and never shared without permission</p>
-              </div>
-
-              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-2xl flex items-center justify-center">
-                  <Clock className="h-8 w-8 text-blue-600" />
-                </div>
-                <h4 className="font-semibold text-gray-900 mb-2">24/7 Support</h4>
-                <p className="text-sm text-muted-foreground">Round-the-clock customer support to help with any questions</p>
-              </div>
-
-              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-2xl flex items-center justify-center">
-                  <Trophy className="h-8 w-8 text-purple-600" />
-                </div>
-                <h4 className="font-semibold text-gray-900 mb-2">Award Winning</h4>
-                <p className="text-sm text-muted-foreground">Recognized as the #1 AI fashion platform by industry experts</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Enhanced Social Proof */}
-        <section className="py-32 px-4 text-center bg-gradient-to-br from-purple-50 to-pink-50">
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-16 animate-fade-in-up">
-              <h3 className="text-3xl font-heading mb-4 text-gray-900">Your Personal Style Assistant</h3>
-              <p className="text-xl text-muted-foreground">Discover your perfect colors and organize your wardrobe with AI technology</p>
-            </div>
-
-            {/* Key Features Highlight */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-              <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-elegant animate-fade-in-up text-center" style={{ animationDelay: '0.1s' }}>
-                <Palette className="h-12 w-12 mx-auto mb-4 text-purple-600" />
-                <h4 className="font-semibold text-gray-900 mb-2">Color Analysis</h4>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Discover which colors make you look and feel your best with AI-powered color analysis technology.
-                </p>
-              </Card>
-
-              <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-elegant animate-fade-in-up text-center" style={{ animationDelay: '0.2s' }}>
-                <Shirt className="h-12 w-12 mx-auto mb-4 text-blue-600" />
-                <h4 className="font-semibold text-gray-900 mb-2">Digital Wardrobe</h4>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Keep all your clothing organized in one place with photo uploads and smart categorization.
-                </p>
-              </Card>
-
-              <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-elegant animate-fade-in-up text-center" style={{ animationDelay: '0.3s' }}>
-                <Sparkles className="h-12 w-12 mx-auto mb-4 text-pink-600" />
-                <h4 className="font-semibold text-gray-900 mb-2">Smart Recommendations</h4>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Get outfit suggestions that match your style, the weather, and the occasion you're dressing for.
-                </p>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* Enhanced CTA Section */}
-        <section className="py-32 px-4 text-center bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 text-white relative overflow-hidden">
-          {/* Background pattern */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.1),transparent)] opacity-50"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(255,255,255,0.05),transparent)] opacity-50"></div>
-
-          <div className="max-w-4xl mx-auto relative z-10">
-            <div className="animate-fade-in-up">
-              <Badge variant="secondary" className="mb-8 px-6 py-3 bg-white/20 text-white border-0 backdrop-blur-sm">
-                <Sparkles className="mr-2 h-5 w-5" />
-                AI-Powered Style Assistant
-              </Badge>
-            </div>
-
-            <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <h2 className="text-section font-heading mb-6">
-                Ready to Organize Your Style?
-              </h2>
-            </div>
-
-            <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90 leading-relaxed">
-                Start your style journey with color analysis and digital wardrobe organization.
-                Discover what works best for you.
-              </p>
-            </div>
-
-            <div className="animate-fade-in-up mb-8" style={{ animationDelay: '0.3s' }}>
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                <Button
-                  size="lg"
-                  className="bg-white text-purple-600 hover:bg-gray-50 hover:scale-105 text-xl px-12 py-6 font-bold shadow-floating transform transition-all duration-300"
-                  onClick={() => navigate('/auth')}
-                >
-                  <Palette className="mr-3 h-6 w-6" />
-                  Get Started
-                  <ArrowRight className="ml-3 h-6 w-6" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm opacity-75">
-                <div className="flex items-center">
-                  <Check className="h-4 w-4 mr-2" />
-                  Free to start
-                </div>
-                <div className="flex items-center">
-                  <Check className="h-4 w-4 mr-2" />
-                  Easy to use
-                </div>
-                <div className="flex items-center">
-                  <Check className="h-4 w-4 mr-2" />
-                  Organize your style
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Footer */}
-        <footer className="py-16 px-4 bg-gray-900 dark:bg-gray-950">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-              <div className="lg:col-span-2">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
-                    <Sparkles className="h-6 w-6 text-white" />
-                  </div>
-                  <span className="text-2xl font-bold text-white">DripMuse</span>
-                </div>
-                <p className="text-gray-300 text-base leading-relaxed max-w-md mb-6">
-                  Transform your style with AI-powered outfit recommendations, smart wardrobe management,
-                  and personalized color analysis. Join thousands discovering their perfect look.
-                </p>
-                <div className="flex space-x-4">
-                  <div className="flex items-center text-gray-400 text-sm">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Privacy Protected
-                  </div>
-                  <div className="flex items-center text-gray-400 text-sm">
-                    <Clock className="h-4 w-4 mr-2" />
-                    24/7 Support
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-white mb-4 text-lg">Features</h4>
-                <ul className="space-y-3">
-                  <li>
-                    <div className="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer flex items-center">
-                      <Palette className="h-4 w-4 mr-2 text-purple-400" />
-                      Color Analysis
-                    </div>
-                  </li>
-                  <li>
-                    <div className="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer flex items-center">
-                      <Shirt className="h-4 w-4 mr-2 text-blue-400" />
-                      Digital Wardrobe
-                    </div>
-                  </li>
-                  <li>
-                    <div className="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer flex items-center">
-                      <Sparkles className="h-4 w-4 mr-2 text-pink-400" />
-                      Style Recommendations
-                    </div>
-                  </li>
-                  <li>
-                    <div className="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer flex items-center">
-                      <BarChart3 className="h-4 w-4 mr-2 text-emerald-400" />
-                      Style Analytics
-                    </div>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-white mb-4 text-lg">Company</h4>
-                <ul className="space-y-3">
-                  <li>
-                    <button
-                      onClick={() => navigate('/terms')}
-                      className="text-gray-300 hover:text-white text-sm transition-colors text-left"
-                    >
-                      Terms of Service
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => navigate('/privacy')}
-                      className="text-gray-300 hover:text-white text-sm transition-colors text-left"
-                    >
-                      Privacy Policy
-                    </button>
-                  </li>
-                  <li>
-                    <a href="mailto:support@dripmuse.com" className="text-gray-300 hover:text-white text-sm transition-colors">
-                      Contact Support
-                    </a>
-                  </li>
-                  <li>
-                    <a href="mailto:hello@dripmuse.com" className="text-gray-300 hover:text-white text-sm transition-colors">
-                      General Inquiries
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-700 pt-8">
-              <div className="flex flex-col sm:flex-row justify-between items-center">
-                <p className="text-gray-400 text-sm mb-4 sm:mb-0">
-                  © 2024 DripMuse. All rights reserved. Built with ❤️ for fashion enthusiasts.
-                </p>
-                <div className="flex space-x-6">
-                  <span className="text-gray-400 text-xs flex items-center">
-                    <Brain className="h-3 w-3 mr-1" />
-                    AI-Powered
-                  </span>
-                  <span className="text-gray-400 text-xs flex items-center">
-                    <Smartphone className="h-3 w-3 mr-1" />
-                    Mobile-First
-                  </span>
-                  <span className="text-gray-400 text-xs flex items-center">
-                    <Heart className="h-3 w-3 mr-1" />
-                    Made with Love
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </footer>
+    <div className="min-h-screen overflow-hidden relative">
+      {/* Botanical Background Pattern */}
+      <div className="fixed inset-0 pointer-events-none opacity-10">
+        <svg width="100%" height="100%" className="absolute inset-0">
+          <defs>
+            <pattern id="botanical" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+              <g opacity="0.3">
+                <path d="M100 10 Q120 30 100 50 Q80 30 100 10" fill="url(#dustyRose)" />
+                <path d="M150 80 Q170 100 150 120 Q130 100 150 80" fill="url(#lavender)" />
+                <path d="M50 150 Q70 170 50 190 Q30 170 50 150" fill="url(#mauve)" />
+              </g>
+            </pattern>
+            <linearGradient id="dustyRose" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgb(217, 175, 195)" />
+              <stop offset="100%" stopColor="rgb(207, 159, 183)" />
+            </linearGradient>
+            <linearGradient id="lavender" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgb(230, 224, 244)" />
+              <stop offset="100%" stopColor="rgb(218, 208, 236)" />
+            </linearGradient>
+            <linearGradient id="mauve" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgb(221, 190, 216)" />
+              <stop offset="100%" stopColor="rgb(211, 176, 206)" />
+            </linearGradient>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#botanical)" />
+        </svg>
       </div>
+
+      {/* Floating Navigation */}
+      <nav className="fixed top-8 right-8 z-50 backdrop-blur-md bg-white/20 rounded-full px-6 py-3 border border-white/30 shadow-lg shadow-purple-100/20">
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={() => navigate('/auth')}
+            className="text-sm text-slate-600 hover:text-slate-800 transition-colors duration-300 flex items-center space-x-2"
+          >
+            <LogIn className="h-4 w-4" />
+            <span>Sign In</span>
+          </button>
+          <div className="w-px h-4 bg-slate-300"></div>
+          <button 
+            onClick={() => navigate('/auth')}
+            className="text-sm bg-gradient-to-r from-purple-400/80 to-pink-400/80 text-white px-4 py-2 rounded-full hover:from-purple-500/80 hover:to-pink-500/80 transition-all duration-300 backdrop-blur-sm"
+          >
+            Get Started
+          </button>
+        </div>
+      </nav>
+
+      {/* Hero Section - Editorial Magazine Style */}
+      <section className="relative min-h-screen flex items-center overflow-hidden">
+        {/* Background Gradients */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/60 via-pink-50/40 to-rose-50/60"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40"></div>
+        
+        {/* Floating Watercolor Elements */}
+        <div 
+          className="absolute top-20 right-20 w-96 h-96 rounded-full opacity-30 blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, rgb(221, 190, 216) 0%, rgb(230, 224, 244) 50%, transparent 100%)',
+            transform: `translateY(${scrollY * 0.2}px) rotate(${scrollY * 0.1}deg)`
+          }}
+        ></div>
+        <div 
+          className="absolute bottom-40 left-20 w-80 h-80 rounded-full opacity-25 blur-2xl"
+          style={{
+            background: 'radial-gradient(circle, rgb(217, 175, 195) 0%, rgb(207, 159, 183) 50%, transparent 100%)',
+            transform: `translateY(${-scrollY * 0.15}px) rotate(${-scrollY * 0.05}deg)`
+          }}
+        ></div>
+
+        {/* Abstract Female Silhouette */}
+        <div className="absolute right-0 top-0 w-1/2 h-full opacity-20">
+          <svg viewBox="0 0 400 600" className="w-full h-full">
+            <defs>
+              <linearGradient id="silhouette" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="rgb(221, 190, 216)" stopOpacity="0.6" />
+                <stop offset="50%" stopColor="rgb(230, 224, 244)" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="rgb(217, 175, 195)" stopOpacity="0.2" />
+              </linearGradient>
+            </defs>
+            <path d="M200 50 Q220 70 215 100 Q210 140 200 180 Q195 220 190 280 Q185 350 180 420 Q175 480 170 540" 
+                  stroke="url(#silhouette)" strokeWidth="40" fill="none" strokeLinecap="round" />
+            <circle cx="200" cy="60" r="25" fill="url(#silhouette)" />
+          </svg>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-8 py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* Left Content - Asymmetrical Layout */}
+            <div className="space-y-12">
+              {/* Floating Badge */}
+              <div className="inline-flex items-center space-x-3 bg-white/40 backdrop-blur-md rounded-full px-6 py-3 border border-white/50 shadow-lg shadow-purple-100/20">
+                <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
+                <span className="text-sm font-medium text-slate-700 tracking-wide">Ethereal Style Discovery</span>
+              </div>
+
+              {/* Main Headline - Serif Typography */}
+              <div className="space-y-6">
+                <h1 className="font-serif text-6xl lg:text-7xl text-slate-800 leading-none tracking-tight">
+                  <span className="block transform -rotate-1">Awaken</span>
+                  <span className="block text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text transform rotate-1 ml-8">Your</span>
+                  <span className="block transform -rotate-1">Inner Muse</span>
+                </h1>
+                
+                <p className="text-xl text-slate-600 font-light leading-relaxed max-w-lg">
+                  Discover the poetry in your palette, the grace in your garments. 
+                  Let AI unveil the colors that make your soul sing.
+                </p>
+              </div>
+
+              {/* Floating Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-6 items-start">
+                <button 
+                  onClick={() => navigate('/auth')}
+                  className="group relative overflow-hidden bg-gradient-to-r from-purple-400/90 to-pink-400/90 text-white px-8 py-4 rounded-2xl backdrop-blur-md border border-white/30 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(236, 72, 153, 0.8))',
+                    backdropFilter: 'blur(20px)',
+                    boxShadow: '0 8px 32px rgba(168, 85, 247, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                  }}
+                >
+                  <span className="relative z-10 flex items-center space-x-3 text-lg font-medium">
+                    <Palette className="h-5 w-5" />
+                    <span>Begin Journey</span>
+                    <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                </button>
+
+                <button 
+                  onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+                  className="group text-slate-600 hover:text-slate-800 transition-colors duration-300 flex items-center space-x-3"
+                >
+                  <div className="w-12 h-12 rounded-full bg-white/60 backdrop-blur-md border border-white/50 flex items-center justify-center group-hover:bg-white/80 transition-all duration-300">
+                    <Camera className="h-5 w-5" />
+                  </div>
+                  <span className="text-lg font-light">Explore the Art</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Right Content - Floating Cards */}
+            <div className="relative">
+              {/* Translucent Cards with Glassmorphism */}
+              <div className="space-y-6 transform rotate-3">
+                <div 
+                  className="bg-white/30 backdrop-blur-md rounded-3xl p-8 border border-white/40 shadow-xl shadow-purple-100/20 transform -rotate-6 hover:rotate-0 transition-transform duration-700"
+                  style={{ backdropFilter: 'blur(20px)' }}
+                >
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400/60 to-pink-400/60 flex items-center justify-center backdrop-blur-sm">
+                      <Feather className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-serif text-slate-700">Color Harmony</h3>
+                  </div>
+                  <p className="text-slate-600 font-light leading-relaxed">
+                    Uncover the hues that whisper to your essence, creating harmony between you and your wardrobe.
+                  </p>
+                </div>
+
+                <div 
+                  className="bg-white/25 backdrop-blur-md rounded-3xl p-8 border border-white/40 shadow-xl shadow-pink-100/20 transform rotate-6 hover:rotate-0 transition-transform duration-700 ml-12"
+                  style={{ backdropFilter: 'blur(20px)' }}
+                >
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-400/60 to-purple-400/60 flex items-center justify-center backdrop-blur-sm">
+                      <Flower2 className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-serif text-slate-700">Intuitive Styling</h3>
+                  </div>
+                  <p className="text-slate-600 font-light leading-relaxed">
+                    Let intuition guide your choices as AI learns the poetry of your personal aesthetic.
+                  </p>
+                </div>
+
+                <div 
+                  className="bg-white/35 backdrop-blur-md rounded-3xl p-8 border border-white/40 shadow-xl shadow-rose-100/20 transform -rotate-3 hover:rotate-0 transition-transform duration-700 mr-8"
+                  style={{ backdropFilter: 'blur(20px)' }}
+                >
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400/60 to-rose-400/60 flex items-center justify-center backdrop-blur-sm">
+                      <Heart className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-serif text-slate-700">Soulful Expression</h3>
+                  </div>
+                  <p className="text-slate-600 font-light leading-relaxed">
+                    Express your inner world through thoughtful curation and mindful style choices.
+                  </p>
+                </div>
+              </div>
+
+              {/* Floating Botanical Elements */}
+              <div className="absolute -top-8 -left-8 text-purple-300/40 animate-pulse">
+                <Flower2 className="h-16 w-16 transform rotate-12" />
+              </div>
+              <div className="absolute -bottom-4 -right-4 text-pink-300/40 animate-pulse">
+                <Star className="h-12 w-12 transform -rotate-12" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <div className="flex flex-col items-center space-y-2 text-slate-400">
+            <span className="text-sm font-light">Scroll to explore</span>
+            <ChevronDown className="h-6 w-6" />
+          </div>
+        </div>
+      </section>
+
+      {/* About Section - Poetic Layout */}
+      <section className="relative py-32 px-8 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-bl from-rose-50/60 via-white to-purple-50/40"></div>
+        
+        <div className="relative z-10 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+            {/* Centered Poetry */}
+            <div className="lg:col-span-2 lg:col-start-2 text-center space-y-12">
+              <div className="space-y-8">
+                <h2 className="font-serif text-5xl lg:text-6xl text-slate-800 leading-tight tracking-tight">
+                  Where Technology
+                  <span className="block text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text italic">
+                    Meets Poetry
+                  </span>
+                </h2>
+                
+                <div className="max-w-2xl mx-auto space-y-6 text-lg text-slate-600 font-light leading-relaxed">
+                  <p>
+                    In the delicate dance between science and art, we've crafted an experience 
+                    that honors both your analytical mind and your creative spirit.
+                  </p>
+                  <p>
+                    Each color recommendation is a verse, every outfit suggestion a stanza 
+                    in the ongoing poem of your personal style journey.
+                  </p>
+                </div>
+              </div>
+
+              {/* Floating Feature Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
+                <div className="transform -rotate-2 hover:rotate-0 transition-transform duration-500">
+                  <div 
+                    className="bg-white/40 backdrop-blur-md rounded-2xl p-6 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300"
+                    style={{ backdropFilter: 'blur(20px)' }}
+                  >
+                    <div className="text-center space-y-4">
+                      <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-400/40 to-pink-400/40 flex items-center justify-center backdrop-blur-sm">
+                        <Palette className="h-8 w-8 text-purple-600" />
+                      </div>
+                      <h3 className="font-serif text-lg text-slate-700">Color Divination</h3>
+                      <p className="text-sm text-slate-600 font-light leading-relaxed">
+                        Unveil the colors that make your soul luminous through AI-powered analysis
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="transform rotate-2 hover:rotate-0 transition-transform duration-500 mt-8 md:mt-0">
+                  <div 
+                    className="bg-white/40 backdrop-blur-md rounded-2xl p-6 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300"
+                    style={{ backdropFilter: 'blur(20px)' }}
+                  >
+                    <div className="text-center space-y-4">
+                      <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-rose-400/40 to-purple-400/40 flex items-center justify-center backdrop-blur-sm">
+                        <Moon className="h-8 w-8 text-rose-600" />
+                      </div>
+                      <h3 className="font-serif text-lg text-slate-700">Wardrobe Sanctuary</h3>
+                      <p className="text-sm text-slate-600 font-light leading-relaxed">
+                        Curate your digital wardrobe like a sacred collection of treasured pieces
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="transform -rotate-1 hover:rotate-0 transition-transform duration-500">
+                  <div 
+                    className="bg-white/40 backdrop-blur-md rounded-2xl p-6 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300"
+                    style={{ backdropFilter: 'blur(20px)' }}
+                  >
+                    <div className="text-center space-y-4">
+                      <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-pink-400/40 to-rose-400/40 flex items-center justify-center backdrop-blur-sm">
+                        <Sparkles className="h-8 w-8 text-pink-600" />
+                      </div>
+                      <h3 className="font-serif text-lg text-slate-700">Inspired Curation</h3>
+                      <p className="text-sm text-slate-600 font-light leading-relaxed">
+                        Receive outfit inspirations that honor your unique aesthetic vision
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Botanical Accents */}
+        <div className="absolute top-20 left-20 opacity-20">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <path d="M60 10 Q80 30 60 50 Q40 30 60 10" fill="url(#dustyRose)" />
+            <path d="M60 50 Q80 70 60 90 Q40 70 60 50" fill="url(#lavender)" />
+            <path d="M60 90 Q80 110 60 130 Q40 110 60 90" fill="url(#mauve)" />
+          </svg>
+        </div>
+      </section>
+
+      {/* Call to Action - Dreamy Finale */}
+      <section className="relative py-32 px-8 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-tr from-purple-100/60 via-pink-50/40 to-rose-100/60"></div>
+        <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-white/30 to-white/60"></div>
+        
+        {/* Floating Watercolor Background */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-30">
+          <div className="absolute top-20 left-20 w-96 h-96 rounded-full bg-gradient-radial from-purple-200/60 via-pink-200/40 to-transparent blur-3xl"></div>
+          <div className="absolute bottom-20 right-20 w-80 h-80 rounded-full bg-gradient-radial from-rose-200/60 via-purple-200/40 to-transparent blur-2xl"></div>
+        </div>
+
+        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-12">
+          <div className="space-y-8">
+            <div className="inline-flex items-center space-x-3 bg-white/50 backdrop-blur-md rounded-full px-6 py-3 border border-white/60 shadow-lg">
+              <Star className="h-5 w-5 text-purple-400 animate-pulse" />
+              <span className="text-sm font-medium text-slate-700 tracking-wide">Begin Your Transformation</span>
+            </div>
+
+            <h2 className="font-serif text-5xl lg:text-6xl text-slate-800 leading-tight tracking-tight">
+              Step Into Your
+              <span className="block text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text italic">
+                Style Renaissance
+              </span>
+            </h2>
+
+            <p className="text-xl text-slate-600 font-light leading-relaxed max-w-2xl mx-auto">
+              Every masterpiece begins with a single brushstroke. 
+              Your journey to authentic style starts with one beautiful moment of discovery.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-8 items-center justify-center">
+            <button 
+              onClick={() => navigate('/auth')}
+              className="group relative overflow-hidden px-12 py-5 rounded-2xl transition-all duration-500 hover:scale-105"
+              style={{
+                background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(236, 72, 153, 0.9))',
+                backdropFilter: 'blur(20px)',
+                boxShadow: '0 20px 40px rgba(168, 85, 247, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+              }}
+            >
+              <span className="relative z-10 flex items-center space-x-4 text-white text-xl font-medium">
+                <Palette className="h-6 w-6" />
+                <span>Discover Your Colors</span>
+                <ArrowRight className="h-6 w-6 group-hover:translate-x-2 transition-transform" />
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            </button>
+          </div>
+
+          {/* Floating Trust Indicators */}
+          <div className="flex flex-wrap items-center justify-center gap-8 mt-16 text-sm text-slate-500">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 rounded-full bg-green-400"></div>
+              <span>Trusted by thousands</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+              <span>AI-powered precision</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 rounded-full bg-pink-400"></div>
+              <span>Intuitive & beautiful</span>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
