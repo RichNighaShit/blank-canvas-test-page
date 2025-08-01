@@ -79,7 +79,15 @@ const WatercolorCursor: React.FC<WatercolorCursorProps> = ({ enabled = true }) =
       document.removeEventListener('mouseenter', handleMouseEnter);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [enabled]);
+
+  // Clear trails when disabled
+  useEffect(() => {
+    if (!enabled) {
+      setCursorTrails([]);
+      setIsVisible(false);
+    }
+  }, [enabled]);
 
   if (!isVisible) return null;
 
