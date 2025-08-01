@@ -36,9 +36,15 @@ const WatercolorCursor: React.FC<WatercolorCursorProps> = ({ enabled = true }) =
     };
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (!enabled) {
+        setIsVisible(false);
+        setCursorTrails([]);
+        return;
+      }
+
       setIsVisible(true);
       const now = Date.now();
-      
+
       setCursorTrails(prev => {
         const newTrail: CursorTrail = {
           id: trailIdRef.current++,
@@ -48,7 +54,7 @@ const WatercolorCursor: React.FC<WatercolorCursorProps> = ({ enabled = true }) =
           opacity: 1,
           size: Math.random() * 20 + 15
         };
-        
+
         return [...prev.slice(-15), newTrail]; // Keep only last 15 trails
       });
     };
