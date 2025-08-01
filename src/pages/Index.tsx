@@ -352,9 +352,9 @@ const Index = () => {
                       <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-rose-400/40 to-purple-400/40 flex items-center justify-center backdrop-blur-sm">
                         <Moon className="h-8 w-8 text-rose-600" />
                       </div>
-                      <h3 className="font-serif text-lg text-slate-700">Wardrobe Sanctuary</h3>
+                      <h3 className="font-serif text-lg text-slate-700">Digital Wardrobe</h3>
                       <p className="text-sm text-slate-600 font-light leading-relaxed">
-                        Curate your digital wardrobe like a sacred collection of treasured pieces
+                        Upload and organize your clothes with smart categorization and tagging
                       </p>
                     </div>
                   </div>
