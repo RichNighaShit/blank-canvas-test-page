@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import MuseIntroAnimation from '@/components/MuseIntroAnimation';
+import PoeticStanzas from '@/components/PoetricStanzas';
+import WatercolorCursor from '@/components/WatercolorCursor';
+import AmbientSoundLayer from '@/components/AmbientSoundLayer';
 import {
   Sparkles,
   ArrowRight,
