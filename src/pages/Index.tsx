@@ -233,12 +233,12 @@ const Index = () => {
                 >
                   <div className="flex items-center space-x-4 mb-4">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400/60 to-pink-400/60 flex items-center justify-center backdrop-blur-sm">
-                      <Feather className="h-6 w-6 text-white" />
+                      <Palette className="h-6 w-6 text-white" />
                     </div>
-                    <h3 className="text-lg font-serif text-slate-700">Color Harmony</h3>
+                    <h3 className="text-lg font-serif text-slate-700">AI Color Analysis</h3>
                   </div>
                   <p className="text-slate-600 font-light leading-relaxed">
-                    Uncover the hues that whisper to your essence, creating harmony between you and your wardrobe.
+                    Upload a photo and get your personalized color palette based on your skin tone, hair, and eye color.
                   </p>
                 </div>
 
