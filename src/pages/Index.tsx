@@ -413,15 +413,15 @@ const Index = () => {
             </div>
 
             <h2 className="font-serif text-5xl lg:text-6xl text-slate-800 leading-tight tracking-tight">
-              Step Into Your
+              Ready to Transform
               <span className="block text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text italic">
-                Style Renaissance
+                Your Style?
               </span>
             </h2>
 
             <p className="text-xl text-slate-600 font-light leading-relaxed max-w-2xl mx-auto">
-              Every masterpiece begins with a single brushstroke. 
-              Your journey to authentic style starts with one beautiful moment of discovery.
+              Join thousands who've discovered their perfect colors and streamlined their daily outfit choices.
+              Start your personalized style journey today with AI-powered recommendations.
             </p>
           </div>
 
