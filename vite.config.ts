@@ -27,7 +27,10 @@ export default defineConfig(({ mode }) => ({
             "@radix-ui/react-dialog",
             "@radix-ui/react-select",
             "@radix-ui/react-toast",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-popover"
           ],
+          wardrobe: ["./src/pages/Wardrobe.tsx"],
         },
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name?.split(".") || [];

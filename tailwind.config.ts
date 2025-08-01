@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -23,6 +22,8 @@ export default {
 				'sans': ['Inter', 'system-ui', 'sans-serif'],
 				'heading': ['Playfair Display', 'serif'],
 				'body': ['Inter', 'system-ui', 'sans-serif'],
+				'serif': ['Cormorant Garamond', 'Playfair Display', 'serif'],
+				'whisper': ['Inter', 'system-ui', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -68,6 +69,15 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				muse: {
+					mauve: 'rgb(221, 190, 216)',
+					lavender: 'rgb(230, 224, 244)',
+					dustyRose: 'rgb(217, 175, 195)',
+					mistyPearl: 'rgb(248, 245, 250)',
+					deepMauve: 'rgb(193, 154, 188)',
+					softPink: 'rgb(236, 204, 227)',
+					whisperLavender: 'rgb(244, 240, 250)'
 				}
 			},
 			borderRadius: {
@@ -194,7 +204,10 @@ export default {
 				'gradient-hero': 'var(--gradient-hero)',
 				'gradient-accent': 'var(--gradient-accent)',
 				'hero-pattern': 'var(--background-hero)',
-				'shimmer-gradient': 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)'
+				'shimmer-gradient': 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+				'gradient-muse': 'linear-gradient(135deg, rgb(221, 190, 216), rgb(230, 224, 244), rgb(217, 175, 195))',
+				'gradient-muse-watercolor': 'radial-gradient(circle, rgba(221, 190, 216, 0.3), rgba(230, 224, 244, 0.2), transparent)',
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))'
 			},
 			boxShadow: {
 				'elegant': 'var(--shadow-elegant)',
