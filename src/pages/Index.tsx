@@ -181,13 +181,13 @@ const Index = () => {
                   <span className="block transform -rotate-1">Inner Muse</span>
                 </h1>
 
-                <div className="space-y-4">
+                  <div className="space-y-4">
                   <p className="text-xl text-slate-600 font-light leading-relaxed max-w-lg">
-                    Discover the poetry in your palette, the grace in your garments.
-                    Let AI unveil the colors that make your soul sing.
+                    Your AI-powered personal stylist. Upload photos of your clothes, get personalized color analysis,
+                    and receive smart outfit recommendations tailored to your style, occasion, and weather.
                   </p>
                   <p className="text-sm text-slate-500 font-light italic tracking-widest">
-                    — Powered by DripMuse AI Style Intelligence —
+                    — Join thousands discovering their perfect style with AI —
                   </p>
                 </div>
               </div>
