@@ -145,14 +145,15 @@ const AmbientSoundLayer: React.FC<AmbientSoundLayerProps> = ({
 
           <button
             onClick={toggleMouseTrail}
-            className="flex items-center space-x-2 text-slate-600 hover:text-slate-800 transition-colors"
+            className="flex items-center space-x-2 text-slate-600 hover:text-slate-800 transition-colors relative"
             aria-label={mouseTrailEnabled ? 'Disable mouse trail' : 'Enable mouse trail'}
           >
-            {mouseTrailEnabled ? (
+            <div className="relative">
               <MousePointer className="h-5 w-5" />
-            ) : (
-              <MousePointerOff className="h-5 w-5" />
-            )}
+              {!mouseTrailEnabled && (
+                <X className="h-3 w-3 absolute -top-1 -right-1 text-red-500 bg-white rounded-full" />
+              )}
+            </div>
             <span className="text-sm font-light hidden sm:inline">
               {mouseTrailEnabled ? 'Trail' : 'No Trail'}
             </span>
