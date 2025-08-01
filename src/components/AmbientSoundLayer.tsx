@@ -123,22 +123,41 @@ const AmbientSoundLayer: React.FC<AmbientSoundLayerProps> = ({
   };
 
   return (
-    <div className="fixed bottom-8 left-8 z-40">
-      <div className="bg-white/20 backdrop-blur-md rounded-full p-3 border border-white/30 shadow-lg hover:bg-white/30 transition-all duration-300">
-        <button
-          onClick={toggleSound}
-          className="flex items-center space-x-2 text-slate-600 hover:text-slate-800 transition-colors"
-          aria-label={isPlaying ? 'Mute ambient sound' : 'Play ambient sound'}
-        >
-          {isPlaying ? (
-            <Volume2 className="h-5 w-5" />
-          ) : (
-            <VolumeX className="h-5 w-5" />
-          )}
-          <span className="text-sm font-light hidden sm:inline">
-            {isPlaying ? 'Ambient' : 'Silent'}
-          </span>
-        </button>
+    <div className="fixed bottom-8 left-8 z-40 space-y-3">
+      <div className="bg-white/20 backdrop-blur-md rounded-full px-4 py-3 border border-white/30 shadow-lg hover:bg-white/30 transition-all duration-300">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={toggleSound}
+            className="flex items-center space-x-2 text-slate-600 hover:text-slate-800 transition-colors"
+            aria-label={isPlaying ? 'Mute ambient sound' : 'Play ambient sound'}
+          >
+            {isPlaying ? (
+              <Volume2 className="h-5 w-5" />
+            ) : (
+              <VolumeX className="h-5 w-5" />
+            )}
+            <span className="text-sm font-light hidden sm:inline">
+              {isPlaying ? 'Ambient' : 'Silent'}
+            </span>
+          </button>
+
+          <div className="w-px h-5 bg-white/30"></div>
+
+          <button
+            onClick={toggleMouseTrail}
+            className="flex items-center space-x-2 text-slate-600 hover:text-slate-800 transition-colors"
+            aria-label={mouseTrailEnabled ? 'Disable mouse trail' : 'Enable mouse trail'}
+          >
+            {mouseTrailEnabled ? (
+              <MousePointer className="h-5 w-5" />
+            ) : (
+              <MousePointerOff className="h-5 w-5" />
+            )}
+            <span className="text-sm font-light hidden sm:inline">
+              {mouseTrailEnabled ? 'Trail' : 'No Trail'}
+            </span>
+          </button>
+        </div>
       </div>
       
       {isPlaying && (
