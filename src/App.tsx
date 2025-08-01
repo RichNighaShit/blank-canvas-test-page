@@ -14,25 +14,21 @@ import { lazyWithRetry } from "./utils/lazyLoadWithRetry";
 // Lazy load components for better bundle splitting with retry logic
 const Dashboard = React.lazy(() => lazyWithRetry(() => import("./pages/Dashboard")));
 const Wardrobe = React.lazy(() => lazyWithRetry(() => import("./pages/Wardrobe")));
-const WardrobeSetup = React.lazy(() => import("./pages/WardrobeSetup"));
-const EditProfile = React.lazy(() => import("./pages/EditProfile"));
-const StyleRecommendations = React.lazy(
-  () => import("./pages/StyleRecommendations"),
-);
-const Analytics = React.lazy(() => import("./pages/Analytics"));
-const VirtualTryOn = React.lazy(() => import("./pages/VirtualTryOn"));
+const WardrobeSetup = React.lazy(() => lazyWithRetry(() => import("./pages/WardrobeSetup")));
+const EditProfile = React.lazy(() => lazyWithRetry(() => import("./pages/EditProfile")));
+const StyleRecommendations = React.lazy(() => lazyWithRetry(() => import("./pages/StyleRecommendations")));
+const Analytics = React.lazy(() => lazyWithRetry(() => import("./pages/Analytics")));
+const VirtualTryOn = React.lazy(() => lazyWithRetry(() => import("./pages/VirtualTryOn")));
 // Auth imported above as regular import for debugging
 // const Auth = React.lazy(() => import("./pages/Auth"));
-const StyleMeImproved = React.lazy(() => import("./pages/StyleMeImproved"));
-const WardrobeAnalyticsPage = React.lazy(
-  () => import("./pages/WardrobeAnalyticsPage"),
-);
-const Onboarding = React.lazy(() => import("./pages/Onboarding"));
-const Index = React.lazy(() => import("./pages/Index"));
-const NotFound = React.lazy(() => import("./pages/NotFound"));
-const YourColorPalette = React.lazy(() => import("./pages/YourColorPalette"));
-const TermsOfUsePage = React.lazy(() => import("./pages/TermsOfUsePage"));
-const PrivacyPolicyPage = React.lazy(() => import("./pages/PrivacyPolicyPage"));
+const StyleMeImproved = React.lazy(() => lazyWithRetry(() => import("./pages/StyleMeImproved")));
+const WardrobeAnalyticsPage = React.lazy(() => lazyWithRetry(() => import("./pages/WardrobeAnalyticsPage")));
+const Onboarding = React.lazy(() => lazyWithRetry(() => import("./pages/Onboarding")));
+const Index = React.lazy(() => lazyWithRetry(() => import("./pages/Index")));
+const NotFound = React.lazy(() => lazyWithRetry(() => import("./pages/NotFound")));
+const YourColorPalette = React.lazy(() => lazyWithRetry(() => import("./pages/YourColorPalette")));
+const TermsOfUsePage = React.lazy(() => lazyWithRetry(() => import("./pages/TermsOfUsePage")));
+const PrivacyPolicyPage = React.lazy(() => lazyWithRetry(() => import("./pages/PrivacyPolicyPage")));
 
 
 // Loading component for Suspense fallback
