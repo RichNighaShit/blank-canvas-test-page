@@ -7,6 +7,8 @@ import MuseIntroAnimation from '@/components/MuseIntroAnimation';
 import WatercolorCursor from '@/components/WatercolorCursor';
 import AmbientSoundLayer from '@/components/AmbientSoundLayer';
 import DripMuseShowcase from '@/components/DripMuseShowcase';
+import LiveColorDemo from '@/components/LiveColorDemo';
+import ParallaxBackground from '@/components/ParallaxBackground';
 import {
   Sparkles,
   ArrowRight,
