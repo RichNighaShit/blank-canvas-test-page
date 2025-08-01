@@ -5,27 +5,27 @@ const SocialProofSection: React.FC = () => {
   const testimonials = [
     {
       name: "Sarah Chen",
-      role: "Marketing Director",
-      content: "DripMuse completely transformed my confidence. The AI found colors I never would have tried - and they're perfect!",
+      role: "Marketing Professional",
+      content: "DripMuse helped me discover colors that actually complement my skin tone. The wardrobe organization feature is so helpful!",
       rating: 5,
       image: "bg-gradient-to-br from-pink-400 to-rose-400",
-      saved: "$2,400"
+      saved: "Time Saved"
     },
     {
       name: "Miguel Rodriguez",
-      role: "Creative Designer",
-      content: "As someone in fashion, I was skeptical. But DripMuse's color analysis is more accurate than human stylists.",
-      rating: 5,
+      role: "Creative Professional",
+      content: "The color analysis gave me confidence in my choices. I love how it organizes my wardrobe digitally.",
+      rating: 4,
       image: "bg-gradient-to-br from-purple-400 to-blue-400",
-      saved: "$1,800"
+      saved: "Better Choices"
     },
     {
       name: "Priya Patel",
-      role: "Software Engineer",
-      content: "I saved 3 hours every week just on outfit planning. The AI knows my style better than I do!",
+      role: "Tech Professional",
+      content: "Great for outfit planning! The AI suggestions actually match my style and the weather.",
       rating: 5,
       image: "bg-gradient-to-br from-green-400 to-teal-400",
-      saved: "$3,200"
+      saved: "Daily Use"
     }
   ];
 
