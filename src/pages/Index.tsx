@@ -40,6 +40,11 @@ const Index = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleIntroComplete = () => {
+    setShowIntro(false);
+    setPageLoaded(true);
+  };
+
   return (
     <div className="min-h-screen overflow-hidden relative">
       {/* Botanical Background Pattern */}
