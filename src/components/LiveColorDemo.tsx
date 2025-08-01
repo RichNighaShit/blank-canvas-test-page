@@ -193,9 +193,9 @@ const LiveColorDemo: React.FC = () => {
                   <Eye className="h-6 w-6 text-pink-600" />
                 </div>
                 <div>
-                  <h3 className="font-serif text-xl text-slate-700 mb-2">Instant Results</h3>
+                  <h3 className="font-serif text-xl text-slate-700 mb-2">Quick Results</h3>
                   <p className="text-slate-600 font-light leading-relaxed">
-                    Get your personalized color analysis in under 10 seconds with 96% accuracy
+                    Get your personalized color analysis results quickly with our trained AI model
                   </p>
                 </div>
               </div>
