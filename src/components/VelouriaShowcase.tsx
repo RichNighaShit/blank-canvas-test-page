@@ -1,19 +1,19 @@
 import React from 'react';
 import { Palette, Feather, Sparkles, Heart } from 'lucide-react';
 
-const VelouriaShowcase: React.FC = () => {
+const DripMuseShowcase: React.FC = () => {
   return (
     <div className="hidden lg:block fixed top-1/2 right-8 transform -translate-y-1/2 z-30 space-y-4">
       <div className="bg-white/20 backdrop-blur-md rounded-2xl p-6 border border-white/40 shadow-xl max-w-sm">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-400/40 to-pink-400/40 flex items-center justify-center backdrop-blur-sm">
-            <Feather className="h-8 w-8 text-purple-600" />
+            <Sparkles className="h-8 w-8 text-purple-600" />
           </div>
-          
+
           <div className="space-y-2">
-            <h3 className="font-serif text-xl text-slate-700 tracking-wide">Velouria</h3>
+            <h3 className="font-serif text-xl text-slate-700 tracking-wide">DripMuse</h3>
             <p className="text-xs text-slate-600 font-light tracking-widest uppercase">
-              Ethereal Design System
+              AI Style Intelligence
             </p>
           </div>
           
