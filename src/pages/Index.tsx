@@ -448,15 +448,15 @@ const Index = () => {
           <div className="flex flex-wrap items-center justify-center gap-8 mt-16 text-sm text-slate-500">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 rounded-full bg-green-400"></div>
-              <span>Trusted by thousands</span>
+              <span>Free to start</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 rounded-full bg-purple-400"></div>
-              <span>AI-powered precision</span>
+              <span>AI-powered analysis</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 rounded-full bg-pink-400"></div>
-              <span>Intuitive & beautiful</span>
+              <span>Works on any device</span>
             </div>
           </div>
         </div>
