@@ -52,7 +52,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden relative" style={{ cursor: 'none' }}>
+    <div className="min-h-screen overflow-hidden relative" style={{ cursor: mouseTrailEnabled ? 'none' : 'default' }}>
       {/* Intro Animation */}
       {showIntro && <MuseIntroAnimation onComplete={handleIntroComplete} />}
 
