@@ -46,7 +46,18 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden relative">
+    <div className="min-h-screen overflow-hidden relative" style={{ cursor: 'none' }}>
+      {/* Intro Animation */}
+      {showIntro && <MuseIntroAnimation onComplete={handleIntroComplete} />}
+
+      {/* Watercolor Cursor */}
+      {pageLoaded && <WatercolorCursor />}
+
+      {/* Poetic Stanzas */}
+      {pageLoaded && <PoeticStanzas />}
+
+      {/* Ambient Sound Layer */}
+      {pageLoaded && <AmbientSoundLayer />}
       {/* Botanical Background Pattern */}
       <div className="fixed inset-0 pointer-events-none opacity-10">
         <svg width="100%" height="100%" className="absolute inset-0">
