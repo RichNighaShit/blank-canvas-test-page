@@ -248,12 +248,12 @@ const Index = () => {
                 >
                   <div className="flex items-center space-x-4 mb-4">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-400/60 to-purple-400/60 flex items-center justify-center backdrop-blur-sm">
-                      <Flower2 className="h-6 w-6 text-white" />
+                      <Camera className="h-6 w-6 text-white" />
                     </div>
-                    <h3 className="text-lg font-serif text-slate-700">Intuitive Styling</h3>
+                    <h3 className="text-lg font-serif text-slate-700">Smart Wardrobe</h3>
                   </div>
                   <p className="text-slate-600 font-light leading-relaxed">
-                    Let intuition guide your choices as AI learns the poetry of your personal aesthetic.
+                    Organize your clothes digitally. AI automatically categorizes items by type, color, and style.
                   </p>
                 </div>
 
