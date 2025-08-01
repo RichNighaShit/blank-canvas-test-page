@@ -71,17 +71,32 @@ const PoeticStanzas: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const getPositionClasses = (position: string) => {
+  const getPositionClasses = (position: string, stanzaId: number) => {
+    // Calculate smart positioning to avoid UI overlaps
+    const baseVerticalOffset = (stanzaId % 3) * 120 - 60; // Vary vertical position
+
     switch (position) {
       case 'left':
-        return 'left-8 text-left';
+        return `left-8 text-left`;
       case 'right':
-        return 'right-8 text-right';
+        return `right-8 lg:right-80 text-right`; // Avoid Velouria showcase on desktop
       case 'center':
-        return 'left-1/2 transform -translate-x-1/2 text-center';
+        return `left-1/2 transform -translate-x-1/2 text-center`;
       default:
-        return 'left-1/2 transform -translate-x-1/2 text-center';
+        return `left-1/2 transform -translate-x-1/2 text-center`;
     }
+  };
+
+  const getVerticalPosition = (stanzaId: number) => {
+    // Stagger vertical positions to avoid overlaps
+    const positions = [
+      'top-1/3 transform -translate-y-1/2',
+      'top-2/3 transform -translate-y-1/2',
+      'top-1/2 transform -translate-y-1/2',
+      'top-1/4 transform -translate-y-1/2',
+      'top-3/4 transform -translate-y-1/2'
+    ];
+    return positions[(stanzaId - 1) % positions.length];
   };
 
   return (
