@@ -70,8 +70,8 @@ const Index = () => {
         />
       )}
 
-      {/* Velouria Design System Showcase */}
-      {pageLoaded && <VelouriaShowcase />}
+      {/* DripMuse AI Style Showcase */}
+      {pageLoaded && <DripMuseShowcase />}
       {/* Botanical Background Pattern */}
       <div className="fixed inset-0 pointer-events-none opacity-10">
         <svg width="100%" height="100%" className="absolute inset-0">
