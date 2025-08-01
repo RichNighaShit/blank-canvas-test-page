@@ -390,6 +390,57 @@
   }
 }
 
+@keyframes museFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(-5px) rotate(-1deg);
+  }
+}
+
+@keyframes museDrift {
+  0% {
+    transform: translateX(0px) translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateX(10px) translateY(-8px) rotate(1deg);
+  }
+  50% {
+    transform: translateX(-5px) translateY(-15px) rotate(-0.5deg);
+  }
+  75% {
+    transform: translateX(-8px) translateY(-5px) rotate(0.8deg);
+  }
+  100% {
+    transform: translateX(0px) translateY(0px) rotate(0deg);
+  }
+}
+
+@keyframes museShimmer {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes museBotanicalDrift {
+  0% {
+    background-position: 0% 0%, 0% 0%, 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%, -100% 100%, 50% -100%;
+  }
+}
+
 @keyframes tutorialPulse {
   0%, 100% {
     opacity: 1;
