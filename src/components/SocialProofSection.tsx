@@ -129,19 +129,19 @@ const SocialProofSection: React.FC = () => {
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-slate-500">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 rounded-full bg-green-400"></div>
-              <span>Featured in Vogue</span>
+              <span>Free to Start</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 rounded-full bg-blue-400"></div>
-              <span>TechCrunch Startup</span>
+              <span>Privacy Focused</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 rounded-full bg-purple-400"></div>
-              <span>Y Combinator W24</span>
+              <span>AI Powered</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 rounded-full bg-pink-400"></div>
-              <span>Apple Design Award</span>
+              <span>Mobile Friendly</span>
             </div>
           </div>
         </div>
