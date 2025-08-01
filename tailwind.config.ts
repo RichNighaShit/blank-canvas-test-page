@@ -204,7 +204,10 @@ export default {
 				'gradient-hero': 'var(--gradient-hero)',
 				'gradient-accent': 'var(--gradient-accent)',
 				'hero-pattern': 'var(--background-hero)',
-				'shimmer-gradient': 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)'
+				'shimmer-gradient': 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+				'gradient-muse': 'linear-gradient(135deg, rgb(221, 190, 216), rgb(230, 224, 244), rgb(217, 175, 195))',
+				'gradient-muse-watercolor': 'radial-gradient(circle, rgba(221, 190, 216, 0.3), rgba(230, 224, 244, 0.2), transparent)',
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))'
 			},
 			boxShadow: {
 				'elegant': 'var(--shadow-elegant)',
