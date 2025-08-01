@@ -1,7 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Volume2, VolumeX, MousePointer, MousePointerOff } from 'lucide-react';
 
-const AmbientSoundLayer: React.FC = () => {
+interface AmbientSoundLayerProps {
+  onMouseTrailToggle?: (enabled: boolean) => void;
+  mouseTrailEnabled?: boolean;
+}
+
+const AmbientSoundLayer: React.FC<AmbientSoundLayerProps> = ({
+  onMouseTrailToggle,
+  mouseTrailEnabled = true
+}) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.3);
   const audioRef = useRef<HTMLAudioElement | null>(null);
