@@ -99,19 +99,20 @@ const MuseIntroAnimation: React.FC<{ onComplete: () => void }> = ({ onComplete }
         <div className="text-center space-y-6 animate-fade-in-scale">
           <div className="relative">
             <h1 className="font-serif text-6xl lg:text-8xl text-slate-800/80 tracking-tight">
-              <span className="inline-block animate-float" style={{ animationDelay: '0s' }}>V</span>
-              <span className="inline-block animate-float" style={{ animationDelay: '0.1s' }}>e</span>
-              <span className="inline-block animate-float" style={{ animationDelay: '0.2s' }}>l</span>
-              <span className="inline-block animate-float" style={{ animationDelay: '0.3s' }}>o</span>
-              <span className="inline-block animate-float" style={{ animationDelay: '0.4s' }}>u</span>
-              <span className="inline-block animate-float" style={{ animationDelay: '0.5s' }}>r</span>
-              <span className="inline-block animate-float" style={{ animationDelay: '0.6s' }}>i</span>
-              <span className="inline-block animate-float" style={{ animationDelay: '0.7s' }}>a</span>
+              <span className="inline-block animate-float" style={{ animationDelay: '0s' }}>D</span>
+              <span className="inline-block animate-float" style={{ animationDelay: '0.1s' }}>r</span>
+              <span className="inline-block animate-float" style={{ animationDelay: '0.2s' }}>i</span>
+              <span className="inline-block animate-float" style={{ animationDelay: '0.3s' }}>p</span>
+              <span className="inline-block animate-float mx-2" style={{ animationDelay: '0.4s' }}></span>
+              <span className="inline-block animate-float" style={{ animationDelay: '0.5s' }}>M</span>
+              <span className="inline-block animate-float" style={{ animationDelay: '0.6s' }}>u</span>
+              <span className="inline-block animate-float" style={{ animationDelay: '0.7s' }}>s</span>
+              <span className="inline-block animate-float" style={{ animationDelay: '0.8s' }}>e</span>
             </h1>
             <div className="absolute inset-0 bg-gradient-to-r from-purple-400/30 via-pink-400/30 to-rose-400/30 blur-3xl rounded-full opacity-50"></div>
           </div>
           <p className="text-lg text-slate-600/70 font-light tracking-widest animate-fade-in" style={{ animationDelay: '1s' }}>
-            awakening your inner muse
+            your AI style companion
           </p>
         </div>
       </div>
