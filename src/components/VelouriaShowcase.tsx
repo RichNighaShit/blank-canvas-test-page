@@ -20,21 +20,21 @@ const DripMuseShowcase: React.FC = () => {
           <div className="space-y-3 text-left">
             <div className="flex items-center space-x-3 text-xs text-slate-600">
               <Palette className="h-3 w-3 text-purple-400" />
-              <span>Muse Color Palette</span>
+              <span>Color Analysis AI</span>
             </div>
             <div className="flex items-center space-x-3 text-xs text-slate-600">
               <Sparkles className="h-3 w-3 text-pink-400" />
-              <span>Glassmorphism UI</span>
+              <span>Smart Wardrobe</span>
             </div>
             <div className="flex items-center space-x-3 text-xs text-slate-600">
               <Heart className="h-3 w-3 text-rose-400" />
-              <span>Poetic Interactions</span>
+              <span>Style Intelligence</span>
             </div>
           </div>
-          
+
           <div className="pt-4 border-t border-white/20">
             <p className="text-xs text-slate-500 italic font-light">
-              "Where technology meets poetry"
+              "Your AI style companion"
             </p>
           </div>
         </div>
