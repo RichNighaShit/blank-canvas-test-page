@@ -60,8 +60,8 @@ const LiveColorDemo: React.FC = () => {
           </h2>
           
           <p className="text-xl text-slate-600 font-light leading-relaxed max-w-2xl mx-auto">
-            Experience DripMuse's AI color analysis technology. Upload a photo and watch as our AI 
-            discovers your most flattering color palette in seconds.
+            See how DripMuse analyzes your features to recommend the most flattering colors.
+            Our AI considers skin tone, hair color, and eye color to create your personalized palette.
           </p>
         </div>
 
