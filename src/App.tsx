@@ -9,18 +9,11 @@ import NetworkStatus from "./components/NetworkStatus";
 import HomePage from "./components/HomePage";
 import Auth from "./pages/Auth"; // Regular import to avoid dynamic import issues
 import { PublicRoute, AuthenticatedRoute, ProtectedRoute, OnboardingRoute } from "./components/RouteGuard";
+import { lazyWithRetry } from "./utils/lazyLoadWithRetry";
 
 // Lazy load components for better bundle splitting with retry logic
-const Dashboard = React.lazy(() => import("./pages/Dashboard"));
-const Wardrobe = React.lazy(() =>
-  import("./pages/Wardrobe").catch(() => {
-    // If dynamic import fails, reload the page to get fresh chunks
-    console.log("Wardrobe chunk loading failed, reloading page...");
-    window.location.reload();
-    // Return a never-resolving promise to prevent further execution
-    return new Promise(() => {});
-  })
-);
+const Dashboard = React.lazy(() => lazyWithRetry(() => import("./pages/Dashboard")));
+const Wardrobe = React.lazy(() => lazyWithRetry(() => import("./pages/Wardrobe")));
 const WardrobeSetup = React.lazy(() => import("./pages/WardrobeSetup"));
 const EditProfile = React.lazy(() => import("./pages/EditProfile"));
 const StyleRecommendations = React.lazy(
