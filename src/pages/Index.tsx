@@ -182,7 +182,7 @@ const Index = () => {
                     Let AI unveil the colors that make your soul sing.
                   </p>
                   <p className="text-sm text-slate-500 font-light italic tracking-widest">
-                    — Powered by Velouria, the ethereal design system —
+                    — Powered by DripMuse AI Style Intelligence —
                   </p>
                 </div>
               </div>
