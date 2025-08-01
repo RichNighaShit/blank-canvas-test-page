@@ -25,6 +25,8 @@ const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [scrollY, setScrollY] = useState(0);
+  const [showIntro, setShowIntro] = useState(true);
+  const [pageLoaded, setPageLoaded] = useState(false);
 
   useEffect(() => {
     if (user) {
