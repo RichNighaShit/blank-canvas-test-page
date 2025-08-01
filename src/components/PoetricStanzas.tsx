@@ -104,14 +104,15 @@ const PoeticStanzas: React.FC = () => {
       {poeticStanzas.map(stanza => (
         <div
           key={stanza.id}
-          className={`absolute top-1/2 transform -translate-y-1/2 ${getPositionClasses(stanza.position)} transition-all duration-1000 ease-out ${
-            visibleStanzas.has(stanza.id) 
-              ? 'opacity-100 translate-y-0' 
+          className={`absolute ${getVerticalPosition(stanza.id)} ${getPositionClasses(stanza.position, stanza.id)} transition-all duration-1000 ease-out ${
+            visibleStanzas.has(stanza.id)
+              ? 'opacity-100 translate-y-0'
               : 'opacity-0 translate-y-8'
           }`}
           style={{
             transitionDelay: `${stanza.delay}ms`,
-            maxWidth: '400px'
+            maxWidth: '350px',
+            zIndex: 5 // Below other UI elements
           }}
         >
           <div className="relative">
