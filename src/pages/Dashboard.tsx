@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/hooks/useAuth';
+import { useWardrobe } from '@/hooks/useStorage';
 import Button from '@/components/ui/Button';
 
 const { width } = Dimensions.get('window');
