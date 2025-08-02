@@ -1,127 +1,53 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useColorScheme } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type Theme = "default" | "muse" | "dark" | "forest";
+type Theme = 'default' | 'dark' | 'muse' | 'forest';
 
-type ThemeProviderProps = {
-  children: React.ReactNode;
-  defaultTheme?: Theme;
-  storageKey?: string;
-};
-
-type ThemeProviderState = {
+interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-};
-
-const initialState: ThemeProviderState = {
-  theme: "default",
-  setTheme: () => null,
-};
-
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
-
-const VALID_THEMES: Theme[] = ["default", "muse", "dark", "forest"];
-
-function isValidTheme(theme: string): theme is Theme {
-  return VALID_THEMES.includes(theme as Theme);
+  colorScheme: 'light' | 'dark' | null | undefined;
 }
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "default",
-  storageKey = "dripmuse-ui-theme",
-  ...props
-}: ThemeProviderProps) {
-  // Initialize with safe default
-  const [theme, setThemeState] = useState<Theme>(defaultTheme);
-  const [isHydrated, setIsHydrated] = useState(false);
+  defaultTheme = 'default',
+}: {
+  children: React.ReactNode;
+  defaultTheme?: Theme;
+}) {
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const colorScheme = useColorScheme();
 
-  // Safe theme setter with validation and localStorage sync
-  const setTheme = useCallback(
-    (newTheme: Theme) => {
-      if (!isValidTheme(newTheme)) {
-        console.warn(`Invalid theme: ${newTheme}. Using default theme.`);
-        return;
-      }
-      setThemeState(newTheme);
-      if (typeof window !== "undefined" && window.localStorage) {
-        try {
-          localStorage.setItem(storageKey, newTheme);
-        } catch (error) {
-          console.warn("Failed to save theme to localStorage:", error);
-        }
-      }
-    },
-    [storageKey]
-  );
-
-  // Load theme from localStorage after mount (hydration)
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    let mounted = true;
-    const loadTheme = () => {
-      try {
-        const stored = localStorage.getItem(storageKey);
-        if (stored && mounted) {
-          // Use setTheme for validation and localStorage sync
-          setTheme(stored as Theme);
-        }
-      } catch (error) {
-        console.warn("Failed to load theme from localStorage:", error);
-      } finally {
-        if (mounted) {
-          setIsHydrated(true);
-        }
+    AsyncStorage.getItem('theme').then((storedTheme) => {
+      if (storedTheme) {
+        setTheme(storedTheme as Theme);
       }
-    };
-    loadTheme();
-    return () => {
-      mounted = false;
-    };
-  }, [storageKey, setTheme]);
+    });
+  }, []);
 
-  // Apply theme to document
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.document) return;
-    try {
-      const root = window.document.documentElement;
-      VALID_THEMES.forEach((t) => root.classList.remove(t));
-      if (isValidTheme(theme)) {
-        root.classList.add(theme);
-      } else {
-        root.classList.add("default");
-      }
-    } catch (error) {
-      console.warn("Failed to apply theme classes:", error);
-    }
-  }, [theme]);
+  const handleSetTheme = (newTheme: Theme) => {
+    setTheme(newTheme);
+    AsyncStorage.setItem('theme', newTheme);
+  };
 
-  // Context value (stable)
-  const value = React.useMemo(
-    () => ({
-      theme,
-      setTheme,
-    }),
-    [theme, setTheme]
-  );
+  const value = {
+    theme,
+    setTheme: handleSetTheme,
+    colorScheme,
+  };
 
-  return (
-    <ThemeProviderContext.Provider {...props} value={value}>
-      {children}
-    </ThemeProviderContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext);
+export function useTheme() {
+  const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
+    throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
-};
+}
