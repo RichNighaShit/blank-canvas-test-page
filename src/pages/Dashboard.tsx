@@ -15,6 +15,7 @@ const { width } = Dimensions.get('window');
 
 const DashboardScreen = () => {
   const { user, signOut } = useAuth();
+  const { wardrobeItems } = useWardrobe();
 
   const handleSignOut = async () => {
     await signOut();
