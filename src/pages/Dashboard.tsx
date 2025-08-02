@@ -100,7 +100,7 @@ const DashboardScreen = () => {
         >
           <View style={{ alignItems: 'center', flex: 1 }}>
             <Text style={{ color: '#ffffff', fontSize: 24, fontWeight: '600' }}>
-              0
+              {wardrobeItems.length}
             </Text>
             <Text style={{ color: '#f1f5f9', fontSize: 12 }}>Wardrobe Items</Text>
           </View>
