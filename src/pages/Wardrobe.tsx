@@ -39,14 +39,15 @@ const WardrobeScreen = () => {
     });
 
     if (!result.canceled) {
-      // In a real app, you would upload this to your backend/Supabase
-      const newItem = {
-        id: Date.now().toString(),
-        uri: result.assets[0].uri,
-        category: 'Unategorized',
-        name: 'New Item',
-      };
-      setWardrobeItems([...wardrobeItems, newItem]);
+      try {
+        await addWardrobeItem({
+          name: 'New Item',
+          category: 'Uncategorized',
+          image_url: result.assets[0].uri,
+        });
+      } catch (error) {
+        Alert.alert('Error', 'Failed to add item to wardrobe');
+      }
     }
   };
 
