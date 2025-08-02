@@ -67,7 +67,7 @@ export class AuthService {
 
       // Create new user
       const newUser: StoredUser = {
-        id: uuidv4(),
+        id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         email,
         password: hashPassword(password),
         created_at: new Date().toISOString(),
