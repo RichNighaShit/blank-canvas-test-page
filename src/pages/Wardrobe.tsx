@@ -13,7 +13,7 @@ import Button from '@/components/ui/Button';
 import { useWardrobe } from '@/hooks/useStorage';
 
 const WardrobeScreen = () => {
-  const [wardrobeItems, setWardrobeItems] = useState([]);
+  const { wardrobeItems, loading, addWardrobeItem } = useWardrobe();
 
   const requestPermissions = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
