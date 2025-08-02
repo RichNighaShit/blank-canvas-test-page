@@ -15,9 +15,18 @@ import Input from '@/components/ui/Input';
 
 const EditProfileScreen = () => {
   const { user, signOut } = useAuth();
+  const { profile, saveProfile } = useProfile();
   const [fullName, setFullName] = useState('');
   const [avatarUri, setAvatarUri] = useState(null);
   const [colorPalette, setColorPalette] = useState('');
+
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || '');
+      setAvatarUri(profile.avatar_url || null);
+      setColorPalette(profile.color_palette || '');
+    }
+  }, [profile]);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
