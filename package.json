@@ -48,8 +48,7 @@
     "react-native-toast-message": "^2.2.1",
     "react-native-modal": "^13.0.1",
     "react-native-paper": "^5.12.3",
-    "react-native-elements": "^3.4.3",
-    "react-native-url-polyfill": "^2.0.0"
+    "react-native-elements": "^3.4.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
