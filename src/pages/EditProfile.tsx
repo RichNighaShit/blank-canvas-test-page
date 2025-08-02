@@ -50,9 +50,17 @@ const EditProfileScreen = () => {
     }
   };
 
-  const saveProfile = async () => {
-    // In a real app, you would save this to Supabase
-    Alert.alert('Success', 'Profile updated successfully!');
+  const saveProfileData = async () => {
+    try {
+      await saveProfile({
+        full_name: fullName,
+        avatar_url: avatarUri,
+        color_palette: colorPalette,
+      });
+      Alert.alert('Success', 'Profile updated successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save profile');
+    }
   };
 
   const handleSignOut = async () => {
