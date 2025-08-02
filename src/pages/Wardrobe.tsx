@@ -10,6 +10,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import Button from '@/components/ui/Button';
+import { useWardrobe } from '@/hooks/useStorage';
 
 const WardrobeScreen = () => {
   const [wardrobeItems, setWardrobeItems] = useState([]);
