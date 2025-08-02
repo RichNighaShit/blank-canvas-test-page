@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
@@ -49,8 +50,8 @@ function MainTabs() {
         component={DashboardScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: size, color }}>🏠</Text>
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 20, color }}>🏠</Text>
           ),
         }}
       />
@@ -59,8 +60,8 @@ function MainTabs() {
         component={WardrobeScreen}
         options={{
           tabBarLabel: 'Wardrobe',
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: size, color }}>👗</Text>
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 20, color }}>👗</Text>
           ),
         }}
       />
@@ -69,8 +70,8 @@ function MainTabs() {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: size, color }}>👤</Text>
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 20, color }}>👤</Text>
           ),
         }}
       />
