@@ -296,7 +296,7 @@ const EditProfileScreen = () => {
         <View style={{ gap: 12 }}>
           <Button
             title="Save Changes"
-            onPress={saveProfile}
+            onPress={saveProfileData}
             style={{
               backgroundColor: '#a855f7',
               paddingVertical: 16,
