@@ -321,7 +321,7 @@ const WardrobeScreen = () => {
                 data={wardrobeItems}
                 numColumns={2}
                 scrollEnabled={false}
-                renderItem={({ item, index }) => (
+                renderItem={({ item }) => (
                   <View
                     style={{
                       flex: 1,
