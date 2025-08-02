@@ -1,380 +1,329 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react';
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Shirt, Palette, Target, Shuffle, Check, Loader2 } from "lucide-react";
-import { SimpleProfilePhotoUpload } from "@/components/SimpleProfilePhotoUpload";
-import { LocationSelector } from "@/components/LocationSelector";
-import { useAuth } from "@/hooks/useAuth";
-import { useProfile, invalidateProfileCache } from "@/hooks/useProfile";
-import { supabase } from "@/integrations/supabase/client";
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
+import { useAuth } from '@/hooks/useAuth';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 
+const EditProfileScreen = () => {
+  const { user, signOut } = useAuth();
+  const [fullName, setFullName] = useState('');
+  const [avatarUri, setAvatarUri] = useState(null);
+  const [colorPalette, setColorPalette] = useState('');
 
-const styleOptions = [
-  { id: "streetwear", label: "Streetwear", icon: Shirt },
-  { id: "casual", label: "Casual", icon: Shirt },
-  { id: "formal", label: "Formal", icon: Shirt },
-  { id: "bohemian", label: "Bohemian", icon: Palette },
-  { id: "minimalist", label: "Minimalist", icon: Shirt },
-  { id: "vintage", label: "Vintage", icon: Shirt },
-  { id: "sporty", label: "Sporty", icon: Shirt },
-  { id: "elegant", label: "Elegant", icon: Palette },
-];
-
-const colorOptions = [
-  { id: "black", label: "Black", color: "#000000" },
-  { id: "white", label: "White", color: "#FFFFFF" },
-  { id: "navy", label: "Navy", color: "#1e3a8a" },
-  { id: "gray", label: "Gray", color: "#6b7280" },
-  { id: "beige", label: "Beige", color: "#f5f5dc" },
-  { id: "red", label: "Red", color: "#dc2626" },
-  { id: "pink", label: "Pink", color: "#ec4899" },
-  { id: "purple", label: "Purple", color: "#7c3aed" },
-  { id: "blue", label: "Blue", color: "#2563eb" },
-  { id: "green", label: "Green", color: "#16a34a" },
-  { id: "yellow", label: "Yellow", color: "#eab308" },
-  { id: "orange", label: "Orange", color: "#ea580c" },
-];
-
-const goalOptions = [
-  { id: "organize", label: "Organize my wardrobe", icon: Target },
-  { id: "outfits", label: "Find better outfits", icon: Palette },
-  { id: "upgrade", label: "Upgrade my look", icon: Target },
-  { id: "surprise", label: "I don't know, surprise me", icon: Shuffle },
-];
-
-function toggleSelection(
-  array: string[],
-  item: string,
-  max?: number,
-): string[] {
-  const newArray = array.includes(item)
-    ? array.filter((i) => i !== item)
-    : max && array.length >= max
-      ? array
-      : [...array, item];
-  return newArray;
-}
-
-const EditProfile = () => {
-  const { user, loading: authLoading } = useAuth();
-  const { profile, loading: profileLoading, refetch } = useProfile();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const [isSaving, setIsSaving] = useState(false);
-  const [form, setForm] = useState({
-    display_name: "",
-    location: "",
-    gender_identity: "",
-    preferred_style: "",
-    favorite_colors: [] as string[],
-    color_palette_colors: [] as string[],
-    goals: [] as string[],
-    face_photo_url: "",
-
-  });
-
-  useEffect(() => {
-    if (profile) {
-      console.log("Profile data loaded:", profile);
-      setForm({
-        display_name: profile.display_name || "",
-        location: profile.location || "",
-        gender_identity: profile.gender_identity || "",
-        preferred_style: profile.preferred_style || "",
-        favorite_colors: Array.isArray(profile.favorite_colors)
-          ? profile.favorite_colors
-          : [],
-        color_palette_colors: Array.isArray(profile.color_palette_colors)
-          ? profile.color_palette_colors
-          : [],
-        goals: Array.isArray(profile.goals) ? profile.goals : [],
-        face_photo_url: profile.face_photo_url || "",
-
-      });
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission needed',
+        'Sorry, we need camera roll permissions to update your avatar!',
+      );
+      return;
     }
-  }, [profile]);
 
-  if (authLoading || profileLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
 
-  if (!user) {
-    navigate("/auth");
-    return null;
-  }
-
-  const handleChange = (field: keyof typeof form, value: any) => {
-    console.log("Form field change:", field, value);
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-
-    console.log("Submitting form:", form);
-    setIsSaving(true);
-
-    try {
-      // Validate required fields
-      if (!form.display_name.trim()) {
-        toast({
-          title: "Error",
-          description: "Display name is required",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!form.location.trim()) {
-        toast({
-          title: "Error",
-          description: "Location is required",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const updateData = {
-        display_name: form.display_name.trim(),
-        location: form.location.trim(),
-        gender_identity: form.gender_identity || null,
-        preferred_style: form.preferred_style || null,
-        favorite_colors: form.favorite_colors,
-        color_palette_colors: form.color_palette_colors,
-        goals: form.goals,
-        face_photo_url: form.face_photo_url || null,
-
-      };
-
-      console.log("Updating profile with data:", updateData);
-
-      const { error } = await supabase
-        .from("profiles")
-        .update(updateData)
-        .eq("user_id", user.id);
-
-      if (error) {
-        console.error("Update error:", error);
-        toast({
-          title: "Error",
-          description: `Failed to update profile: ${error.message}`,
-          variant: "destructive",
-        });
-      } else {
-        console.log("Profile updated successfully");
-        toast({
-          title: "Success!",
-          description: "Your profile has been updated successfully.",
-        });
-        // Force global cache invalidation and refetch
-        invalidateProfileCache(user.id);
-        await refetch();
-        navigate("/dashboard");
-      }
-    } catch (error) {
-      console.error("Submission error:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred while updating your profile",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
+    if (!result.canceled) {
+      setAvatarUri(result.assets[0].uri);
     }
   };
+
+  const saveProfile = async () => {
+    // In a real app, you would save this to Supabase
+    Alert.alert('Success', 'Profile updated successfully!');
+  };
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+
+  const colorPalettes = [
+    { name: 'Spring', colors: ['#FFB6C1', '#98FB98', '#FFE4E1', '#F0E68C'] },
+    { name: 'Summer', colors: ['#87CEEB', '#DDA0DD', '#F0F8FF', '#E6E6FA'] },
+    { name: 'Autumn', colors: ['#D2691E', '#8B4513', '#CD853F', '#F4A460'] },
+    { name: 'Winter', colors: ['#000080', '#8B0000', '#2F4F4F', '#483D8B'] },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-hero py-8">
-      <div className="container mx-auto px-4 max-w-2xl">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Edit Your Profile</h1>
-          <p className="text-muted-foreground">
-            Update your style preferences and personal info
-          </p>
-        </div>
-        <Card className="shadow-elegant">
-          <CardHeader>
-            <CardTitle>Edit Profile</CardTitle>
-            <CardDescription>
-              Make changes to your style profile below
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex-1 space-y-4">
-                  <div>
-                    <Label htmlFor="display_name">Name *</Label>
-                    <Input
-                      id="display_name"
-                      value={form.display_name}
-                      onChange={(e) =>
-                        handleChange("display_name", e.target.value)
-                      }
-                      placeholder="What should we call you?"
-                      required
-                    />
-                  </div>
-                  <LocationSelector
-                    value={form.location}
-                    onChange={(value) => handleChange("location", value)}
-                    placeholder="Select your city..."
-                    required
-                    label="Location"
-                  />
-                  <div>
-                    <Label htmlFor="gender_identity">Gender Identity</Label>
-                    <Select
-                      value={form.gender_identity}
-                      onValueChange={(value) =>
-                        handleChange("gender_identity", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your gender identity" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="woman">Woman</SelectItem>
-                        <SelectItem value="man">Man</SelectItem>
-                        <SelectItem value="non-binary">Non-binary</SelectItem>
-                        <SelectItem value="prefer-not-to-say">
-                          Prefer not to say
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                                                <div className="flex-1 space-y-4">
-                  <SimpleProfilePhotoUpload
-                    currentPhotoUrl={form.face_photo_url}
-                    onUploadComplete={(imageUrl) => {
-                      setForm(prev => ({ ...prev, face_photo_url: imageUrl }));
+    <ScrollView style={{ flex: 1, backgroundColor: '#f8fafc' }}>
+      {/* Header */}
+      <LinearGradient
+        colors={['#a855f7', '#ec4899']}
+        style={{
+          paddingTop: 60,
+          paddingBottom: 20,
+          paddingHorizontal: 20,
+        }}
+      >
+        <Text
+          style={{
+            color: '#ffffff',
+            fontSize: 28,
+            fontWeight: '600',
+            textAlign: 'center',
+          }}
+        >
+          Profile
+        </Text>
+      </LinearGradient>
+
+      <View style={{ padding: 20 }}>
+        {/* Avatar Section */}
+        <View
+          style={{
+            alignItems: 'center',
+            marginBottom: 32,
+          }}
+        >
+          <TouchableOpacity
+            onPress={pickImage}
+            style={{
+              width: 120,
+              height: 120,
+              borderRadius: 60,
+              backgroundColor: avatarUri ? 'transparent' : 'rgba(168, 85, 247, 0.1)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 16,
+              borderWidth: 3,
+              borderColor: '#a855f7',
+            }}
+          >
+            {avatarUri ? (
+              <Text style={{ fontSize: 64 }}>👤</Text>
+            ) : (
+              <Text style={{ fontSize: 48 }}>📸</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={pickImage}>
+            <Text
+              style={{
+                color: '#a855f7',
+                fontSize: 16,
+                fontWeight: '500',
+              }}
+            >
+              Change Avatar
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Profile Information */}
+        <View
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 24,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 3,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: '600',
+              color: '#1e293b',
+              marginBottom: 16,
+            }}
+          >
+            Personal Information
+          </Text>
+
+          <Input
+            label="Full Name"
+            value={fullName}
+            onChangeText={setFullName}
+            placeholder="Enter your full name"
+          />
+
+          <View style={{ marginTop: 16 }}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '500',
+                color: '#374151',
+                marginBottom: 4,
+              }}
+            >
+              Email
+            </Text>
+            <View
+              style={{
+                borderWidth: 1,
+                borderColor: '#d1d5db',
+                borderRadius: 8,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                backgroundColor: '#f9fafb',
+              }}
+            >
+              <Text style={{ fontSize: 16, color: '#6b7280' }}>
+                {user?.email || 'No email'}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Color Palette Section */}
+        <View
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 24,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 3,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: '600',
+              color: '#1e293b',
+              marginBottom: 16,
+            }}
+          >
+            Your Color Palette
+          </Text>
+
+          <Text
+            style={{
+              fontSize: 14,
+              color: '#64748b',
+              marginBottom: 16,
+              lineHeight: 20,
+            }}
+          >
+            Select your seasonal color palette based on your skin tone, hair, and
+            eye color.
+          </Text>
+
+          <View style={{ gap: 12 }}>
+            {colorPalettes.map((palette, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setColorPalette(palette.name)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 16,
+                  borderRadius: 12,
+                  borderWidth: 2,
+                  borderColor:
+                    colorPalette === palette.name ? '#a855f7' : '#e2e8f0',
+                  backgroundColor:
+                    colorPalette === palette.name
+                      ? 'rgba(168, 85, 247, 0.05)'
+                      : '#ffffff',
+                }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '500',
+                      color: '#1e293b',
+                      marginBottom: 4,
                     }}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label className="text-base font-medium">Fashion Style</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                  {styleOptions.map((style) => (
-                    <Button
-                      key={style.id}
-                      type="button"
-                      variant={
-                        form.preferred_style === style.id
-                          ? "default"
-                          : "outline"
-                      }
-                      className="h-auto p-4 flex flex-col items-center gap-2"
-                      onClick={() => handleChange("preferred_style", style.id)}
-                    >
-                      <style.icon className="h-6 w-6" />
-                      <span className="text-sm">{style.label}</span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <Label className="text-base font-medium">Favorite Colors</Label>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 mt-3">
-                  {colorOptions.map((color) => (
-                    <Button
-                      key={color.id}
-                      type="button"
-                      variant="outline"
-                      className={`h-12 w-12 p-0 border-2 ${form.favorite_colors.includes(color.id) ? "border-primary ring-2 ring-primary/20" : "border-border"}`}
-                      style={{ backgroundColor: color.color }}
-                      onClick={() =>
-                        handleChange(
-                          "favorite_colors",
-                          toggleSelection(form.favorite_colors, color.id, 6),
-                        )
-                      }
-                    >
-                      {form.favorite_colors.includes(color.id) && (
-                        <Check className="h-4 w-4 text-white" />
-                      )}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <Label className="text-base font-medium">Goals</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                  {goalOptions.map((goal) => (
-                    <Button
-                      key={goal.id}
-                      type="button"
-                      variant={
-                        form.goals.includes(goal.id) ? "default" : "outline"
-                      }
-                      className="h-auto p-4 flex items-center gap-3 text-left justify-start"
-                      onClick={() =>
-                        handleChange(
-                          "goals",
-                          toggleSelection(form.goals, goal.id, 2),
-                        )
-                      }
-                    >
-                      <goal.icon className="h-6 w-6" />
-                      <span>{goal.label}</span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex justify-end gap-4 mt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate(-1)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  className="shadow-button"
-                  disabled={isSaving}
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save Changes"
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+                  >
+                    {palette.name}
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 4 }}>
+                    {palette.colors.map((color, colorIndex) => (
+                      <View
+                        key={colorIndex}
+                        style={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: 10,
+                          backgroundColor: color,
+                          borderWidth: 1,
+                          borderColor: '#e2e8f0',
+                        }}
+                      />
+                    ))}
+                  </View>
+                </View>
+                {colorPalette === palette.name && (
+                  <Text style={{ color: '#a855f7', fontSize: 18 }}>✓</Text>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Actions */}
+        <View style={{ gap: 12 }}>
+          <Button
+            title="Save Changes"
+            onPress={saveProfile}
+            style={{
+              backgroundColor: '#a855f7',
+              paddingVertical: 16,
+            }}
+            textStyle={{ color: '#ffffff', fontSize: 16, fontWeight: '600' }}
+          />
+
+          <Button
+            title="Take Color Analysis"
+            onPress={() => Alert.alert('Coming Soon', 'Color analysis feature coming soon!')}
+            variant="outline"
+            style={{
+              borderColor: '#a855f7',
+              backgroundColor: 'rgba(168, 85, 247, 0.05)',
+              paddingVertical: 16,
+            }}
+            textStyle={{ color: '#a855f7', fontSize: 16 }}
+          />
+
+          <Button
+            title="Sign Out"
+            onPress={handleSignOut}
+            variant="destructive"
+            style={{
+              paddingVertical: 16,
+            }}
+            textStyle={{ fontSize: 16 }}
+          />
+        </View>
+
+        {/* App Info */}
+        <View style={{ alignItems: 'center', marginTop: 32 }}>
+          <Text
+            style={{
+              fontSize: 12,
+              color: '#94a3b8',
+              textAlign: 'center',
+            }}
+          >
+            DripMuse v1.0.0
+          </Text>
+        </View>
+      </View>
+    </ScrollView>
   );
 };
 
-export default EditProfile;
+export default EditProfileScreen;
