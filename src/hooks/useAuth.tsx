@@ -1,10 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session, AuthError } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { AuthService, User, AuthError } from '@/services/authService';
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>;
@@ -15,51 +13,79 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Check for existing session on app start
+    const checkExistingSession = async () => {
+      try {
+        const currentUser = await AuthService.getCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Error checking existing session:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    checkExistingSession();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    setLoading(true);
+    try {
+      const result = await AuthService.signIn(email, password);
+      
+      if (result.user) {
+        setUser(result.user);
+        return { error: null };
+      } else {
+        return { error: result.error || { message: 'Sign in failed' } };
+      }
+    } catch (error) {
+      return { error: { message: 'Network error. Please try again.' } };
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    return { error };
+    setLoading(true);
+    try {
+      const result = await AuthService.signUp(email, password);
+      
+      if (result.user) {
+        // Auto sign in after sign up
+        const signInResult = await AuthService.signIn(email, password);
+        if (signInResult.user) {
+          setUser(signInResult.user);
+        }
+        return { error: null };
+      } else {
+        return { error: result.error || { message: 'Sign up failed' } };
+      }
+    } catch (error) {
+      return { error: { message: 'Network error. Please try again.' } };
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    setLoading(true);
+    try {
+      const result = await AuthService.signOut();
+      setUser(null);
+      return { error: result.error || null };
+    } catch (error) {
+      return { error: { message: 'Sign out failed' } };
+    } finally {
+      setLoading(false);
+    }
   };
 
   const value = {
     user,
-    session,
     loading,
     signIn,
     signUp,
