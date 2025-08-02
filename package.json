@@ -39,7 +39,7 @@
     "react-native-svg": "^15.8.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-community/netinfo": "^11.3.1",
-    "@supabase/supabase-js": "^2.51.0",
+    "expo-sqlite": "~15.1.0",
     "react-hook-form": "^7.53.0",
     "zod": "^3.23.8",
     "date-fns": "^3.6.0",
