@@ -7,7 +7,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Toast from 'react-native-toast-message';
 import 'react-native-url-polyfill/auto';
 
-// Import screens (we'll create these)
+// Import screens
 import AuthScreen from './src/pages/Auth';
 import DashboardScreen from './src/pages/Dashboard';
 import WardrobeScreen from './src/pages/Wardrobe';
@@ -17,6 +17,7 @@ import IndexScreen from './src/pages/Index';
 // Import providers and context
 import { OnboardingProvider } from './src/components/onboarding/OnboardingProvider';
 import { ThemeProvider } from './src/hooks/useTheme';
+import { AuthProvider } from './src/hooks/useAuth';
 import ErrorBoundary from './src/components/ErrorBoundary';
 
 const Stack = createStackNavigator();
@@ -31,7 +32,16 @@ function MainTabs() {
           backgroundColor: 'white',
           borderTopWidth: 1,
           borderTopColor: '#e5e7eb',
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 60,
         },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '500',
+        },
+        tabBarActiveTintColor: '#a855f7',
+        tabBarInactiveTintColor: '#64748b',
       }}
     >
       <Tab.Screen 
@@ -39,6 +49,9 @@ function MainTabs() {
         component={DashboardScreen}
         options={{
           tabBarLabel: 'Home',
+          tabBarIcon: ({ color, size }) => (
+            <Text style={{ fontSize: size, color }}>🏠</Text>
+          ),
         }}
       />
       <Tab.Screen 
@@ -46,6 +59,9 @@ function MainTabs() {
         component={WardrobeScreen}
         options={{
           tabBarLabel: 'Wardrobe',
+          tabBarIcon: ({ color, size }) => (
+            <Text style={{ fontSize: size, color }}>👗</Text>
+          ),
         }}
       />
       <Tab.Screen 
@@ -53,6 +69,9 @@ function MainTabs() {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
+          tabBarIcon: ({ color, size }) => (
+            <Text style={{ fontSize: size, color }}>👤</Text>
+          ),
         }}
       />
     </Tab.Navigator>
@@ -79,13 +98,15 @@ export default function App() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <ThemeProvider defaultTheme="default">
-          <OnboardingProvider>
-            <NavigationContainer>
-              <AppNavigator />
-              <StatusBar style="auto" />
-              <Toast />
-            </NavigationContainer>
-          </OnboardingProvider>
+          <AuthProvider>
+            <OnboardingProvider>
+              <NavigationContainer>
+                <AppNavigator />
+                <StatusBar style="auto" />
+                <Toast />
+              </NavigationContainer>
+            </OnboardingProvider>
+          </AuthProvider>
         </ThemeProvider>
       </ErrorBoundary>
     </SafeAreaProvider>
