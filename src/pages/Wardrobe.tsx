@@ -1,383 +1,378 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
-import { supabase } from "@/integrations/supabase/client";
-import { WardrobeItemCard } from "@/components/WardrobeItemCard";
-import { WardrobeUploadFlow } from "@/components/WardrobeUploadFlow";
-import { BatchDeleteWardrobe } from "@/components/BatchDeleteWardrobe";
-import Header from "@/components/Header";
-import { Search, Filter, Sparkles, Shirt, Grid3X3, List } from "lucide-react";
-import { usePerformance } from "@/hooks/usePerformance";
-import { PerformanceCache, CACHE_NAMESPACES } from "@/lib/performanceCache";
-import { getErrorMessage, logError } from "@/lib/errorUtils";
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  FlatList,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
+import Button from '@/components/ui/Button';
 
-interface ClothingItem {
-  id: string;
-  name: string;
-  photo_url: string;
-  category: string;
-  tags: string[];
-  color: string[];
-  style: string;
-  occasion: string[];
-  season: string[];
-  user_id: string;
-  created_at?: string;
-  updated_at?: string;
-}
+const WardrobeScreen = () => {
+  const [wardrobeItems, setWardrobeItems] = useState([]);
 
-const Wardrobe = () => {
-  const [items, setItems] = useState<ClothingItem[]>([]);
-  const [filteredItems, setFilteredItems] = useState<ClothingItem[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const { toast } = useToast();
-  const { user, loading: authLoading } = useAuth();
-  const { profile, loading: profileLoading } = useProfile();
-  const navigate = useNavigate();
+  const requestPermissions = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission needed',
+        'Sorry, we need camera roll permissions to add clothing items!',
+      );
+      return false;
+    }
+    return true;
+  };
 
-  // Performance optimization
-  const { executeWithCache } = usePerformance({
-    cacheNamespace: CACHE_NAMESPACES.WARDROBE_ITEMS,
-    enableCaching: true,
-    enableMonitoring: true,
-  });
+  const pickImage = async () => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      // In a real app, you would upload this to your backend/Supabase
+      const newItem = {
+        id: Date.now().toString(),
+        uri: result.assets[0].uri,
+        category: 'Unategorized',
+        name: 'New Item',
+      };
+      setWardrobeItems([...wardrobeItems, newItem]);
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission needed',
+        'Sorry, we need camera permissions to take photos!',
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      const newItem = {
+        id: Date.now().toString(),
+        uri: result.assets[0].uri,
+        category: 'Uncategorized',
+        name: 'New Item',
+      };
+      setWardrobeItems([...wardrobeItems, newItem]);
+    }
+  };
 
   const categories = [
-    "tops",
-    "bottoms",
-    "dresses",
-    "outerwear",
-    "shoes",
-    "accessories",
+    'All',
+    'Tops',
+    'Bottoms',
+    'Dresses',
+    'Outerwear',
+    'Shoes',
+    'Accessories',
   ];
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/auth");
-    }
-  }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    if (user) {
-      fetchWardrobeItems();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    filterItems();
-  }, [items, selectedCategory, searchQuery]);
-
-  const fetchWardrobeItems = async () => {
-    if (!user) return;
-
-    try {
-      // Check cache first
-      const cacheKey = `wardrobe_items_${user.id}`;
-      const cachedItems = PerformanceCache.get<ClothingItem[]>(
-        cacheKey,
-        CACHE_NAMESPACES.WARDROBE_ITEMS,
-      );
-
-      if (cachedItems) {
-        setItems(cachedItems);
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("wardrobe_items")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        const errorMessage = getErrorMessage(error);
-        logError(error, "Error fetching wardrobe items");
-        toast({
-          title: "Error",
-          description: `Failed to load wardrobe items: ${errorMessage}`,
-          variant: "destructive",
-        });
-      } else {
-        setItems(data || []);
-
-        // Cache the items for 5 minutes
-        PerformanceCache.set(cacheKey, data || [], {
-          ttl: 5 * 60 * 1000,
-          namespace: CACHE_NAMESPACES.WARDROBE_ITEMS,
-        });
-      }
-    } catch (error) {
-      logError(error, "Error fetching wardrobe items");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterItems = () => {
-    let filtered = items;
-
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((item) => item.category === selectedCategory);
-    }
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (item) =>
-          item.name.toLowerCase().includes(query) ||
-          item.category.toLowerCase().includes(query) ||
-          item.style.toLowerCase().includes(query) ||
-          item.tags.some((tag) => tag.toLowerCase().includes(query)) ||
-          item.color.some((color) => color.toLowerCase().includes(query)),
-      );
-    }
-
-    setFilteredItems(filtered);
-  };
-
-  const handleItemAdded = (newItem: ClothingItem) => {
-    setItems((prev) => [newItem, ...prev]);
-
-    // Clear cache to refresh data
-    PerformanceCache.clearNamespace(CACHE_NAMESPACES.WARDROBE_ITEMS);
-
-    toast({
-      title: "Success",
-      description: "Item added to your wardrobe successfully!",
-    });
-  };
-
-  const updateItem = (id: string, updates: Partial<ClothingItem>) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...updates } : item)),
-    );
-  };
-
-  const deleteItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-
-    // Clear cache to ensure fresh data on next load
-    PerformanceCache.clearNamespace(CACHE_NAMESPACES.WARDROBE_ITEMS);
-  };
-
-  const batchDeleteItems = (ids: string[]) => {
-    setItems((prev) => prev.filter((item) => !ids.includes(item.id)));
-
-    // Clear cache to ensure fresh data on next load
-    PerformanceCache.clearNamespace(CACHE_NAMESPACES.WARDROBE_ITEMS);
-  };
-
-  if (authLoading || profileLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-6">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center animate-pulse">
-            <Sparkles className="h-8 w-8 text-white" />
-          </div>
-          <p className="text-muted-foreground text-lg animate-pulse">
-            Loading your wardrobe...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-hero">
-      <Header />
+    <View style={{ flex: 1, backgroundColor: '#f8fafc' }}>
+      {/* Header */}
+      <LinearGradient
+        colors={['#a855f7', '#ec4899']}
+        style={{
+          paddingTop: 60,
+          paddingBottom: 20,
+          paddingHorizontal: 20,
+        }}
+      >
+        <Text
+          style={{
+            color: '#ffffff',
+            fontSize: 28,
+            fontWeight: '600',
+            textAlign: 'center',
+          }}
+        >
+          My Wardrobe
+        </Text>
+        <Text
+          style={{
+            color: '#f1f5f9',
+            fontSize: 16,
+            textAlign: 'center',
+            marginTop: 4,
+          }}
+        >
+          {wardrobeItems.length} items in your collection
+        </Text>
+      </LinearGradient>
 
-      <div className="container mx-auto px-4 py-12 max-w-7xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-heading mb-2">
-                My Wardrobe
-              </h1>
-              <p className="text-xl text-muted-foreground">
-                {filteredItems.length} items • {items.length} total
-              </p>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <Card className="card-premium">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Shirt className="h-5 w-5 text-purple-600" />
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {items.filter((i) => i.category === "tops").length}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Tops</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="card-premium">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Shirt className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {items.filter((i) => i.category === "bottoms").length}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Bottoms</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="card-premium">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Shirt className="h-5 w-5 text-pink-600" />
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {items.filter((i) => i.category === "dresses").length}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Dresses</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="card-premium">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Shirt className="h-5 w-5 text-green-600" />
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {items.filter((i) => i.category === "shoes").length}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Shoes</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Upload Section */}
-        <div className="mb-8">
-          <WardrobeUploadFlow onItemAdded={handleItemAdded} />
-        </div>
-
-        {/* Controls */}
-        <div className="mb-8 space-y-4">
-          {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search your wardrobe..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            <Select
-              value={selectedCategory}
-              onValueChange={setSelectedCategory}
-            >
-              <SelectTrigger className="w-full md:w-48">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <div className="flex items-center space-x-2">
-              <Button
-                variant={viewMode === "grid" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("grid")}
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("list")}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Batch Actions */}
-          {filteredItems.length > 0 && (
-            <BatchDeleteWardrobe
-              items={filteredItems}
-              onDelete={batchDeleteItems}
-            />
-          )}
-        </div>
-
-        {/* Items Grid */}
-        {filteredItems.length === 0 && !loading ? (
-          <Card className="text-center p-12">
-            <CardContent>
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shirt className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">
-                Your Wardrobe is Empty
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                Start building your digital wardrobe by uploading photos of your
-                clothes.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div
-            className={`grid gap-4 sm:gap-6 ${
-              viewMode === "grid"
-                ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-                : "grid-cols-1"
-            }`}
+      <ScrollView style={{ flex: 1 }}>
+        {/* Add Items Section */}
+        <View style={{ padding: 20 }}>
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: '600',
+              color: '#1e293b',
+              marginBottom: 16,
+            }}
           >
-            {filteredItems.map((item) => (
-              <WardrobeItemCard
-                key={item.id}
-                item={item}
-                onUpdate={updateItem}
-                onDelete={deleteItem}
-                viewMode={viewMode}
+            Add New Items
+          </Text>
+
+          <View
+            style={{
+              flexDirection: 'row',
+              gap: 12,
+              marginBottom: 32,
+            }}
+          >
+            <TouchableOpacity
+              onPress={takePhoto}
+              style={{
+                flex: 1,
+                backgroundColor: '#ffffff',
+                borderRadius: 16,
+                padding: 20,
+                alignItems: 'center',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 3,
+              }}
+            >
+              <Text style={{ fontSize: 32, marginBottom: 8 }}>📸</Text>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '500',
+                  color: '#1e293b',
+                  textAlign: 'center',
+                }}
+              >
+                Take Photo
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: '#64748b',
+                  textAlign: 'center',
+                  marginTop: 4,
+                }}
+              >
+                Use camera
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={pickImage}
+              style={{
+                flex: 1,
+                backgroundColor: '#ffffff',
+                borderRadius: 16,
+                padding: 20,
+                alignItems: 'center',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 3,
+              }}
+            >
+              <Text style={{ fontSize: 32, marginBottom: 8 }}>🖼️</Text>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '500',
+                  color: '#1e293b',
+                  textAlign: 'center',
+                }}
+              >
+                From Gallery
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: '#64748b',
+                  textAlign: 'center',
+                  marginTop: 4,
+                }}
+              >
+                Choose existing
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Categories */}
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: '600',
+              color: '#1e293b',
+              marginBottom: 16,
+            }}
+          >
+            Categories
+          </Text>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ marginBottom: 24 }}
+          >
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              {categories.map((category, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={{
+                    backgroundColor:
+                      index === 0 ? '#a855f7' : 'rgba(255, 255, 255, 0.8)',
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    borderRadius: 20,
+                    borderWidth: index === 0 ? 0 : 1,
+                    borderColor: '#e2e8f0',
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: index === 0 ? '#ffffff' : '#64748b',
+                      fontSize: 14,
+                      fontWeight: '500',
+                    }}
+                  >
+                    {category}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+
+          {/* Wardrobe Items */}
+          {wardrobeItems.length === 0 ? (
+            <View
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: 16,
+                padding: 40,
+                alignItems: 'center',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 3,
+              }}
+            >
+              <Text style={{ fontSize: 64, marginBottom: 16 }}>👗</Text>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '500',
+                  color: '#1e293b',
+                  textAlign: 'center',
+                  marginBottom: 8,
+                }}
+              >
+                Your wardrobe is empty
+              </Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: '#64748b',
+                  textAlign: 'center',
+                  lineHeight: 20,
+                }}
+              >
+                Start building your digital wardrobe by adding photos of your
+                clothes. Our AI will help categorize and analyze them for you.
+              </Text>
+            </View>
+          ) : (
+            <View>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: '600',
+                  color: '#1e293b',
+                  marginBottom: 16,
+                }}
+              >
+                Your Items
+              </Text>
+              <FlatList
+                data={wardrobeItems}
+                numColumns={2}
+                scrollEnabled={false}
+                renderItem={({ item, index }) => (
+                  <View
+                    style={{
+                      flex: 1,
+                      margin: 8,
+                      backgroundColor: '#ffffff',
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 8,
+                      elevation: 3,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: '100%',
+                        aspectRatio: 1,
+                        backgroundColor: '#f1f5f9',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text style={{ fontSize: 48 }}>👔</Text>
+                    </View>
+                    <View style={{ padding: 12 }}>
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          fontWeight: '500',
+                          color: '#1e293b',
+                        }}
+                      >
+                        {item.name}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: '#64748b',
+                          marginTop: 2,
+                        }}
+                      >
+                        {item.category}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+                keyExtractor={(item) => item.id}
               />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
-export default Wardrobe;
+export default WardrobeScreen;
